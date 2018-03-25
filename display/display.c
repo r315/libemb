@@ -136,7 +136,7 @@ char prec;
 	prec = 0;
 	while ((prec++) < places){
 			f *= 10;
-			frac_part = (frac_part * 10) + ((long)f%10);			
+			frac_part = (frac_part * 10) + (long)f - ((long)f / 10) * 10;  //((long)f%10);			
 	}
 
     xitoa(int_part, -10, 0);
@@ -195,14 +195,19 @@ void DISPLAY_printf(const char* str, ...){
 		if (d == 'u') r = 10;
 		if (d == 'd') r = -10;
 		if (d == 'X') r = 16;
-		if (d == 'b') r = 2;		
+		if (d == 'b') r = 2;
+
+		if(d == 'p'){
+			DISPLAY_puts("0x");
+			r = 16;
+		}		
 		
 		if(d == 'f'){
 			if(!f)
 				w = 6;						// dafault 6 decimal places
 			xftoa(va_arg(arp, double), w);			
 			continue;
-		}
+		}		
 		
 		if (!r) break;
 		
