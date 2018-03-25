@@ -31,7 +31,7 @@
 #define SystemCoreClock 100000000UL
 
 #elif defined(__ESP03__)
-#include <system.h>
+//#include <system.h>
 #define DelayMs(x) ets_delay_us(x * 1000)
 #endif /* __EMU__ */
 

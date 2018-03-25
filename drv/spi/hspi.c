@@ -1,5 +1,5 @@
 #include "hspi.h"
-#include <hw/pin_mux_register.h>
+#include <pin_mux_register.h>
 
 #define __min(a,b) ((a > b) ? (b):(a))
 

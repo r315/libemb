@@ -1,10 +1,10 @@
 #ifndef INCLUDE_HSPI_H_
 #define INCLUDE_HSPI_H_
 
-#include "spi_register.h"
+#include <spi_register.h>
 #include <c_types.h>
-#include <hw/eagle_soc.h>
-#include <hw/pin_mux_register.h>
+#include <eagle_soc.h>
+#include <pin_mux_register.h>
 #include <gpio.h>
 
 #define SPI         0

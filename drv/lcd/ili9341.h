@@ -15,7 +15,7 @@
 #if defined(__ESP03__)
 #define SPI_Send HSPI_Send
 #include <hspi.h>
-#include "hw/pin_mux_register.h"
+#include <pin_mux_register.h>
 #else
 #include <stdint.h>
 #include <spi.h>
