@@ -35,40 +35,12 @@ enum Benvent{
 * @brief Button connections
 *	P1.14, p1.15, p1.16, p1.17, p1.28
 **/
-
-#if 0
-#if defined(__LPCXpresso__)
-	#define BUTTON_LEFT	 (1<<3)
-	#define BUTTON_RIGHT (1<<1)
-	#define BUTTON_DOWN	 (1<<21)
-	#define BUTTON_UP	   (1<<2)
-	#define BUTTON_A     (1<<26)    
-#elif defined(LCD_PORTRAIT)
-	#define BUTTON_UP    (1<<17) //0x1001C000
-	#define BUTTON_DOWN  (1<<15) //0x10034000
-	#define BUTTON_LEFT  (1<<28) //0x0003C000
-	#define BUTTON_RIGHT (1<<16) //0x1002C000
-	#define BUTTON_A     (1<<14) //0x10038000
-#elif defined(LCD_LANDSCAPE) || defined(__EMU__)
-	#define BUTTON_UP    (1<<15) //0x10034000
+#if defined(__BLUEBOARD__) || defined(__EMU__)
+    #define BUTTON_UP    (1<<15) //0x10034000
 	#define BUTTON_DOWN  (1<<17) //0x1001C000
 	#define BUTTON_LEFT  (1<<16) //0x1002C000
 	#define BUTTON_RIGHT (1<<28) //0x0003C000
-	#define BUTTON_A     (1<<14) //0x10038000    
-#else
-	#define BUTTON_UP    (1<<16) //0x1002C000
-	#define BUTTON_DOWN  (1<<28) //0x0003C000
-	#define BUTTON_LEFT  (1<<17) //0x1001C000
-	#define BUTTON_RIGHT (1<<15) //0x10034000
 	#define BUTTON_A     (1<<14) //0x10038000
-#endif 
-#endif //TODO make buttons rotation dynamic
- 
-#define BUTTON_UP    (1<<15) //0x10034000
-#define BUTTON_DOWN  (1<<17) //0x1001C000
-#define BUTTON_LEFT  (1<<16) //0x1002C000
-#define BUTTON_RIGHT (1<<28) //0x0003C000
-#define BUTTON_A     (1<<14) //0x10038000
 
 #if defined(__USE_CMSIS)
 	#if defined(__LPCXpresso__)
@@ -90,6 +62,18 @@ enum Benvent{
 
 #define BUTTON_MASK (BUTTON_UP | BUTTON_DOWN | BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A )
 
+#elif defined(__TDSO__)
+	#define BUTTON_LEFT  	(1<<15)
+	#define BUTTON_RIGHT 	(1<<13)
+	#define BUTTON_CENTER	(1<<14)
+	#define BUTTON_A 		BUTTON_CENTER
+
+	#define BUTTON_Capture() (~GPIO_Read(GPIOB) & BUTTON_MASK)
+	#define BUTTON_MASK (BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A )
+#endif /* boardselect */
+
+
+
 #if defined(__EMU__)
 #define loop BUTTON_GetEvents() != 256 //SDL_QUIT
 #else
@@ -107,13 +91,13 @@ void BUTTON_Init(int ht);
 * @brief Devolve o estado dos botões, pressionado, largado, mantido ou em contagem. 
 * Não é bloqueante.
 **/
-int BUTTON_Hit(void);
+int BUTTON_Read(void);
 
 /**
 * @brief Devolve o código (bitmap) do botão pressionado. É bloqueante.
 *
 **/
-int BUTTON_Read(void);
+int BUTTON_Get(void);
 
 /**
 * @brief Devolve o código (bitmap) do estado do botão: 

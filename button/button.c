@@ -7,9 +7,8 @@
 * @author	Hugo Reis
 **********************************************************************/
 #include <button.h>
-#include <clock.h>
-
-#include <lpc1768.h>
+#include <gpio.h>
+#include <common.h>
 
 static BUTTON_Controller __button;
 
@@ -18,18 +17,9 @@ void BUTTON_Init(int ht){
     __button.last = BUTTON_EMPTY;
     __button.events = BUTTON_EMPTY;
     __button.htime = ht;
-
-    BUTTON_SetInput(BUTTON_MASK);
-
-/*
-#ifdef __LPC17xx_H__
-    LPC_GPIO1->FIODIR |= BUTTON_MASK;
-#else
-    GPIO1->FIODIR |= BUTTON_MASK;
-#endif*/
 }
 
-int BUTTON_Hit(void){
+int BUTTON_Read(void){
 uint32_t cur;
 
     cur = BUTTON_Capture();
@@ -50,7 +40,7 @@ uint32_t cur;
             }
             if(cur == __button.cur){             // same key still pressed
                 __button.events = BUTTON_TIMING; // start timer
-                __button.counter = CLOCK_GetTicks();
+                __button.counter = GetTick();
                 break;
             }
             __button.cur = cur; // another key was pressed 
@@ -62,7 +52,7 @@ uint32_t cur;
                 break;
             }            
             if(cur == __button.cur){
-                if(CLOCK_ElapsedTicks(__button.counter) > __button.htime){
+                if(ElapsedTicks(__button.counter) > __button.htime){
                     __button.events = BUTTON_HOLD;
                 }   
                 break;
@@ -88,49 +78,17 @@ uint32_t cur;
             break;
             
         default: break;
-    }            
-
-#if 0
-	
-	// check if any buttons pressed
-	if(cur == BUTTON_EMPTY){		
-		//update lastkey pressed and events
-		if(__button.cur != BUTTON_EMPTY){
-			__button.last= __button.cur;
-			__button.cur = BUTTON_EMPTY;
-			__button.events = BUTTON_RELEASED;
-		}
-		return BUTTON_EMPTY;
-	}
-	//update lastkey pressed
-	__button.last = __button.cur;
-	__button.cur = cur;
-
-	// if not the same key pressed, start timer
-	if(__button.cur != __button.last){		
-		__button.counter = TIMER0_GetValue();
-		__button.events = BUTTON_PRESSED;
-		return __button.cur;
-	}
-	
-	//check for timeout and activate hold flag
-	if(TicksToMs(TIMER0_Elapse(__button.counter)) > __button.htime){
-		__button.events = BUTTON_HOLD;
-	}
-	else
-		__button.events = BUTTON_TIMING;
-#endif
-
-    return __button.events; //__button.cur;
+    }
+    return __button.events;
 }
 
 void BUTTON_WaitEvent(int event){
  do{
-     BUTTON_Hit();
+     BUTTON_Read();
  }while(__button.events != event);    
 }
 
-int BUTTON_Read(void){
+int BUTTON_Get(void){
 	BUTTON_WaitEvent(BUTTON_PRESSED);
 	return __button.cur; 
 }

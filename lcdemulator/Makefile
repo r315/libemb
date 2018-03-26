@@ -1,0 +1,42 @@
+GCC =gcc
+#####################################################
+#TARGET =EmulatorTest
+SRCPATH =../button ../display ../lcdemulator
+INCPATH =$(SRCPATH) . ../
+#LIBPATH =../../lib
+#SRCS=emulatorTest.c font8x16.c lcdsdl2.c emulator.c #lcd.c
+#OBJS =$(SRCS:.c=.o)
+#####################################################
+LIBTARGET =emu
+LIBTARGETPATH =$(PWD)
+LIBOBJS =lcdsdl2.o emulator.o lcd.o fonts.o display.o
+#####################################################
+VPATH +=$(SRCPATH)
+
+ifeq ($(shell uname -s),Linux)
+CFLAGS =-Wall -D__EMU__
+LDFLAGS =-lSDL2 -lSDL2main
+else
+CFLAGS =-Wall -D__EMU__
+INCPATH +="C:/tools/SDL2/include"
+LIBPATH +="C:/tools/SDL2/lib" "C:/tools/MinGw/lib"
+LDFLAGS = -w -Wl,-subsystem,windows -lmingw32 -lSDL2main -lSDL2
+endif
+#####################################################
+lib: $(LIBOBJS)
+	ar rcs $(LIBTARGETPATH)/lib$(LIBTARGET).a $(LIBOBJS)
+	rm -f *.o
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(addprefix -I, $(INCPATH)) $(addprefix -L, $(LIBPATH)) $(OBJS) -o $(TARGET) $(LDFLAGS)
+	./$(TARGET) 
+
+clean:
+	rm -f $(OBJS) $(TARGET) $(TARGET).exe $(LIBTARGETPATH)/lib$(LIBTARGET).a
+
+.c.o:
+	$(CC) $(addprefix -I, $(INCPATH)) $(CFLAGS) -c $< -o ./$@
+
+
+#####################################################
+	
