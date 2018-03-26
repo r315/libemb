@@ -12,6 +12,57 @@
 
 #include <stdint.h>
 
+#if defined(__TDSO__)
+
+#if defined(USE_HAL_DRIVER)
+#include "stm32f1xx_hal.h"
+
+extern SPI_HandleTypeDef hspi1;
+
+#define SPI_Init()    // Handle By HAL_Init
+
+#if defined(LCD_DMA)
+#define SPI_Send(x) SPI_Send_DMA(x)
+
+#else
+#define SPI_Send(x)                    \
+{                                      \
+	uint8_t _data = x;                  \
+HAL_SPI_Transmit(&hspi1, &(x), 1, 10);\
+}
+#endif
+
+#else /* USE_HAL_DRIVER */
+
+//#define SPI_16XFER // Not functional
+
+#ifdef SPI_16XFER
+
+void SPI_Send(uint8_t dt){
+	SPI1->CR1 &= ~(SPI_CR1_DFF);
+	SPI1->DR = dt;
+	while((SPI1->SR & SPI_SR_BSY));
+	SPI1->CR1 |= SPI_CR1_DFF;
+}
+
+void SPI_Send16(uint16_t dt){
+	SPI1->DR = dt;
+	while((SPI1->SR & SPI_SR_BSY));
+}
+
+#else /* SPI_16XFER */
+
+void SPI_Send(uint8_t dt){ //TODO Fix for -O3
+	SPI1->DR = dt;
+	while((SPI1->SR & SPI_SR_BSY));
+}
+
+#endif /* LCD_16XFER */
+
+#endif /* USE_HAL_DRIVER */
+
+#else  /* __TDO__ */
+
 #if defined(__USE_CMSIS)
 
 #define SPI_PowerUp() SC->PCONP |= SPI0_ON
@@ -132,4 +183,5 @@ void SPI_Transfer(unsigned short *txBuffer, unsigned short *rxBuffer, int lenght
 **/
 uint16_t SPI_Send(uint16_t data);
 
-#endif
+#endif /* __TDSO__ */
+#endif /* _SPI_H_ */

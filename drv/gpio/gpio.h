@@ -4,6 +4,7 @@
 * @version	2.0
 * @date		30 Out. 2016
 * @modified 25 Mar. 2017
+* @08-2017  New Api for STM32
 * @author	Hugo Reis
 **********************************************************************/
 
@@ -11,8 +12,29 @@
 #define _GPIO_H_
 
 #include <stdint.h>
+#include "common.h"
 
-#if defined(__ARM_ARCH_7M__)
+#if defined(__TDSO__)
+#include <stm32f103xb.h>
+
+#define GPIO_Set(port, pinmask) port->BSRR = pinmask
+#define GPIO_Clr(port, pinmask) port->BRR = pinmask
+#define GPIO_Read(port) port->IDR
+#define GPIO_Write(port) port->ODR
+
+#define GPIO_DEBUG_SWD 			  \
+{                                 \
+			AFIO->MAPR &= (7<<24);\
+			AFIO->MAPR |= (2<<24);\
+}
+#define GPIO_MAP_PA15_TIM2_CH1 	  \
+{                                 \
+			AFIO->MAPR &= (3<<8); \
+			AFIO->MAPR |= (1<<8); \
+}
+
+#elif defined(__BLUEBOARD__) /* __TDSO__ */
+
 #define P0_0
 
 #define GPIO_P0  0
@@ -32,16 +54,15 @@
 #define GPIO_LOW    0
 
 #if defined(__USE_CMSIS)
-#include <LPC17xx.h>
-#define GPIO0 LPC_GPIO0
-#define GPIO1 LPC_GPIO1
-#define GPIO2 LPC_GPIO2
-#define GPIO3 LPC_GPIO3
-#define GPIO4 LPC_GPIO4
-
+	#include <LPC17xx.h>
+	#define GPIO0 LPC_GPIO0
+	#define GPIO1 LPC_GPIO1
+	#define GPIO2 LPC_GPIO2
+	#define GPIO3 LPC_GPIO3
+	#define GPIO4 LPC_GPIO4
 #else
-#include <lpc1768.h>
-#endif
+	#include <lpc1768.h>
+#endif  /* __USE_CMSIS */
 
 #define SETPIN GPIO0->FIOSET
 #define CLRPIN GPIO0->FIOCLR
@@ -97,7 +118,7 @@ void GPIO_SetInt(uint8_t port, uint8_t pin, uint8_t level);
  */
 void GPIO_ResetPINSEL(void);
 
-#elif defined(__LPC2106__)
+#elif defined(__LPC_H2106__) /* __BLUEBOARD__ */
 #include <lpc2106.h>
 /*
 #define GPIO_Set(n) GPIO0->SET = (1 << n)  // change the state of only one pin
@@ -130,6 +151,11 @@ void GPIO_ResetPINSEL(void);
 #define GPIO_SetOutputN(n) FIO0->DIR |= n       //affect multiple pin
 #define GPIO_SetInputN(n)  FIO0->DIR &= ~n      //affect multiple pin
 
-#endif
+#elif defined(__EMU__) /* __LPC_H2106__ */
 
-#endif
+#else
+#error "Define Board"
+
+#endif /* error */
+
+#endif /* _gpio_h_ */

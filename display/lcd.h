@@ -23,9 +23,9 @@
 #endif
 
 #ifdef BGR_MODE
-    #define RGB(r,g,b)  (int)((b<<11) | (g<<5) | r)
+    #define RGB(r,g,b)  (uint16_t)((b<<11) | (g<<5) | r)
 #else
-    #define RGB(r,g,b)  (int)((r<<11) | (g<<5) | b)
+    #define RGB(r,g,b)  (uint16_t)((r<<11) | (g<<5) | b)
 #endif
 
 #if defined(LCD_DMA)
