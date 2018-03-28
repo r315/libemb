@@ -41,6 +41,7 @@ enum Benvent{
 	#define BUTTON_LEFT  (1<<16) //0x1002C000
 	#define BUTTON_RIGHT (1<<28) //0x0003C000
 	#define BUTTON_A     (1<<14) //0x10038000
+    #define BUTTON_CENTER BUTTON_A
 
 #if defined(__USE_CMSIS)
 	#if defined(__LPCXpresso__)

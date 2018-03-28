@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 
-#define COSTUM_LCD
-
-#define LCD_W 256 //240
-#define LCD_H 256 //144
 
 #ifndef LCD_W
 	#define LCD_W LCD_GetWidth()

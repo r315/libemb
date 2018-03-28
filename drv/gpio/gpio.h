@@ -12,7 +12,7 @@
 #define _GPIO_H_
 
 #include <stdint.h>
-#include "common.h"
+#include <common.h>
 
 #if defined(__TDSO__)
 #include <stm32f103xb.h>
@@ -53,16 +53,13 @@
 #define GPIO_HIGH   1
 #define GPIO_LOW    0
 
-#if defined(__USE_CMSIS)
-	#include <LPC17xx.h>
-	#define GPIO0 LPC_GPIO0
-	#define GPIO1 LPC_GPIO1
-	#define GPIO2 LPC_GPIO2
-	#define GPIO3 LPC_GPIO3
-	#define GPIO4 LPC_GPIO4
-#else
-	#include <lpc1768.h>
-#endif  /* __USE_CMSIS */
+
+#define GPIO0 LPC_GPIO0
+#define GPIO1 LPC_GPIO1
+#define GPIO2 LPC_GPIO2
+#define GPIO3 LPC_GPIO3
+#define GPIO4 LPC_GPIO4
+
 
 #define SETPIN GPIO0->FIOSET
 #define CLRPIN GPIO0->FIOCLR

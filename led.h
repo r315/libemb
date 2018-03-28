@@ -29,6 +29,8 @@
 	LED_USB_OFF;                             \
 }
 
+#define LED_ON LED_BLUE_ON
+#define LED_OFF LED_BLUE_OFF
 
 #elif defined(__TDSO__) /* __BLUEBOARD__ */
 /* Led is connected on PB3 in common anode configuration */
