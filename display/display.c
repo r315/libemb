@@ -49,15 +49,14 @@ void DISPLAY_putc(char c)
 			if(!_display.sc)
 				_display.sc = _display.font_h;
 		}
-		if(_display.sc){			
+		if(_display.sc){
 			LCD_Scroll(_display.sc);			
 			_display.sc += _display.font_h;
-
+			if(_display.sc > LCD_GetHeight())
+				_display.sc = _display.font_h;
 			_display.cx = LCD_GetWidth();
-			while(_display.cx){			// limpa a proxima linha
-				DISPLAY_Char(_display.cx,_display.cy,' ');
-				_display.cx -= _display.font_w;
-			}
+			LCD_FillRect(0, _display.cy, LCD_GetWidth(), _display.font_h, _display.backcolor);		
+			_display.cx = 0;
 		}
 		if(c== '\n')
 			return;	
