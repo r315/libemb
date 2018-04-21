@@ -2,7 +2,7 @@ GCC =gcc
 #####################################################
 #TARGET =EmulatorTest
 SRCPATH =../button ../display ../lcdemulator
-INCPATH =$(SRCPATH) . ../
+INCPATH =. ../include
 #LIBPATH =../../lib
 #SRCS=emulatorTest.c font8x16.c lcdsdl2.c emulator.c #lcd.c
 #OBJS =$(SRCS:.c=.o)
