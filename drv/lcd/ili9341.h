@@ -10,16 +10,18 @@
 #ifndef _ili9341_h_
 #define _ili9341_h_
 
-#include <gpio.h>
 
 #if defined(__ESP03__)
 #define SPI_Send HSPI_Send
 #include <hspi.h>
 #include <pin_mux_register.h>
+#include <c_types.h>
 #else
 #include <stdint.h>
 #include <spi.h>
 #endif
+
+#include <gpio.h>
 
 #define LCD_ILI9341
 
