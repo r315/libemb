@@ -152,6 +152,9 @@ void GPIO_ResetPINSEL(void);
 
 #elif defined(__ESP03__)
 
+#define GPIO_OUTPUT_SET(gpio_no, bit_value) \
+gpio_output_set((bit_value)<<gpio_no, ((~(bit_value))&0x01)<<gpio_no, 1<<gpio_no,0)
+
 #else
 #error "Define Board"
 
