@@ -13,27 +13,20 @@
 #include <stdint.h>
 
 #if defined(__TDSO__)
-
-#if defined(USE_HAL_DRIVER)
-#include "stm32f1xx_hal.h"
-
-extern SPI_HandleTypeDef hspi1;
-
-#define SPI_Init()    // Handle By HAL_Init
-
-#if defined(LCD_DMA)
-#define SPI_Send(x) SPI_Send_DMA(x)
-
-#else
-#define SPI_Send(x)                    \
-{                                      \
-	uint8_t _data = x;                  \
-HAL_SPI_Transmit(&hspi1, &(x), 1, 10);\
-}
-#endif
-
-#else /* USE_HAL_DRIVER */
-
+	#if defined(USE_HAL_DRIVER)
+		#include "stm32f1xx_hal.h"
+		extern SPI_HandleTypeDef hspi1;
+		#define SPI_Init()    // Handle By HAL_Init
+		#if defined(LCD_DMA)
+			#define SPI_Send(x) SPI_Send_DMA(x)
+		#else
+			#define SPI_Send(x)                    \
+			{                                      \
+				uint8_t _data = x;                  \
+			HAL_SPI_Transmit(&hspi1, &(x), 1, 10);\
+			}
+		#endif /* LCD_DMA */
+	#else /* USE_HAL_DRIVER */
 //#define SPI_16XFER // Not functional
 
 #ifdef SPI_16XFER
@@ -61,7 +54,12 @@ void SPI_Send(uint8_t dt){ //TODO Fix for -O3
 
 #endif /* USE_HAL_DRIVER */
 
-#else  /* __TDO__ */
+
+#elif defined(__ESP03__) /* __TDSO__ */
+#define SPI_Send HSPI_Send
+#include <hspi.h>
+#include <esp8266/esp8266.h>
+#else  /* __ESP03__ */
 
 #if defined(__USE_CMSIS)
 
@@ -98,7 +96,7 @@ void SPI_Send(uint8_t dt){ //TODO Fix for -O3
 
 #define SPI_ConfigPins() PINCON->PINSEL0 = SPI0_PINS;
 
-#endif
+#endif /* BOARD SELECTION */
 
 #define SPI0_ON (1<<8)
 #define SSP0_ON (1<<21)

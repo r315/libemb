@@ -1,10 +1,8 @@
 #ifndef INCLUDE_HSPI_H_
 #define INCLUDE_HSPI_H_
 
-#include <spi_register.h>
 #include <c_types.h>
-#include <eagle_soc.h>
-#include <pin_mux_register.h>
+#include <esp8266/esp8266.h>
 #include <gpio.h>
 
 #define SPI         0
@@ -26,7 +24,7 @@ extern uint8_t hspi_cs_gpio;
 void HSPI_Init(uint32_t prescaler, Hspi_Mode mode);
 void HSPI_Send_Data(const uint8_t * data, uint8_t datasize);
 
-static inline void HSPI_Wait_Ready(void){while (READ_PERI_REG(SPI_FLASH_CMD(HSPI))&SPI_FLASH_USR);}
+static inline void HSPI_Wait_Ready(void){while (READ_PERI_REG(SPI_CMD(HSPI))&SPI_USR);}
 static inline void HSPI_Set_CS(uint8_t level){if(hspi_cs_gpio != (uint8_t)(-1)) GPIO_OUTPUT_SET(hspi_cs_gpio, level);}
 
 static inline void HSPI_Prepare_TX(uint32_t bytecount)
@@ -34,12 +32,12 @@ static inline void HSPI_Prepare_TX(uint32_t bytecount)
 	uint32_t bitcount = bytecount * 8 - 1;
 	HSPI_Wait_Ready();
 	HSPI_Set_CS(CS_HIGH);
-	WRITE_PERI_REG(SPI_FLASH_USER1(HSPI), (bitcount & SPI_USR_OUT_BITLEN) << SPI_USR_OUT_BITLEN_S);
+	WRITE_PERI_REG(SPI_USER1(HSPI), (bitcount & SPI_USR_MOSI_BITLEN) << SPI_USR_MOSI_BITLEN_S);
 }
 
 static inline void HSPI_Start_TX()
 {
-	SET_PERI_REG_MASK(SPI_FLASH_CMD(HSPI), SPI_FLASH_USR);   // send	
+	SET_PERI_REG_MASK(SPI_CMD(HSPI), SPI_USR);   // send	
 	HSPI_Wait_Ready();
 }
 

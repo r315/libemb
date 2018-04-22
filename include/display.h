@@ -53,6 +53,9 @@ typedef struct{
 
 extern const unsigned char FONTDEFAULT[];
 
+/**
+ * @param initlcd - Flag to instruct lcd initialization
+ */
 void DISPLAY_Init(uint8_t initlcd);
 void DISPLAY_SetFont(uint8_t fnt);
 void DISPLAY_SetAttribute(uint8_t atr);
