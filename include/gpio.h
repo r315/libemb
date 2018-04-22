@@ -150,6 +150,8 @@ void GPIO_ResetPINSEL(void);
 
 #elif defined(__EMU__) /* __LPC_H2106__ */
 
+#elif defined(__ESP03__)
+
 #else
 #error "Define Board"
 
