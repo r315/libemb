@@ -2,6 +2,8 @@
 #define INCLUDE_HSPI_H_
 
 #include <c_types.h>
+#include <esp8266/pin_mux_register.h>
+#include <driver/spi_register.h>
 #include <esp8266/esp8266.h>
 #include <gpio.h>
 
