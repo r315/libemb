@@ -34,8 +34,15 @@
 #define SystemCoreClock 100000000UL
 
 #elif defined(__ESP03__) /* __EMU__  */
-//#include <system.h>
+//#include "c_types.h"
+//#include "esp8266_auxrom.h"
+//#include "esp8266_rom.h"
+//#include "eagle_soc.h"
+//#include "ets_sys.h"
+//#include "nosdk8266.h"
+//#include "nosdki2s.h"
 #define DelayMs(x) ets_delay_us(x * 1000)
+#define GetTicks() xthal_get_ccount()
 #endif /* __EMU__ */
 
 
