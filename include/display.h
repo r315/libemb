@@ -5,8 +5,7 @@
 #include <lcd.h>
 
 #ifndef __EMU__
-	#define toupper(c) ( (c)-'a'+'A' )  // so funciona para tipo unsigned char
-	#define abs(x) ((x) < 0 ? -x : x)
+	#define toupper(c) ( (c)-'a'+'A' )
 #endif 
 
 #define FLOAT_MAX_PRECISION 8

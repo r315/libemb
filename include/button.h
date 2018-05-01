@@ -36,11 +36,11 @@ enum Benvent{
 *	P1.14, p1.15, p1.16, p1.17, p1.28
 **/
 #if defined(__BLUEBOARD__) || defined(__EMU__)
-    #define BUTTON_UP    (1<<15) //0x10034000
-	#define BUTTON_DOWN  (1<<17) //0x1001C000
-	#define BUTTON_LEFT  (1<<16) //0x1002C000
-	#define BUTTON_RIGHT (1<<28) //0x0003C000
-	#define BUTTON_A     (1<<14) //0x10038000
+    #define BUTTON_UP    (1<<15)
+    #define BUTTON_DOWN  (1<<17) //0x1001C000
+    #define BUTTON_LEFT  (1<<16) //0x1002C000
+    #define BUTTON_RIGHT (1<<28) //0x0003C000
+    #define BUTTON_A     (1<<14) //0x10038000
     #define BUTTON_CENTER BUTTON_A
 
 #if defined(__USE_CMSIS)
