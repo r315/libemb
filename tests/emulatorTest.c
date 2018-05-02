@@ -35,7 +35,11 @@ int main(void) {
 #include <button.h>
 #include <lcd.h>
 
+#include <display.h>
+
 #define FONT (unsigned char *)font8x16
+
+void hexDump(char *mem, int len);
 
 extern const unsigned char font8x16[97][16];
 static uint16_t _x, _y;
@@ -117,9 +121,15 @@ int main(int argc, char *argv[]){
 	return 0;
 
 #endif
-     
+
    LCD_Rotation(LCD_LANDSCAPE);
    LCD_SetColors(GREEN,BLACK);  
+	
+	DISPLAY_SetFont(FONT_BOLD);
+	DISPLAY_printf("Hello\n");
+	hexDump((char*)font8x16,128);
+
+     
    //LCD_Clear(BLUE);  
    //LCD_FillRect(10,10,100,100,RED);
    //LCD_WriteString("hello");
