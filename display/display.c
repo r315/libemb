@@ -360,7 +360,7 @@ void DISPLAY_Init(uint8_t initlcd){
 //----------------------------------------------------------
 void DISPLAY_SetFont(uint8_t fnt)
 {
-#ifndef MULTIPLE_FONTS
+#ifdef SINGLE_FONT
 	if(_display.drawChar != drawCharSimple)
 		DISPLAY_Init(OFF);
 #else

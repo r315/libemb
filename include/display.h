@@ -13,13 +13,18 @@
 #define FONTDEFAULT_W 8
 #define FONTDEFAULT_H 8
 
-#ifdef MULTIPLE_FONTS
+#if defined(SINGLE_FONT)
+
+#else
 	#define FONT_TYPE_1
 	#define FONT_TYPE_2
 	#define FONT_TYPE_3
 	#define FONT_TYPE_4
-#endif
 
+	extern const unsigned char FONTBOLD[];
+	extern const unsigned char FONTLCD[];
+	extern const unsigned char FONTPIXELDUST[];
+#endif
 enum Fonts{
 	FONT_DEFAULT,
 	FONT_BOLD,
