@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "display.h"
 
+#define V_SPACING 1
+
 int drawCharSimple(int x, int y, unsigned char *d_char);
 
 static Display _display = {
@@ -44,11 +46,11 @@ void DISPLAY_putc(char c)
 {
 	if (c == '\n' || _display.cx == LCD_GetWidth()){
 		_display.cx = 0;
-		_display.cy += _display.font_h;
+		_display.cy += _display.font_h + V_SPACING;
 		if(_display.cy == LCD_GetHeight()){
 			_display.cy = 0;
 			if(!_display.sc)
-				_display.sc = _display.font_h;
+				_display.sc = _display.font_h + V_SPACING;
 		}
 		if(_display.sc){
 			LCD_Scroll(_display.sc);			
@@ -148,7 +150,7 @@ char prec;
 //-----------------------------------------------------------
 void DISPLAY_printf(const char* str, ...){
 	va_list arp;
-	char d, w, s, l, f;
+	signed char d, w, s, l, f;
 	signed char r;
 
 	va_start(arp, str);
@@ -163,15 +165,17 @@ void DISPLAY_printf(const char* str, ...){
 		w = r = s = l = f = 0;
 		
 		if(d == '.'){
-			d = *str++; f = 1;
+            f = 1;
+			d = *str++; 
 		}		
 		
-		if (d == '0') {
-			d = *str++; s = 1;
+		if (d == '0') {  // printf("%2X",3) produces  3, printf("%02X",3) produces in 03
+            s = 1;
+			d = *str++; 
 		}
 		
 		while ((d >= '0')&&(d <= '9')) {
-			w += w * 10 + (d - '0');
+			w += (w * 10) + (d - '0');
 			d = *str++;
 		}		
 		
@@ -232,7 +236,7 @@ void DISPLAY_printf(const char* str, ...){
 int drawCharSimple(int x, int y, unsigned char *d_char){
 unsigned char w,h;
 	for (h=0; h < _display.font_h; h++){ 	
-		for(w=0; w < _display.font_h; w++){
+		for(w=0; w < _display.font_w; w++){
 			if(*d_char & (0x80 >> w))
 				LCD_Data(_display.forecolor);			
 			else
@@ -317,7 +321,7 @@ int DISPLAY_Char(int x, int y, unsigned char c)
 
     c -= 0x20;    
     LCD_Window(x,y,_display.font_w,_display.font_h);	
-	return _display.drawChar(x, y, (uint8_t*)_display.font+(c*_display.font_h));
+	return _display.drawChar(x, y, (uint8_t*)_display.font + (c * _display.font_h));
 }
 //----------------------------------------------------------
 //
