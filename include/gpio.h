@@ -33,7 +33,7 @@
 			AFIO->MAPR |= (1<<8); \
 }
 
-#elif defined(__BLUEBOARD__) /* __TDSO__ */
+#elif defined(__BB__) /* __TDSO__ */
 
 #define P0_0
 

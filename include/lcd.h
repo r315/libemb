@@ -3,12 +3,10 @@
 
 #if defined(__EMU__)
 	#include <lcdsdl.h>
-#elif defined(__LPCXpresso__) || defined(__TDSO__)
+#elif defined(__LPCXpresso__) || defined(__TDSO__) || defined(__ESP03__)
     #include "ili9341.h"
-#elif defined(__BLUEBOARD__)
+#elif defined(__BB__)
     #include "ili9328.h"
-#elif defined(__ESP03__)
-    #include "ili9341.h"
 #else
 #error "Define a board"
 #endif

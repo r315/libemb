@@ -54,11 +54,11 @@ void DISPLAY_putc(char c)
 		}
 		if(_display.sc){
 			LCD_Scroll(_display.sc);			
-			_display.sc += _display.font_h;
+			_display.sc += _display.font_h + V_SPACING;
 			if(_display.sc > LCD_GetHeight())
-				_display.sc = _display.font_h;
+				_display.sc = _display.font_h + V_SPACING;
 			_display.cx = LCD_GetWidth();
-			LCD_FillRect(0, _display.cy, LCD_GetWidth(), _display.font_h, _display.backcolor);		
+			LCD_FillRect(0, _display.cy, LCD_GetWidth(), _display.font_h + V_SPACING, _display.backcolor);		
 			_display.cx = 0;
 		}
 		if(c== '\n')

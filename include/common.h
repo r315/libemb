@@ -20,17 +20,20 @@
 	#error "common.h: missing macros"
 #endif /* USE_HAL_DRIVER */
 
-#elif defined(__BLUEBOARD__) /* __TDO__ */
+#elif defined(__BB__) /* __TDO__ */
 
 #include <LPC17xx.h>
 #include <blueboard.h>
 #define GetTick GetTicks
 
 #elif defined(__EMU__) /* __BLUEBOARD__ */
-
+#ifdef _WIN32
+#include <SDL.h>
+#else
 #include <SDL2/SDL.h>
+#endif
 #define DelayMs(x) SDL_Delay(x)
-#define GetTick() SDL_GetTicks()
+#define GetTicks() SDL_GetTicks()
 #define SystemCoreClock 100000000UL
 
 #elif defined(__ESP03__) /* __EMU__  */
@@ -43,6 +46,9 @@
 //#include "nosdki2s.h"
 #define DelayMs(x) ets_delay_us(x * 1000)
 #define GetTicks() xthal_get_ccount()
+
+#define call_delay_us( time ) { asm volatile( "mov.n a2, %0\n_call0 delay4clk" : : "r"(time*13) : "a2" ); }
+
 #endif /* __EMU__ */
 
 
