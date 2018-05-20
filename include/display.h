@@ -10,29 +10,6 @@
 
 #define FLOAT_MAX_PRECISION 8
 
-#define FONTDEFAULT_W 8
-#define FONTDEFAULT_H 8
-
-#if defined(SINGLE_FONT)
-
-#else
-	#define FONT_TYPE_1
-	#define FONT_TYPE_2
-	#define FONT_TYPE_3
-	#define FONT_TYPE_4
-
-	extern const unsigned char FONTBOLD[];
-	extern const unsigned char FONTLCD[];
-	extern const unsigned char FONTPIXELDUST[];
-#endif
-enum Fonts{
-	FONT_DEFAULT,
-	FONT_BOLD,
-	FONT_LCD,
-	FONT_PIXELDUST,
-	FONT_INIT
-};
-
 enum Attributes{
 	FONT_NORMAL,
 	FONT_INVERTED,
@@ -40,25 +17,37 @@ enum Attributes{
 	FONT_DOUBLE
 };
 
+typedef struct{
+	uint8_t	w;
+	uint8_t h;
+	const uint8_t *data;
+}Font;
 
 typedef struct{
 	void (*xputc)(char);		//for use on xstdout
 	char (*xgetchar)(void);
 	uint16_t forecolor;
 	uint16_t backcolor;
-	uint8_t *font;
-	uint8_t	font_w;
-	uint8_t font_h;
+	Font font;
+	uint8_t vspace;
 	uint16_t cx;
 	uint16_t cy;
 	uint16_t sc;
 	int (*drawChar)(int  x, int y, unsigned char *d_char);
 }Display;
 
-extern const unsigned char FONTDEFAULT[];
+
+#if !defined(SINGLE_FONT)	
+	extern Font defaultBoldFont;
+	extern Font lcdFont;
+	extern Font pixelDustFont;	
+	extern Font corrierFont;
+#endif
+
+extern Font defaultFont;
 
 void DISPLAY_Init(uint8_t initlcd);
-void DISPLAY_SetFont(uint8_t fnt);
+void DISPLAY_SetFont(Font fnt);
 void DISPLAY_SetAttribute(uint8_t atr);
 int  DISPLAY_Char(int  x, int y, unsigned char c); 
 int  DISPLAY_Text(int x, int y, const char *s);

@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include "display.h"
 
-#define V_SPACING 1
-
 int drawCharSimple(int x, int y, unsigned char *d_char);
 
-static Display _display = {
-	.font = (uint8_t*)(FONTDEFAULT+2),
-	.font_w = FONTDEFAULT_W,
-	.font_h = FONTDEFAULT_H,
+const unsigned char defaultFontData[];
+
+//static
+Display _display = {
+	.font.data = (const uint8_t*)defaultFontData,
+	.font.w = 8,
+	.font.h = 8,
 	.forecolor = WHITE,
 	.backcolor = BLACK,
 	.cx = 0,
@@ -19,14 +20,14 @@ static Display _display = {
 	.drawChar = drawCharSimple,
 };
 
-
+//-----------------------------------------------------------
+//
+//-----------------------------------------------------------
 void DISPLAY_SetColors(uint16_t fc, uint16_t bc){ _display.forecolor = fc; _display.backcolor = bc;}
 void DISPLAY_SetFcolor(uint16_t color){ _display.forecolor = color;}
 void DISPLAY_SetBcolor(uint16_t color){ _display.backcolor = color;}
-int DISPLAY_GetFontWidth(void){ return _display.font_w; }
-int DISPLAY_GetFontHeight(void){ return _display.font_h; }
-
-
+int DISPLAY_GetFontWidth(void){ return _display.font.w; }
+int DISPLAY_GetFontHeight(void){ return _display.font.h; }
 
 void DISPLAY_GotoAbsolute(uint16_t x, uint16_t y){
    _display.cx = x;
@@ -36,8 +37,8 @@ void DISPLAY_GotoAbsolute(uint16_t x, uint16_t y){
 //
 //-----------------------------------------------------------
 void DISPLAY_Goto(uint16_t x, uint16_t y){
-	_display.cx = x * _display.font_w;
-	_display.cy = y * _display.font_h;
+	_display.cx = x * _display.font.w;
+	_display.cy = y * _display.font.h;
 }
 //----------------------------------------------------------
 //stdout calls this function
@@ -46,22 +47,18 @@ void DISPLAY_putc(char c)
 {
 	if (c == '\n' || _display.cx == LCD_GetWidth()){
 		_display.cx = 0;
-		_display.cy += _display.font_h + V_SPACING;
-		if(_display.cy == LCD_GetHeight()){
+		_display.cy += _display.font.h + _display.vspace;
+		if(_display.cy >= LCD_GetHeight()){
 			_display.cy = 0;
 			if(!_display.sc)
-				_display.sc = _display.font_h + V_SPACING;
+				_display.sc = 1;
 		}
 		if(_display.sc){
-			LCD_Scroll(_display.sc);			
-			_display.sc += _display.font_h + V_SPACING;
-			if(_display.sc > LCD_GetHeight())
-				_display.sc = _display.font_h + V_SPACING;
-			_display.cx = LCD_GetWidth();
-			LCD_FillRect(0, _display.cy, LCD_GetWidth(), _display.font_h + V_SPACING, _display.backcolor);		
+			LCD_Scroll(_display.cy + _display.font.h + _display.vspace);
+			LCD_FillRect(0, _display.cy, LCD_GetWidth(), _display.font.h + _display.vspace, _display.backcolor);		
 			_display.cx = 0;
 		}
-		if(c== '\n')
+		if(c == '\n')
 			return;	
 	}
 	if(c == '\r'){
@@ -235,8 +232,8 @@ void DISPLAY_printf(const char* str, ...){
 //----------------------------------------------------------
 int drawCharSimple(int x, int y, unsigned char *d_char){
 unsigned char w,h;
-	for (h=0; h < _display.font_h; h++){ 	
-		for(w=0; w < _display.font_w; w++){
+	for (h=0; h < _display.font.h; h++){ 	
+		for(w=0; w < _display.font.w; w++){
 			if(*d_char & (0x80 >> w))
 				LCD_Data(_display.forecolor);			
 			else
@@ -244,13 +241,13 @@ unsigned char w,h;
 		}
 		d_char += 1;
  	}
-	return x+(_display.font_w);
+	return x+(_display.font.w);
 }
 
 int drawCharInverted(int x, int y, unsigned char *d_char){
 unsigned char w,h;
-	for (h=0; h < _display.font_h; h++){ 	
-		for(w=0; w < _display.font_h; w++){
+	for (h=0; h < _display.font.h; h++){ 	
+		for(w=0; w < _display.font.h; w++){
 			if(*d_char & (0x80 >> w))
 				LCD_Data(_display.backcolor);
 			else
@@ -258,26 +255,26 @@ unsigned char w,h;
 		}
 		d_char += 1;		
  	}
-	return x+(_display.font_w);
+	return x+(_display.font.w);
 }
 int drawCharTransparent(int x, int y, unsigned char *d_char)
 {
 char w,h;
-	for (h=0; h < _display.font_h; h++){
-		for(w=0;w<_display.font_w; w++){
+	for (h=0; h < _display.font.h; h++){
+		for(w=0;w<_display.font.w; w++){
 			if(*d_char & (0x80 >> w))
 				DISPLAY_Pixel(x+w,y+h);							
 		}	
 		d_char += 1;
 	}
-	return x+(_display.font_w);
+	return x+(_display.font.w);
 }
 int drawCharDouble(int x, int y, unsigned char *d_char)
 {
 unsigned char w,h;
-    LCD_Window(x,y,_display.font_w * 2, _display.font_h * 2);
-	for (h=0;h<_display.font_h;h++){			    // altura
-		for(w=0;w<_display.font_w;w++){			// primeira linha
+    LCD_Window(x,y,_display.font.w * 2, _display.font.h * 2);
+	for (h=0;h<_display.font.h;h++){			    // altura
+		for(w=0;w<_display.font.w;w++){			// primeira linha
 			if(*d_char & (0x80 >> w))	// se pixel
 			{
 				LCD_Data(_display.forecolor);			// desenha 2 px w de FC
@@ -289,7 +286,7 @@ unsigned char w,h;
 				LCD_Data(_display.backcolor);
 			}
 		}
-		for(w=0;w<_display.font_w;w++)			// segunda linha igual a primeira
+		for(w=0;w<_display.font.w;w++)			// segunda linha igual a primeira
 		{
 			if(*d_char & (0x80 >> w))
 			{
@@ -304,7 +301,7 @@ unsigned char w,h;
 		}
 		d_char += 1;
  	}	
-	return x+(_display.font_w * 2);
+	return x+(_display.font.w * 2);
 }
 //----------------------------------------------------------
 //
@@ -316,12 +313,9 @@ int DISPLAY_Char(int x, int y, unsigned char c)
         c=toupper(c);	
 #endif
 
-   // if(!_display.font)
-   // 	DISPLAY_SetFont(FONT_INIT);
-
     c -= 0x20;    
-    LCD_Window(x,y,_display.font_w,_display.font_h);	
-	return _display.drawChar(x, y, (uint8_t*)_display.font + (c * _display.font_h));
+    LCD_Window(x, y, _display.font.w, _display.font.h);	
+	return _display.drawChar(x, y, (uint8_t*)_display.font.data + (c * _display.font.h));
 }
 //----------------------------------------------------------
 //
@@ -342,16 +336,19 @@ void *DISPLAY_GetReference(void){
 }
 
 void DISPLAY_Init(uint8_t initlcd){
-	_display.font = (uint8_t*)(FONTDEFAULT+2);
-	_display.font_w = FONTDEFAULT[0];
-	_display.font_h = FONTDEFAULT[1];
+
+	_display.font = defaultFont;
 	_display.forecolor = WHITE;
 	_display.backcolor = BLACK;
+	_display.vspace = 0;
 	_display.cx = 0;
 	_display.cy = 0;
 	_display.sc = 0;
 	_display.xputc = DISPLAY_putc;
 	_display.drawChar = drawCharSimple;
+
+	LCD_Scroll(_display.cy);
+
 	if(initlcd){
 		LCD_Init();
 		LCD_Clear(_display.backcolor);
@@ -359,38 +356,24 @@ void DISPLAY_Init(uint8_t initlcd){
 	}
 }
 //----------------------------------------------------------
-//TODO: fix ignore atribute when setAttribute is called before
-//any drawChar
+//
 //----------------------------------------------------------
-void DISPLAY_SetFont(uint8_t fnt)
+void DISPLAY_SetFont(Font fnt)
 {
-#ifdef SINGLE_FONT
-	if(_display.drawChar != drawCharSimple)
-		DISPLAY_Init(OFF);
-#else
-	switch(fnt)
-	{
-		default:
-			_display.forecolor = WHITE;
-			_display.backcolor = BLACK;
-			if(!_display.drawChar)
-				_display.drawChar = drawCharSimple;	
-		case FONT_DEFAULT:
-			_display.font = (uint8_t*)(FONTDEFAULT);			
-			break;
-		case FONT_BOLD:
-			_display.font = (uint8_t*)(FONTBOLD);			
-			break;
-		case FONT_LCD:
-			_display.font = (uint8_t*)(FONTLCD);			
-			break;
-		case FONT_PIXELDUST:
-			_display.font = (uint8_t*)(FONTPIXELDUST);			
-			break;
-	}	
-	_display.font_w = _display.font[0];
-	_display.font_h = _display.font[1];
-	_display.font += 2;	
+
+#ifndef SINGLE_FONT
+	uint8_t mod, h;
+	_display.font = fnt;
+
+	h = _display.font.h;
+
+	do{
+		mod = LCD_GetHeight()  - (LCD_GetHeight() / h) * h;
+		h++;
+	}while(mod);
+
+	_display.vspace = (h - 1) - _display.font.h;
+
 #endif			
 }
 //----------------------------------------------------------
