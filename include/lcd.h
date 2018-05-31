@@ -26,12 +26,6 @@
     #define RGB(r,g,b)  (uint16_t)((r<<11) | (g<<5) | b)
 #endif
 
-#if defined(LCD_DMA)
-void LCD_Fill_DMA(uint32_t count, uint16_t color);
-void LCD_Fill_Data_DMA(uint32_t count, uint16_t *data);
-void SPI_Send_DMA(uint8_t data);
-#endif
-
 //-------------------------------------------------------------------
 //	basic colors 
 //			16bit
