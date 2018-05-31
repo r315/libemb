@@ -40,7 +40,7 @@ uint32_t cur;
             }
             if(cur == __button.cur){             // same key still pressed
                 __button.events = BUTTON_TIMING; // start timer
-                __button.counter = GetTick();
+                __button.counter = GetTicks();
                 break;
             }
             __button.cur = cur; // another key was pressed 
