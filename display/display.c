@@ -1,13 +1,10 @@
 #include <stdarg.h>
 #include <stdlib.h>
-#include "display.h"
+#include "fonts.c"
 
 int drawCharSimple(int x, int y, unsigned char *d_char);
 
-const unsigned char defaultFontData[];
-
-//static
-Display _display = {
+static Display _display = {
 	.font.data = (const uint8_t*)defaultFontData,
 	.font.w = 8,
 	.font.h = 8,
@@ -308,11 +305,6 @@ unsigned char w,h;
 //----------------------------------------------------------
 int DISPLAY_Char(int x, int y, unsigned char c)
 {
-#ifdef UPPER_CASE_FONT
-    if(c >= 'a' )
-        c=toupper(c);	
-#endif
-
     c -= 0x20;    
     LCD_Window(x, y, _display.font.w, _display.font.h);	
 	return _display.drawChar(x, y, (uint8_t*)_display.font.data + (c * _display.font.h));
