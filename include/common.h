@@ -10,21 +10,18 @@
 #ifndef _common_h_
 #define _common_h_
 
-#if defined(__TDSO__)
+#include <stdint.h>
 
-#if defined(USE_HAL_DRIVER)
-	#include "stm32f1xx_hal.h"
-	#define DelayMs(x) HAL_Delay(x)
-	#define GetTick() HAL_GetTick()
-#else
-	#error "common.h: missing macros"
-#endif /* USE_HAL_DRIVER */
+#if defined(__TDSO__)
+#include <stm32f103xb.h>
+
+uint32_t GetTicks(void);
+void DelayMs(uint32_t ms);
 
 #elif defined(__BB__) /* __TDO__ */
 
 #include <LPC17xx.h>
 #include <blueboard.h>
-#define GetTick GetTicks
 
 #elif defined(__EMU__) /* __BLUEBOARD__ */
 #ifdef _WIN32
@@ -52,6 +49,8 @@
 #endif /* __EMU__ */
 
 
-#define ElapsedTicks(x) (GetTick() - x)
+#define ElapsedTicks(x) (GetTicks() - x)
+
+void Board_Init(void);
 
 #endif /* _common_h_ */

@@ -103,7 +103,7 @@
             GPIO_SetOutput(LCD_RST);    \
             GPIO_SetOutput(LCD_BKL);    \
 
-#elif defined(__TDSO__) && defined(USE_HAL_DRIVER)
+#elif defined(__TDSO__)
 /**
 * @brief Lcd Pin configuration:
 *       PA4  CS
@@ -224,6 +224,15 @@ static inline void GPIO16_OUTPUT_SET(uint8_t value)
 **/
 void LCD_Fill(uint32_t n, uint16_t color);
 
+#ifdef LCD_DMA
+/**
+*  @brief preencimento de n pixels da mesma cor usando modulo DMA
+*   Nota: LCD_Window deve de ser chamado previamente
+*         para definir uma zona para escrita
+**/
+void LCD_Fill_DMA(uint32_t n, uint16_t color);
+#endif
+
 /**
 * @brief Efectua a copia de uma zona de memoria para o
 *  	display
@@ -231,6 +240,16 @@ void LCD_Fill(uint32_t n, uint16_t color);
 *         para definir uma zona para escrita
 **/
 void LCD_Fill_Data(uint32_t n, uint16_t *data);
+
+#ifdef LCD_DMA
+/**
+* @brief Efectua a copia de uma zona de memoria para o
+*  	display usando modulo DMA
+*   Nota: LCD_Window deve de ser chamado previamente
+*         para definir uma zona para escrita
+**/
+void LCD_Fill_Data_DMA(uint32_t n, uint16_t *data);
+#endif
 
 /**
  * @brief efectua deslocamento vertical

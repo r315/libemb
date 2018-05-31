@@ -38,14 +38,14 @@
 #define LED_Init() // Handle by HAL init
 
 #define LED GPIO_PIN_3
-#define LED_ON  HAL_GPIO_WritePin(GPIOB, LED , GPIO_PIN_RESET)
-#define LED_OFF HAL_GPIO_WritePin(GPIOB, LED , GPIO_PIN_SET)
+#define LED_ON  GPIO_Clr(GPIOB, LED)
+#define LED_OFF GPIO_Set(GPIOB, LED)
 
 #define LED1 GPIO_PIN_13
-#define LED1_ON HAL_GPIO_WritePin(GPIOC, LED1 , GPIO_PIN_RESET)
-#define LED1_OFF HAL_GPIO_WritePin(GPIOC, LED1 , GPIO_PIN_SET)
+#define LED1_ON  GPIO_Clr(GPIOB, LED1)
+#define LED1_OFF GPIO_Set(GPIOB, LED1)
 
-#elif defined(__EMU__)
+#elif defined(__EMU__) /* __TDSO__ */
 #define LED1_ON
 #define LED1_OFF
 
