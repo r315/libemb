@@ -1,5 +1,5 @@
 
-#include <spi.h>
+#include <spi_lpc1768.h>
 #include <gpio.h>
 
 
