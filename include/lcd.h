@@ -3,16 +3,14 @@
 
 #if defined(__EMU__)
 	#include <lcdsdl.h>
-#elif defined(__LPCXpresso__) || defined(__TDSO__) || defined(__ESP03__)
+#elif defined(_ILI9341_) || defined(__LPCXpresso__) || defined(__TDSO__) 
     #include "ili9341.h"
-#elif defined(__BB__)
+#elif defined(_ST7735_)
+    #include "st7735.h"
+#elif defined(_ILI9328_) || defined(__BB__)
     #include "ili9328.h"
 #else
-#error "Define a board"
-#endif
-
-#if !defined(__ESP03__)
-#include <stdint.h>
+#error "Define a driver"
 #endif
 
 #ifndef ON
