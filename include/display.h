@@ -41,7 +41,7 @@ typedef struct{
 	extern Font defaultBoldFont;
 	extern Font lcdFont;
 	extern Font pixelDustFont;	
-	extern Font corrierFont;
+	extern Font courierFont;
 #endif
 
 extern Font defaultFont;
