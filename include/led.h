@@ -41,9 +41,10 @@
 #define LED_ON  GPIO_Clr(GPIOB, LED)
 #define LED_OFF GPIO_Set(GPIOB, LED)
 
+// Bluepill LED 
 #define LED1 GPIO_PIN_13
-#define LED1_ON  GPIO_Clr(GPIOB, LED1)
-#define LED1_OFF GPIO_Set(GPIOB, LED1)
+#define LED1_ON  GPIO_Clr(GPIOC, LED1)
+#define LED1_OFF GPIO_Set(GPIOC, LED1)
 
 #elif defined(__EMU__) /* __TDSO__ */
 #define LED1_ON
