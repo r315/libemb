@@ -10,16 +10,8 @@
 #ifndef _ili9341_h_
 #define _ili9341_h_
 
-
-#if defined(__ESP03__)
-#define SPI_Send HSPI_Send
-#include <hspi.h>
-#include <pin_mux_register.h>
-#include <c_types.h>
-#else
 #include <stdint.h>
 #include <spi.h>
-#endif
 
 #include <gpio.h>
 
@@ -134,19 +126,19 @@
 #elif defined(__ESP03__)
 /**
 * @brief Lcd Pin configuration:
-*       GPIO12  CS
-*            RST
-*           C'/D
+*       GPIO15  CS
+*       TBD     RST
+*       GPIO12  C'/D
 *       GPIO13  SI
 *       GPIO14  SCK
-*       PB11    LED
+*       GPIO16  LED
 *       ---     SO
 **/
 
 #define LCD_CS   15
 #define LCD_CD   12
-#define LCD_RST  16
-#define LCD_BKL  1
+#define LCD_RST
+#define LCD_BKL  16
 
 static inline void GPIO16_OUTPUT_SET(uint8_t value)
 {
@@ -159,17 +151,17 @@ static inline void GPIO16_OUTPUT_SET(uint8_t value)
 #define LCD_CD1   GPIO_OUTPUT_SET(LCD_CD,1)
 #define LCD_RST0  //GPIO_OUTPUT_SET(LCD_RST,0)
 #define LCD_RST1  //GPIO_OUTPUT_SET(LCD_RST,1)
-#define LCD_BKL0  GPIO_OUTPUT_SET(LCD_BKL,0)
-#define LCD_BKL1  GPIO_OUTPUT_SET(LCD_BKL,1)
+#define LCD_BKL0  GPIO16_OUTPUT_SET(LCD_BKL,0)
+#define LCD_BKL1  GPIO16_OUTPUT_SET(LCD_BKL,1)
 
 #define LCD_PIN_INIT                                     \
 {                                                        \
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTDI_U, FUNC_GPIO12); \
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2); \
 /* https://github.com/willemwouters/ESP8266/blob/master/sdk/esp_iot_sdk_v0.9.3/IoT_Demo/driver/gpio16.c */ \
-    WRITE_PERI_REG(PAD_XPD_DCDC_CONF, (READ_PERI_REG(PAD_XPD_DCDC_CONF) & 0xffffffbc) | (uint32)0x1); \
-    WRITE_PERI_REG(RTC_GPIO_CONF, (READ_PERI_REG(RTC_GPIO_CONF) & (uint32)0xfffffffe) | (uint32)0x0); \
-    WRITE_PERI_REG(RTC_GPIO_ENABLE, (READ_PERI_REG(RTC_GPIO_ENABLE) & (uint32)0xfffffffe) | (uint32)0x1); \
+    WRITE_PERI_REG(PAD_XPD_DCDC_CONF, (READ_PERI_REG(PAD_XPD_DCDC_CONF) & 0xffffffbc) | (uint32_t)0x1); \
+    WRITE_PERI_REG(RTC_GPIO_CONF, (READ_PERI_REG(RTC_GPIO_CONF) & (uint32_t)0xfffffffe) | (uint32_t)0x0); \
+    WRITE_PERI_REG(RTC_GPIO_ENABLE, (READ_PERI_REG(RTC_GPIO_ENABLE) & (uint32_t)0xfffffffe) | (uint32_t)0x1); \
 }
 
 

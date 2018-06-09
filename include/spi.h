@@ -12,6 +12,18 @@
 
 #include <stdint.h>
 
+#if defined(__ESP03__) 
+#include <hspi.h>
+#include <esp8266/esp8266.h>
+#define SPI_Send HSPI_Send
+#else  /* __ESP03__ */
+/**
+* @brief initiates and 8bit data transfer
+*		 rev 00 only suports 8bit
+**/
+uint16_t SPI_Send(uint16_t data);
+#endif
+
 /**
 * @brief Faz a iniciação do controlador, configurando os pinos, o ritmo de envio e o
 *        numero de bits de dados.
@@ -32,12 +44,6 @@ void SPI_EndTransfer(int csBitId);
 * @brief Realiza uma transferencia. 
 **/
 void SPI_Transfer(unsigned short *txBuffer, unsigned short *rxBuffer, int lenght);
-
-/**
-* @brief initiates and 8bit data transfer
-*		 rev 00 only suports 8bit
-**/
-uint16_t SPI_Send(uint16_t data);
 
 
 #endif /* _SPI_H_ */

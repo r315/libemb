@@ -41,6 +41,7 @@ void DelayMs(uint32_t ms);
 //#include "ets_sys.h"
 //#include "nosdk8266.h"
 //#include "nosdki2s.h"
+#include "esp8266/rom_functions.h"
 #define DelayMs(x) ets_delay_us(x * 1000)
 #define GetTicks() xthal_get_ccount()
 
