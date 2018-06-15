@@ -7,9 +7,9 @@ void (*LCD_WindowRotation)(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
 void LCD_Bkl(uint8_t state){
 	if(state){
-		LCD_BKL_ON;
+		LCD_BKL1;
 	}else{
-		LCD_BKL_OFF;
+		LCD_BKL0;
 	}
 }
 
@@ -282,7 +282,7 @@ void LCD_Init(void){
 	LCD_Command(LCD_DISP_CTRL1);
 	LCD_Data(0x0173);
 	DelayMs(500);
-	LCD_WindowRotation = LCD_Window_N;
+	LCD_Rotation(LCD_PORTRAIT);
 }
 
 uint16_t LCD_GetWidth(void){

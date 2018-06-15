@@ -179,6 +179,7 @@
 #endif
 
 //-------------------------------------------------------------------
+#if defined(__BB__)
 #define  LCD_CS	 (1<<10) //P1.10
 #define  LCD_RS	 (1<<9)	 //P1.9
 #define  LCD_WR	 (1<<8)	 //P1.8
@@ -201,12 +202,14 @@
 #define  LCDRD1      CTRLPORT->FIOSET = LCD_RD; 
 #define  LCDRST0     CTRLPORT->FIOCLR = LCD_RST;
 #define  LCDRST1     CTRLPORT->FIOSET = LCD_RST; 
-#define  LCD_BKL_OFF CTRLPORT->FIOCLR = LCD_LED;
-#define  LCD_BKL_ON  CTRLPORT->FIOSET = LCD_LED;
+#define  LCD_BKL0    CTRLPORT->FIOCLR = LCD_LED;
+#define  LCD_BKL1    CTRLPORT->FIOSET = LCD_LED;
 
 #define LCD_IO_INIT                                                   \
 	CTRLPORT->FIODIR |= LCD_CS|LCD_RS|LCD_WR|LCD_RD|LCD_LED|LCD_RST;  \
 	DATAPORTDIR |= 0xFF;
+
+#endif
 
 void DelayMs(uint32_t dl);
 

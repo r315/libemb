@@ -22,6 +22,12 @@ void DelayMs(uint32_t ms);
 
 #include <LPC17xx.h>
 #include <blueboard.h>
+#include <clock.h>
+
+#define DelayMs CLOCK_DelayMs
+
+#define YES 1
+#define NO  0
 
 #elif defined(__EMU__) /* __BLUEBOARD__ */
 #ifdef _WIN32
