@@ -69,22 +69,42 @@ enum{
 };
 
 /**
- * Configure an capture event on a pin.
- * Each timer supports two channels with diferent pins
+ * Configure an capture event on a pin. The timer will configured to have a 1us clock
+ * Each timer supports two channels with his ouwn pin. 
  * 
  * @param tim  Timer structure to be used for capture
  * @param ch   channel to be used [0,1]
  * @param edge Capturing edge
- * @param cb   callback function to execut on event, prototype defined on common
+ * @param cb   callback function to execut on event, a pointer for the captured value is passed as parameter
  * */
 void TIMER_CAP_Init(LPC_TIM_TypeDef *tim, char ch, char edge, CallBack cb);
 
 /**
- * Reset capture
+ * Reset timer and resume capture
  * */
 void TIMER_CAP_Restart(LPC_TIM_TypeDef *tim);
-
+/**
+ * Stops capturing and resets timer. 
+ * */
 void TIMER_CAP_Stop(LPC_TIM_TypeDef *tim);
+
+/**
+ * Configure a timer to generate an event when reach the given ticks. The timer will configured to have a 1us clock
+ * 
+ * @param time   Timer structure to be used on match
+ * @param ch     channel to be used [0,3]
+ * @param count  max count of timer before generating the event
+ * @param cb     callback function to execut on event.
+ * */
+void TIMER_Match_Init(LPC_TIM_TypeDef *tim, char ch, uint32_t count, CallBack cb);
+
+/**
+ * Stops generating events
+ * 
+ * @param tim    Timer structure to be used on match
+ * */
+void TIMER_Match_Stop(LPC_TIM_TypeDef *tim);
+
 #endif
 
 typedef struct{

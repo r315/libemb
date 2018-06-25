@@ -36,11 +36,6 @@ void BB_Init(void)
 	
 	DESELECT_ACCEL();	
 	DESELECT_CARD();	
-	
-#if 0
-	LPC_SC->CLKOUTCFG = (1<<4)|/* CCLK/2 */ (1<<8);/* CLKOU_EN*/
-	LPC_PINCON->PINSEL3 |= (1<<22);// P1.27 CLKOUT 
-#endif
 }
 
 

@@ -12,6 +12,7 @@ MEMORY {
 
 _ram0  = ORIGIN(ram0);
 _ram1  = ORIGIN(ram1);
+_stack = ORIGIN(ram0) + LENGTH(ram0);	
 
 SECTIONS {
 	.text : {
@@ -68,5 +69,5 @@ SECTIONS {
 		end = .;	
 	} > ram0
 
-	_stack = ORIGIN(ram0) + LENGTH(ram0);	
+	
 }

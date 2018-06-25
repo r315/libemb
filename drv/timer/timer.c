@@ -46,7 +46,7 @@ void TIMER_SetClockDivider(uint8_t tim, uint8_t div){
 
 
 //-----------------------------------------------
-//TIMER 3 
+// Capture
 //-----------------------------------------------
 
 static CallBack tim3callback;
@@ -104,7 +104,7 @@ void TIMER_CAP_Restart(LPC_TIM_TypeDef *tim){
 
 void TIMER_CAP_Stop(LPC_TIM_TypeDef *tim){
     tim->TCR = TIMER_RESET;
-}
+} 
 //--------------------------------------------------
 //  hw irq call
 //--------------------------------------------------
@@ -112,4 +112,15 @@ void TIMER3_IRQHandler(void){
     tim3callback((void*)&LPC_TIM3->CR0);
     LPC_TIM3->IR = (1<<4);
 }
+  
+// -------------------------------------------------
+// Compare
+// -------------------------------------------------
+void TIMER_Match_Init(LPC_TIM_TypeDef *tim, char ch, uint32_t count, CallBack cb){
 
+}    
+  
+ 
+void TIMER_Match_Stop(LPC_TIM_TypeDef *tim){
+
+}
