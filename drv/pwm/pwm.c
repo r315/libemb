@@ -1,23 +1,15 @@
 
 
-#ifndef __EMU__
-
-#if defined(__USE_CMSIS)
-#include <LPC17xx.h>
-#else
-#include <lpc1768.h>
-#endif
-
-#include <clock.h>
+#if defined(__BB__)
+#include <common.h>
 #include <pwm.h>
 
 void PWM_Init(uint32_t tcclk){
-    LPC_SC->PCONP |= PCPWM1;                        // Enable PWM Module
+    LPC_SC->PCONP |= PCONP_PCPWM1;                   // Enable PWM Module
     
-	LPC_SC->PCLKSEL0 &= ~(PCLK_8<<PCLK_PWM1);        
-	LPC_SC->PCLKSEL0 |= (PCLK_2 << PCLK_PWM1);       // Divide System clock by 2
+	SET_PCLK_PWM1(CCLK_DIV2);
 
-	LPC_PINCON->PINSEL4 &= ~(0x0);
+	LPC_PINCON->PINSEL4 &= ~(0xFF);
     LPC_PINCON->PINSEL4 |= 0x55;                    // Select PWM function for P2.3:0
 
 	LPC_PWM1->PR = ((SystemCoreClock / 1000000UL) >> 1) - 1;     // Set TC Clock to 1Mhz

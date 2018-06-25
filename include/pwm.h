@@ -1,8 +1,7 @@
 #ifndef _pwm_h_
 #define _pwm_h_
 
-#define PCPWM1 (1<<6)
-#define PCLK_PWM1 12
+#define PCONP_PCPWM1 (1<<6)
 
 #define TCR_TCEN  0
 #define TCR_PWMEN 2  // errata on UM
