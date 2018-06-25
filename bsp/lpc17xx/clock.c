@@ -93,8 +93,6 @@ __attribute__ ((weak)) void SystemCoreClockUpdate(void){
 
 void CLOCK_setCCLK(unsigned int targetcclk){
 	
-	LPC_SC->SCS       = 0x20;               /* Main Oscillator enable             */
-  	while (!(LPC_SC->SCS & 0x40));          /* Wait for Oscillator to be ready    */  
 	LPC_SC->CLKSRCSEL = 1;                  /* Main oscillator as Clock Source    */
 
 	switch(targetcclk){
@@ -146,18 +144,21 @@ void CLOCK_InitUSBCLK(void){
 
 
 void CLOCK_Init(unsigned int cclk){
+
+	LPC_SC->SCS       = 0x20;               /* Main Oscillator enable             */
+  	while (!(LPC_SC->SCS & 0x40));          /* Wait for Oscillator to be ready    */  
+	
 	if( cclk < 48 ){
 	/* Configuration of the 4Mhz internal osccilator */
 	  LPC_SC->CLKSRCSEL = 0;               /* Select Internal oscillator as PLL0 CLK source */ 
-	  LPC_SC->SCS       = 0x20;            /* Enable Main oscillator */
-	  while ((LPC_SC->SCS & (1<<6)) == 0); /* Wait for Oscillator to be ready, OSCSTAT  bit */
 	  LPC_SC->CCLKCFG   = 0;               /* NO division of PLLCLK, CCLK = PLLCLK */
 	  LPC_SC->PCLKSEL0  = 0;               /* Peripheral Clock (PCLK) = CCLK/4 */
 	  LPC_SC->PCLKSEL1  = 0;
 	  SystemCoreClock = IRC_OSC;
-	}else
+	}else{
 		CLOCK_setCCLK(cclk);
-
+	}
+	
 	LPC_SC->FLASHCFG  = 0x0000303A;    /* Flash Accelerator Configuration */ 
  
 	SystemCoreClock = CLOCK_CalculateCCLK();

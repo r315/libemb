@@ -3,16 +3,26 @@
 
 #include <stdint.h>
 
+#if defined(__BB__)
+#include <LPC17xx.h>
+
 #define XTAL        (12000000UL)        /* Oscillator frequency               */
 #define OSC_CLK     (      XTAL)        /* Main oscillator frequency          */
 #define RTC_CLK     (   32000UL)        /* RTC oscillator frequency           */
 #define IRC_OSC     ( 4000000UL)        /* Internal RC oscillator frequency   */
 
+#define CLOCK_OUT {LPC_SC->CLKOUTCFG = (1<<8); /* CCLK/2, CLKOU_EN */     \
+	              LPC_PINCON->PINSEL3 |= (1<<22);}    /* P1.27 CLKOUT */  \
 
-#define PCLK_RIT	26
-#define PCLK_ADC    24
+
+//PCLKSEL0 Bits
 #define PCLK_TIMER0 2
 #define PCLK_TIMER1 4
+#define PCLK_PWM1   6
+#define PCLK_ADC    24
+
+//PCLKSEL1 Bits
+#define PCLK_RIT	26
 #define PCLK_TIMER2 12
 #define PCLK_TIMER3 14
 
@@ -21,7 +31,14 @@
 #define PCLK_4 		0
 #define PCLK_8 		3
 
-#if defined(__BB__)
+#define CCLK_DIV1   1
+#define CCLK_DIV2   2
+#define CCLK_DIV4   0
+#define CCLK_DIV8   3 
+
+#define SET_PCLK_TIMER3(x) {LPC_SC->PCLKSEL1 &= ~(3<<PCLK_TIMER3); LPC_SC->PCLKSEL1 |= (x<<PCLK_TIMER3);}
+#define SET_PCLK_PWM1(x)  {LPC_SC->PCLKSEL0 = (LPC_SC->PCLKSEL0 & ~(3 << PCLK_PWM1)) | (x << PCLK_PWM1);}
+
 #define __USE_SYSTICK
 #endif
 

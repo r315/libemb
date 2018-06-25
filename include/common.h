@@ -11,6 +11,10 @@
 #define _common_h_
 
 #include <stdint.h>
+#include <stddef.h>  // NULL
+
+typedef void (*CallBack)(void *);
+
 
 #if defined(__TDSO__)
 #include <stm32f103xb.h>
@@ -23,6 +27,9 @@ void DelayMs(uint32_t ms);
 #include <LPC17xx.h>
 #include <blueboard.h>
 #include <clock.h>
+#include <gpio.h>
+#include <timer.h>
+#include <pwm.h>
 
 #define DelayMs CLOCK_DelayMs
 
@@ -55,7 +62,7 @@ void DelayMs(uint32_t ms);
 
 #endif /* __EMU__ */
 
-
+//#define NULL (void*)0
 #define ElapsedTicks(x) (GetTicks() - x)
 
 void Board_Init(void);
