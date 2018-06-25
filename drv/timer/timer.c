@@ -110,5 +110,6 @@ void TIMER_CAP_Stop(LPC_TIM_TypeDef *tim){
 //--------------------------------------------------
 void TIMER3_IRQHandler(void){
     tim3callback((void*)&LPC_TIM3->CR0);
+    LPC_TIM3->IR = (1<<4);
 }
 
