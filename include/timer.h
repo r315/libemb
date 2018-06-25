@@ -2,6 +2,8 @@
 #define __timer_h__
 
 #include <stdint.h>
+
+#if defined(__BB__)
 #include "clock.h"
 
 #define PCTIM0 1
@@ -27,7 +29,6 @@
 #define EMR_TGL 3  // Toggle the corresponding External Match bit/output.
 
 
-
 #define MR0_IRQ     (1<<0)      // Enable interrupt on match
 #define MR0_RST     (1<<1)      // Reset Timer0 on match
 #define MR0_STP     (1<<2)      // Stop Timer0 on match
@@ -41,6 +42,50 @@
 #define MR3_RST     (1<<10)     // Reset Timer3 on match
 #define MR3_STP     (1<<11)     // Stop Timer3 on match
 
+
+/**
+ * Capture related macros
+ *
+ * P1.26   CAP0.0
+ * P1.27   CAP0.1
+ * 
+ * P1.18   CAP1.0
+ * P1.19   CAP1.1
+ * 
+ * P0.4    CAP2.0
+ * P0.5    CAP2.1
+ * 
+ * P0.23   CAP3.0
+ * P0.24   CAP3.1
+ * 
+ */
+
+#define PCONP_PCTIM3 (1<<23)
+
+enum{
+    CAP_FE = 1,  // Falling edge
+    CAP_RE,      // Rising edge
+    CAP_RFE      // Both
+};
+
+/**
+ * Configure an capture event on a pin.
+ * Each timer supports two channels with diferent pins
+ * 
+ * @param tim  Timer structure to be used for capture
+ * @param ch   channel to be used [0,1]
+ * @param edge Capturing edge
+ * @param cb   callback function to execut on event, prototype defined on common
+ * */
+void TIMER_CAP_Init(LPC_TIM_TypeDef *tim, char ch, char edge, CallBack cb);
+
+/**
+ * Reset capture
+ * */
+void TIMER_CAP_Restart(LPC_TIM_TypeDef *tim);
+
+void TIMER_CAP_Stop(LPC_TIM_TypeDef *tim);
+#endif
 
 typedef struct{
     uint32_t initial;
