@@ -24,6 +24,10 @@
 uint16_t SPI_Send(uint16_t data);
 #endif
 
+#if defined(__BB__)
+#include <spi_lpc1768.h>
+#endif
+
 /**
 * @brief Faz a iniciação do controlador, configurando os pinos, o ritmo de envio e o
 *        numero de bits de dados.

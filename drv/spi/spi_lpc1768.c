@@ -1,21 +1,14 @@
 
+
+#include <clock.h>
 #include <spi_lpc1768.h>
-#include <gpio.h>
 
-
-#if defined(__ARM_ARCH_7M__)
-#if defined(__USE_CMSIS)
-	#include <LPC17xx.h>
-#else
-	#include <lpc1768.h>
-	#include <clock.h>
-#endif
 
 void SSP_SetPCLK(LPC_SSP_TypeDef *sspx, uint8_t ck){
 uint8_t sBit;
 uint32_t *pksel;
 
-	if((uint32_t)sspx & (1<<15)){ 		// test for ssp0 or ssp1
+	if(sspx == LPC_SSP0){
 		pksel = (uint32_t*)&LPC_SC->PCLKSEL1;
 		sBit = PCLK_SSP0;
 	}else{
@@ -34,12 +27,24 @@ uint32_t *pksel;
 	}
 }
 
-void SSP_Init(LPC_SSP_TypeDef *sspx, uint32_t speed, uint8_t dss){
+void SSP_Init(LPC_SSP_TypeDef *sspx, uint32_t speed, uint16_t dss){
 uint32_t cpsr;
 uint8_t ck;
 
 	sspx->CR0 = 0;
 	sspx->CR1 = 0;	
+
+	if(sspx == LPC_SSP0){
+		LPC_SC->PCONP |= SSP0_ON;						// power up module
+		LPC_PINCON->PINSEL0 &= ~(SSP0_CLK_PIN_MASK);	// configure pins
+	    LPC_PINCON->PINSEL1 &= ~(SSP0_PINS_MASK);
+	    LPC_PINCON->PINSEL0 |= SSP0_CLK_PIN;
+	    LPC_PINCON->PINSEL1 |= SSP0_PINS;
+	}else{
+		LPC_SC->PCONP |= SSP1_ON;
+		LPC_PINCON->PINSEL0 &= ~(SSP1_PINS_MASK);
+		LPC_PINCON->PINSEL0 |= SSP1_PINS;
+	}
 
 	for(ck = 8; ck > 0; ck >>= 1){          //calculate ssp prescaler
 		cpsr = (SystemCoreClock/ck)/speed;  // CPSR = cclk/PCLKSEL/spi speed
@@ -55,11 +60,45 @@ uint8_t ck;
 	}
 
 	sspx->CPSR = cpsr & 0xFE;	// must be an even number
-	sspx->CR0 = SSP_CPOL | SSP_CPHA | (dss-1); //idle on high level, data valid on rising edge
-	sspx->CR1 = SSP_SSE;        // Enable ssp
-    sspx->DR = 0xFF;            // read status reg and clear flags
+
+	sspx->CR0 = (dss & 0xFF) - 1; // data size
+
+	switch(dss >> 8 ){
+		case SPI_MODE0: break;
+		case SPI_MODE1: sspx->CR0 |= SSP_CPHA; break;
+		case SPI_MODE2: sspx->CR0 |= SSP_CPOL; break;
+		case SPI_MODE3: sspx->CR0 |= SSP_CPHA | SSP_CPHA; break;
+		default: break;
+	}
+
+	sspx->CR1 = SSP_SSE;       // Enable ssp
 }
 
+void SSP_Transfer(LPC_SSP_TypeDef *sspx, void *buffer, uint16_t lenght){
+uint16_t dmy;
+	while(sspx->SR & SSP_SR_RNE){ // empty fifo
+		dmy = sspx->DR;
+	}
+
+	if((sspx->CR0 & 0x0F) < 8){	// check if 8 or 16 bit
+		while(lenght--){
+			sspx->DR = *((uint8_t*)buffer);
+			while(sspx->SR & SSP_SR_BSY);
+			*((uint8_t*)buffer) = sspx->DR;
+			buffer = (uint8_t*)buffer + 1;
+		}
+	}else{
+		while(lenght--){
+			sspx->DR = *((uint16_t*)buffer);
+			while(sspx->SR & SSP_SR_BSY);
+			*((uint16_t*)buffer) = sspx->DR;
+			buffer = (uint16_t*)buffer + 1;
+		}
+	}
+}
+
+
+// for compatibility
 void SPI_Init(int frequency, int bitData){
 	SSP0_PowerUp();
 	SSP0_ConfigPins();
@@ -68,48 +107,9 @@ void SPI_Init(int frequency, int bitData){
 
 uint16_t SPI_Send(uint16_t data){
 	LPC_SSP0->DR = data;
-		while((LPC_SSP0->SR & SSP_BSY));
+		while((LPC_SSP0->SR & SSP_SR_BSY));
 	return LPC_SSP0->DR;
 }
-
-#else
-#include <lpc2106.h>
-#include <clock.h>
-
-/**
-*	default init 8-bit transfer
-*   master, mode 3, clk = PCLK/16
-*   Note default pclk = cclk/4
-**/
-void SPI_Init(int frequency, int bitData){
-int spccr;
-
-	SPI_PowerUp();
-	PINCON->PINSEL0 &= ~(0xFF<<8);
-	PINCON->PINSEL0 |= SPI0_PINS;
-	SPI0->SPCR = SPI0_MSTR | SPI0_CPOL | SPI0_CPHA | SPI0_EN_NBITS | (bitData << 8);
-	
-	if(frequency){
-		spccr = CLOCK_GetPCLK() / frequency;
-		if(spccr < SPI_MAX_CLK)
-			spccr = SPI_MAX_CLK;
-	}
-	else
-		spccr = SPI_MAX_CLK;
-		
-	SPI0->SPCCR = spccr & 0xFE;	// must be an even number
-    SPI_Send(0xFF);             // read status reg and clear flags
-}
-
-uint16_t SPI_Send(uint16_t data){
-	SPI0->SPDR = data;
-	while(!(SPI0->SPSR & SPI0_SPIF));
-return SPI0->SPDR;
-}
-
-
-
-#endif
 
 void SPI_Transfer(unsigned short *txBuffer, unsigned short *rxBuffer, int lenght){
 	while(lenght--){
@@ -117,10 +117,3 @@ void SPI_Transfer(unsigned short *txBuffer, unsigned short *rxBuffer, int lenght
 	}
 }
 
-void SPI_BeginTransfer(int csBitId){
-	GPIO_Clr(csBitId);
-}
-
-void SPI_EndTransfer(int csBitId){
-	GPIO_Set(csBitId);
-}
