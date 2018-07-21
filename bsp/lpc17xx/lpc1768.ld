@@ -25,13 +25,6 @@ SECTIONS {
 		_estartup = _stext;
 	} > flash	
 	
-	/*section for libc exceptions and stack trace */
-/*	.ARM.exidx ALIGN(4) : {		 understand this....	
-		__exidx_start = LOADADDR(.ARM.exidx);
-		*(.ARM.exidx* .gnu.linkonce.armexidx.*)		
-		__exidx_end = .;
-	} > ram0
-*/	
 	.ram_code : {			/* functions that will run on ram */
 		. = ALIGN(4);
 		_siramcode = LOADADDR(.ram_code);
@@ -61,6 +54,14 @@ SECTIONS {
 		. = ALIGN(8);
 		_end = .;        /* used for heap management */
 	} > ram0
+
+	/*section for libc exceptions and stack trace */
+	.ARM.exidx ALIGN(4) : {		 /* understand this...., required for cpp*/
+		__exidx_start = LOADADDR(.ARM.exidx);
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)		
+		__exidx_end = .;
+	} > ram0
+	
 		
 	.stack : {
 		. = ALIGN(4);		
