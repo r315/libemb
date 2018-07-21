@@ -7,12 +7,12 @@
 void PWM_Init(uint32_t tcclk){
     LPC_SC->PCONP |= PCONP_PCPWM1;                   // Enable PWM Module
     
-	SET_PCLK_PWM1(CCLK_DIV2);
+	SET_PCLK_PWM1(CCLK_DIV1);
 
 	LPC_PINCON->PINSEL4 &= ~(0xFF);
     LPC_PINCON->PINSEL4 |= 0x55;                    // Select PWM function for P2.3:0
 
-	LPC_PWM1->PR = ((SystemCoreClock / 1000000UL) >> 1) - 1;     // Set TC Clock to 1Mhz
+	LPC_PWM1->PR = (SystemCoreClock / 1000000UL) - 1;     // Set TC Clock to 1Mhz
     
     LPC_PWM1->TCR = (1<<TCR_TCEN) | (1<<TCR_PWMEN);
 
