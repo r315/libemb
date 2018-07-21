@@ -87,44 +87,81 @@
 #define SETOUTPUT(x) GPIO0->FIODIR |= x
 #define SETINPUT(x) GPIO0->FIODIR &= ~(x)
 
-//PINSEL bit positions
-#define P0_23_PINSEL    14
-#define P0_24_PINSEL    16
+/* ****** PINSEL bit positions ****** */
+//PINSEL1
+#define PINSEL_PIN_P0_23    14
+#define PINSEL_PIN_P0_24    16
 
-#define P2_0_PINSEL     0
-#define P2_1_PINSEL     2
-#define P2_2_PINSEL     4
-#define P2_3_PINSEL     6
-#define P2_4_PINSEL     8
-#define P2_5_PINSEL     10
-#define P2_6_PINSEL     12
+//PINSEL4
+#define PINSEL_PIN_P2_0     0
+#define PINSEL_PIN_P2_1     2
+#define PINSEL_PIN_P2_2     4
+#define PINSEL_PIN_P2_3     6
+#define PINSEL_PIN_P2_4     8
+#define PINSEL_PIN_P2_5     10
+#define PINSEL_PIN_P2_6     12
 
-//Pinsel1 functions
-#define PINSEL_CAP3_0   3
-#define PINSEL_CAP3_1   3
+/* ****** Port pin functions ****** */
+//Port 0 pin functions
+#define P0_23_GPIO       0
+#define P0_23_AD0_0      1
+#define P0_23_I2SRX_CLK  2
+#define P0_23_CAP3_0     3
+
+#define P0_24_GPIO       0
+#define P0_24_AD0_2      1
+#define P0_24_I2SRX_WS   2
+#define P0_24_CAP3_1     3
+
+//Port 2 pin functions
+#define P2_0_GPIO      0
+#define P2_0_PWM1_1    1
+#define P2_0_TXD1      2
+
+#define P2_1_GPIO      0
+#define P2_1_PWM1_2    1
+#define P2_1_RXD1      2
+
+#define P2_2_GPIO      0
+#define P2_2_PWM1_3    1
+#define P2_2_CTS1      2
+
+#define P2_3_GPIO      0
+#define P2_3_PWM1_4    1
+#define P2_3_DCD1      2
+
+#define P2_4_GPIO      0
+#define P2_4_PWM1_5    1
+#define P2_4_DSR1      2
+
+#define P2_5_GPIO      0
+#define P2_5_PWM1_6    1
+#define P2_5_DTR1      2
+
+#define P2_6_GPIO      0
+#define P2_6_PACP1_0   1
+#define P2_6_RI1       2
+
+#define P2_7_GPIO      0
+#define P2_7_RD2       1
+#define P2_7_RTS1      2
 
 
+#define PINSEL_P0_23(x) { LPC_PINCON->PINSEL1 = (LPC_PINCON->PINSEL1 & ~(3 << PINSEL_PIN_P0_23)) | (x << PINSEL_PIN_P0_23); } 
+#define PINSEL_P0_24(x) { LPC_PINCON->PINSEL1 = (LPC_PINCON->PINSEL1 & ~(3 << PINSEL_PIN_P0_24)) | (x << PINSEL_PIN_P0_24); }
 
-// PINSEL4 functions
-#define PINSEL_PWM1_1    0
-#define PINSEL_PWM1_2    2
-#define PINSEL_PWM1_3    4
-#define PINSEL_PWM1_4    6
-#define PINSEL_PWM1_5    8
-#define PINSEL_PWM1_6    10
-#define PINSEL_PCAP1_0   10
+#define PINSEL_P2_0(x)  { LPC_PINCON->PINSEL4 = (LPC_PINCON->PINSEL4 & ~(3 << PINSEL_PIN_P2_0)) | (x << PINSEL_PIN_P2_0); }
+#define PINSEL_P2_1(x)  { LPC_PINCON->PINSEL4 = (LPC_PINCON->PINSEL4 & ~(3 << PINSEL_PIN_P2_1)) | (x << PINSEL_PIN_P2_1); }
+#define PINSEL_P2_2(x)  { LPC_PINCON->PINSEL4 = (LPC_PINCON->PINSEL4 & ~(3 << PINSEL_PIN_P2_2)) | (x << PINSEL_PIN_P2_2); }
+#define PINSEL_P2_3(x)  { LPC_PINCON->PINSEL4 = (LPC_PINCON->PINSEL4 & ~(3 << PINSEL_PIN_P2_3)) | (x << PINSEL_PIN_P2_3); }
+#define PINSEL_P2_4(x)  { LPC_PINCON->PINSEL4 = (LPC_PINCON->PINSEL4 & ~(3 << PINSEL_PIN_P2_4)) | (x << PINSEL_PIN_P2_4); }
+#define PINSEL_P2_5(x)  { LPC_PINCON->PINSEL4 = (LPC_PINCON->PINSEL4 & ~(3 << PINSEL_PIN_P2_5)) | (x << PINSEL_PIN_P2_5); }
+#define PINSEL_P2_6(x)  { LPC_PINCON->PINSEL4 = (LPC_PINCON->PINSEL4 & ~(3 << PINSEL_PIN_P2_6)) | (x << PINSEL_PIN_P2_6); }
 
+#define PINDIR_P0_23(x) { LPC_GPIO0->FIODIR = (LPC_GPIO0->FIODIR & ~(1<<23)) | (x<<23); }
+#define PINDIR_P0_24(x) { LPC_GPIO0->FIODIR = (LPC_GPIO0->FIODIR & ~(1<<24)) | (x<<23); }
 
-#define PINSEL_P0_23(x) { LPC_PINCON->PINSEL1 &= ~(3 << P0_23_PINSEL); LPC_PINCON->PINSEL1 |= (x << P0_23_PINSEL); } 
-#define PINSEL_P0_24(x) { LPC_PINCON->PINSEL1 &= ~(3 << P0_24_PINSEL); LPC_PINCON->PINSEL1 |= (x << P0_24_PINSEL); }
-
-#define PINSEL_P2_0(x)  LPC_SC->PCLKSEL4 = (LPC_SC->PCLKSEL4 & ~(3 << P2_0_PINSEL)) | (x << P2_0_PINSEL);
-#define PINSEL_P2_1(x)  LPC_SC->PCLKSEL4 = (LPC_SC->PCLKSEL4 & ~(3 << P2_1_PINSEL)) | (x << P2_1_PINSEL);
-#define PINSEL_P2_2(x)  LPC_SC->PCLKSEL4 = (LPC_SC->PCLKSEL4 & ~(3 << P2_2_PINSEL)) | (x << P2_2_PINSEL);
-#define PINSEL_P2_3(x)  LPC_SC->PCLKSEL4 = (LPC_SC->PCLKSEL4 & ~(3 << P2_3_PINSEL)) | (x << P2_3_PINSEL);
-#define PINSEL_P2_4(x)  LPC_SC->PCLKSEL4 = (LPC_SC->PCLKSEL4 & ~(3 << P2_4_PINSEL)) | (x << P2_4_PINSEL);
-#define PINSEL_P2_5(x)  LPC_SC->PCLKSEL4 = (LPC_SC->PCLKSEL4 & ~(3 << P2_5_PINSEL)) | (x << P2_5_PINSEL);
-#define PINSEL_P2_6(x)  LPC_SC->PCLKSEL4 = (LPC_SC->PCLKSEL4 & ~(3 << P2_6_PINSEL)) | (x << P2_6_PINSEL);
+#define PINDIR_P2_0(x) { LPC_GPIO2->FIODIR = (LPC_GPIO2->FIODIR & ~(1 << 0)) | (x << 0); }
 
 
 /**

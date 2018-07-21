@@ -28,7 +28,7 @@
 #define EMR_SET 2  // Set the corresponding External Match bit/output to 1 (MATn.m pin is HIGH if pinned out).
 #define EMR_TGL 3  // Toggle the corresponding External Match bit/output.
 
-
+// TIMx MCR bits
 #define MR0_IRQ     (1<<0)      // Enable interrupt on match
 #define MR0_RST     (1<<1)      // Reset Timer0 on match
 #define MR0_STP     (1<<2)      // Stop Timer0 on match
@@ -41,6 +41,12 @@
 #define MR3_IRQ     (1<<9)      // Enable interrupt on match
 #define MR3_RST     (1<<10)     // Reset Timer3 on match
 #define MR3_STP     (1<<11)     // Stop Timer3 on match
+
+#define MCR_MRxI    (1<<0)
+#define MCR_MRxR    (1<<1)
+#define MCR_MRxS    (1<<2)
+
+
 
 
 /**
@@ -80,15 +86,6 @@ enum{
 void TIMER_CAP_Init(LPC_TIM_TypeDef *tim, char ch, char edge, CallBack cb);
 
 /**
- * Reset timer and resume capture
- * */
-void TIMER_CAP_Restart(LPC_TIM_TypeDef *tim);
-/**
- * Stops capturing and resets timer. 
- * */
-void TIMER_CAP_Stop(LPC_TIM_TypeDef *tim);
-
-/**
  * Configure a timer to generate an event when reach the given ticks. The timer will configured to have a 1us clock
  * 
  * @param time   Timer structure to be used on match
@@ -103,7 +100,15 @@ void TIMER_Match_Init(LPC_TIM_TypeDef *tim, char ch, uint32_t count, CallBack cb
  * 
  * @param tim    Timer structure to be used on match
  * */
-void TIMER_Match_Stop(LPC_TIM_TypeDef *tim);
+void TIM_Stop(LPC_TIM_TypeDef *tim);
+
+
+/**
+ * Stops generating events
+ * 
+ * @param tim    Timer structure to be used on match
+ * */
+void TIM_Restart(LPC_TIM_TypeDef *tim);
 
 #endif
 

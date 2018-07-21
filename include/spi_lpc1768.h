@@ -104,6 +104,7 @@ CPHA = 1  ____X___X___X___X___X___X___         X         X
 
 
 void SSP_Init(LPC_SSP_TypeDef *sspx, uint32_t speed, uint16_t dss);
+void SSP_Transfer(LPC_SSP_TypeDef *sspx, void *buffer, uint16_t lenght);
 
 #endif /* _SPI_1768_H_ */
 
