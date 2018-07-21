@@ -75,7 +75,8 @@ uint8_t ck;
 }
 
 void SSP_Transfer(LPC_SSP_TypeDef *sspx, void *buffer, uint16_t lenght){
-uint16_t dmy;
+volatile uint16_t dmy;
+
 	while(sspx->SR & SSP_SR_RNE){ // empty fifo
 		dmy = sspx->DR;
 	}

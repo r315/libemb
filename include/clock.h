@@ -22,8 +22,17 @@ extern "C" {
 //PCLKSEL0 Bits
 #define PCLK_TIMER0 2
 #define PCLK_TIMER1 4
-#define PCLK_PWM1   6
+#define PCLK_UART0  6
+#define PCLK_UART1  8
+#define PCLK_PWM1   12
+#define PCLK_I2C0   14
+#define PCLK_SPI    16
+#define PCLK_SSP1   20
+#define PCLK_DAC    22
 #define PCLK_ADC    24
+#define PCLK_CAN1   26
+#define PCLK_CAN2   28
+#define PCLK_ACF    30
 
 //PCLKSEL1 Bits
 #define PCLK_RIT	26
