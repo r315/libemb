@@ -1,6 +1,10 @@
 #ifndef _clock_h_
 #define _clock_h_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #if defined(__BB__)
@@ -74,5 +78,9 @@ unsigned int CLOCK_GetTicks(void);
  * @brief returns ticks passed from the parameter ticks
  **/
 unsigned int CLOCK_ElapsedTicks(unsigned int ticks);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _clock_h_ */

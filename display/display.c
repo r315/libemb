@@ -5,16 +5,16 @@
 int drawCharSimple(int x, int y, unsigned char *d_char);
 
 static Display _display = {
-	.font.data = (const uint8_t*)defaultFontData,
-	.font.w = 8,
-	.font.h = 8,
+	.xputc = DISPLAY_putc,
+	.xgetchar = (char (*)(void))0, 
 	.forecolor = WHITE,
 	.backcolor = BLACK,
+	.font = {8, 8, (const uint8_t*)defaultFontData},
+	.vspace = 0,
 	.cx = 0,
 	.cy = 0,
 	.sc = 0,
-	.xputc = DISPLAY_putc,
-	.drawChar = drawCharSimple,
+	.drawChar = drawCharSimple
 };
 
 //-----------------------------------------------------------
@@ -144,8 +144,7 @@ char prec;
 //-----------------------------------------------------------
 void DISPLAY_printf(const char* str, ...){
 	va_list arp;
-	signed char d, w, s, l, f;
-	signed char r;
+	signed char d, r, w, s, l, f;
 
 	va_start(arp, str);
 

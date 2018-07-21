@@ -10,6 +10,10 @@
 #ifndef _common_h_
 #define _common_h_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stddef.h>  // NULL
 
@@ -66,5 +70,10 @@ void DelayMs(uint32_t ms);
 #define ElapsedTicks(x) (GetTicks() - x)
 
 void Board_Init(void);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* _common_h_ */

@@ -1,6 +1,11 @@
 #ifndef _display_h_
 #define _display_h_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 #include <lcd.h>
 
@@ -67,5 +72,8 @@ void DISPLAY_printf(const char* str, ...);
 void DISPLAY_puts(const char *s);
 void DISPLAY_putc(char c);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
