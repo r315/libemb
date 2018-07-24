@@ -53,13 +53,13 @@ void WEAK      	RIT_IRQHandler(void);            /* Repetitive Interrupt Timer *
 void WEAK      	MCPWM_IRQHandler(void);          /* Motor Control PWM */
 void WEAK      	QEI_IRQHandler(void);            /* Quadrature Encoder Interface */
 void WEAK      	PLL1_IRQHandler(void);           /* PLL1 (USB PLL) */
-void WEAK      	Exception_Handler(void);
 
 //*****************************************************************************
 // Provide weak aliases for each Exception handler to the Default_Handler.
 // As they are weak aliases, any function with the same name will override
 // this definition.
 //*****************************************************************************
+#pragma weak HardFault_Handler = Default_Handler          /* MPU Fault Handler */
 #pragma weak MemManage_Handler = Default_Handler          /* MPU Fault Handler */
 #pragma weak BusFault_Handler = Default_Handler           /* Bus Fault Handler */
 #pragma weak UsageFault_Handler = Default_Handler         /* Usage Fault Handler */
@@ -103,7 +103,6 @@ void WEAK      	Exception_Handler(void);
 #pragma weak QEI_IRQHandler = Default_Handler            /* Quadrature Encoder Interface */
 #pragma weak PLL1_IRQHandler = Default_Handler           /* PLL1 (USB PLL) */
 
-#pragma weak Exception_Handler = No_Return_Handler
 
 /* ----------------------- Linker script Exported constants ---------------------------------- */
 extern unsigned int _etext;		/* end address for the .text section.*/
@@ -166,19 +165,13 @@ void Reset_Handler(void)
 //
 //*****************************************************************************
 void Default_Handler(void) {
-	Exception_Handler();
 	//__asm("ldr r13,=_stack_top");
 	//__asm("ldr r0,=Exception_Handler");
 	//__asm("bx r0");	
 	while (1) {
 	}
 }
-void No_Return_Handler(void){
-	// Go into an infinite loop.
-	//
-	while (1) {
-	}
-}
+
 //*****************************************************************************
 // vectors table
 //*****************************************************************************
