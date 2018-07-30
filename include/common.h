@@ -34,6 +34,7 @@ void DelayMs(uint32_t ms);
 #include <gpio.h>
 #include <timer.h>
 #include <pwm.h>
+#include <i2c.h>
 
 #define DelayMs CLOCK_DelayMs
 

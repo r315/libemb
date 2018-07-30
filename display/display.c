@@ -191,7 +191,7 @@ void DISPLAY_printf(const char* str, ...){
 		
 		if (d == 'u') r = 10;
 		if (d == 'd') r = -10;
-		if (d == 'X') r = 16;
+		if (d == 'X' || d == 'x') r = 16;
 		if (d == 'b') r = 2;
 
 		if(d == 'p'){
