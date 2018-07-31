@@ -23,7 +23,9 @@
 
 #define I2C_DEFAULT_CLOCK 100000 //Standard 100Khz
 
-#define I2C_MAX_IF 3
+#define I2C_MAX_ITF 3
+
+#define I2C_MAX_TIMEOUT 0x1000000
 
 enum I2C_States{
 	I2C_IDLE = 0,
@@ -44,8 +46,10 @@ typedef struct{
 	LPC_I2C_TypeDef *interface; // i2c interface to be used
 	uint8_t device;             // 8-bit slave address
 	uint8_t *data;              // data buffer for r/w
-	uint32_t count;             // data size
-	volatile uint8_t status;    // current status
+	volatile uint8_t state;     // current state
+	uint8_t operation;			// Read/Write
+	uint32_t count;             // data size	
+
 }I2C_Controller;
 
 //P0.27 -> SDA0
@@ -94,21 +98,43 @@ typedef struct{
  *
  * \param i2cifc   - i2c controller structure
  * \param ifNumber - Number of hw interface 0-2
- * \param freq     - clock frequency [Hz]
  * \param dev      - 8-Bit Slave address
  * 
  * */
 
-void I2C_Init(I2C_Controller *i2cifc, uint8_t ifNumber, uint32_t freq, uint8_t dev);
+I2C_Controller *I2C_Init(uint8_t ifNumber, uint8_t dev);
 
 /**
 * @brief Escreve dados de um buffer para o bus
 */
-int8_t I2C_Write(I2C_Controller *i2cifc, uint8_t *data, uint32_t size);
+int8_t I2C_Write(uint8_t ifNumber, uint8_t *data, uint32_t size);
 
 /**
 * @brief Lê dados do bus i2c para um buffer
 **/
-int8_t I2C_Read(I2C_Controller *i2cifc, uint8_t *data, uint32_t size);
+int8_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size);
+
+/**
+ * @brief Async read
+ * 
+ * \param i2citfc	- 	Interface controller
+ * \param data		- 	Destination buffer
+ * \param size		- 	Number of bytes to be read
+ * \param callback	- 	Callback for data ready
+ * */
+int8_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, void (*)(void*));
+
+
+/**
+ * @brief Async Write
+ * 
+ * \param i2citfc	- 	Interface controller
+ * \param data		- 	Source data
+ * \param size		- 	Number of bytes to be written
+ * \param callback	- 	Callback for data write
+ * */
+int8_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, void (*)(void*));
+
+
 
 #endif
