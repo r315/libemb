@@ -36,20 +36,22 @@ enum I2C_States{
 	DATA_READ,		   //0x05
 	ADDRESS_HIGH,      //0x06
 	ADDRESS_LOW,       //0x07
+	CALL_CB,
 	ERROR_SLA_W_NACK,  //0x08
 	ERROR_SLA_R_NACK,  //0x09
 	ERROR_DTA_W_NACK,  //0x0A
 	ERROR_DTA_R_NACK   //0x0B
 };
 
-typedef struct{
+typedef struct _I2C_Controller{
 	LPC_I2C_TypeDef *interface; // i2c interface to be used
 	uint8_t device;             // 8-bit slave address
 	uint8_t *data;              // data buffer for r/w
+	uint32_t size;              // Size of data
 	volatile uint8_t state;     // current state
 	uint8_t operation;			// Read/Write
-	uint32_t count;             // data size	
-
+	uint32_t count;             // current byte counter	
+	void (*cb)(void*);
 }I2C_Controller;
 
 //P0.27 -> SDA0
@@ -121,8 +123,10 @@ int8_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size);
  * \param data		- 	Destination buffer
  * \param size		- 	Number of bytes to be read
  * \param callback	- 	Callback for data ready
+ * 
+ * \return 			-	size No error, 0 error ocurred 
  * */
-int8_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, void (*)(void*));
+int8_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(void*));
 
 
 /**
@@ -132,8 +136,10 @@ int8_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, void (*)(void*));
  * \param data		- 	Source data
  * \param size		- 	Number of bytes to be written
  * \param callback	- 	Callback for data write
+ * 
+ * \return 			-	size No error, 0 error ocurred   
  * */
-int8_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, void (*)(void*));
+int8_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(void*));
 
 
 

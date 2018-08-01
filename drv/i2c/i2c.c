@@ -59,7 +59,7 @@ I2C_Controller *I2C_Init(uint8_t ifNumber, uint8_t dev){
  * Read   |S| dev+R | data | data+n |P|
  * TODO: Furder tests
  **/
-static int8_t I2C_StateMachine(I2C_Controller *i2cifc){
+static void I2C_StateMachine(I2C_Controller *i2cifc){
 
 	DBG("%X\n",i2cifc->interface->I2STAT);
 	switch(i2cifc->interface->I2STAT)
@@ -81,16 +81,16 @@ static int8_t I2C_StateMachine(I2C_Controller *i2cifc){
 		//SLA+W was transmitted, ACK from slave was received
 		//send first data
 	case I2C_SLA_W_ACK:
-		
+		i2cifc->state = DATA_WRITE;
 		//Data was transmitted and ACK received,
 		//send remaining data
 	case I2C_DTA_W_ACK:
-		if(i2cifc->count){
-			i2cifc->interface->I2DAT = *(i2cifc->data++);
+		if(i2cifc->count < i2cifc->size){
+			i2cifc->interface->I2DAT = *(i2cifc->data + i2cifc->count);
 			i2cifc->interface->I2CONSET = I2C_AA;
-			i2cifc->count--;
+			i2cifc->count++;
 		}else{
-			i2cifc->state = I2C_IDLE;
+			i2cifc->state = CALL_CB;
 			i2cifc->interface->I2CONSET = I2C_STO;
 		}
 		i2cifc->interface->I2CONCLR = I2C_SI;
@@ -99,17 +99,19 @@ static int8_t I2C_StateMachine(I2C_Controller *i2cifc){
 		//SLA+R was transmitted, ACK from slave was received
 		//set ACK bit
 	case I2C_SLA_R_ACK:
+		i2cifc->state = DATA_READ;
 		i2cifc->interface->I2CONSET = I2C_AA;
 		i2cifc->interface->I2CONCLR = I2C_SI;
 		break;
 		//Data was received and ACK transmitted,
 		//receive remaining data
 	case I2C_DTA_R_ACK:
-		*(i2cifc->data++) = i2cifc->interface->I2DAT;
-		i2cifc->count--;
-		if(i2cifc->count){
+		*(i2cifc->data + i2cifc->count) = i2cifc->interface->I2DAT;
+		i2cifc->count++;
+		if(i2cifc->count < i2cifc->size){
 			i2cifc->interface->I2CONSET = I2C_AA;
 		}else{
+			i2cifc->state = CALL_CB;
 			i2cifc->interface->I2CONCLR = I2C_AA;
 		}
 		i2cifc->interface->I2CONCLR = I2C_SI;
@@ -134,6 +136,7 @@ static int8_t I2C_StateMachine(I2C_Controller *i2cifc){
 		i2cifc->interface->I2CONCLR = I2C_SI;
 		i2cifc->interface->I2CONSET = I2C_STO;
 		break;
+
 	case I2C_DTA_R_NACK:
 		i2cifc->state = I2C_IDLE;
 		i2cifc->interface->I2CONCLR = I2C_SI;
@@ -153,21 +156,25 @@ static int8_t I2C_StateMachine(I2C_Controller *i2cifc){
 		break;
 	}
 
-	return i2cifc->state;
+	if (i2cifc->state == CALL_CB){
+		if( i2cifc->cb != NULL){
+			i2cifc->cb(i2cifc->data);
+		}
+		i2cifc->state = I2C_IDLE;
+	}	
 }
 
-int8_t I2C_ClycleStateMachine(I2C_Controller *i2cifc, uint8_t *data, uint32_t size){
+int8_t I2C_StartStateMachine(I2C_Controller *i2cifc, uint8_t *data, uint32_t size){
 uint32_t timeout = I2C_MAX_TIMEOUT;
 	
-	i2cifc->count = size;
+	i2cifc->count = 0;
+	i2cifc->size = size;
 	i2cifc->data = data;
 
 	i2cifc->interface->I2CONSET = I2C_STA;
 
 	while(timeout){
-		if ( i2cifc->state != I2C_IDLE )
-		{
-			while(i2cifc->state != I2C_IDLE );
+		if ( i2cifc->state != I2C_IDLE ){
 			return i2cifc->count;
 		}
 		timeout--;
@@ -175,23 +182,36 @@ uint32_t timeout = I2C_MAX_TIMEOUT;
 	
 	i2cifc->interface->I2CONSET = I2C_STO;
   	i2cifc->interface->I2CONCLR = I2C_SI;
-	while( i2cifc->interface->I2CONSET & I2C_STO ); 
+	
 	return 0;	
 }
 
 int8_t I2C_Write(uint8_t ifNumber, uint8_t *data, uint32_t size){
-I2C_Controller *i2citf = &i2cController[ifNumber];
-	i2citf->operation = DATA_WRITE;
-	return I2C_ClycleStateMachine( i2citf, data, size);
+	I2C_WriteAsync(ifNumber, data, size, NULL);
+	while( i2cController[ifNumber].state != I2C_IDLE);
+	return i2cController[ifNumber].size;
 }
 
 
 int8_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size){
-I2C_Controller *i2citf = &i2cController[ifNumber];
-	i2citf->operation = DATA_READ;
-	return I2C_ClycleStateMachine( i2citf, data, size);
+	I2C_ReadAsync(ifNumber, data, size, NULL);
+	while( i2cController[ifNumber].state != I2C_IDLE );
+	return i2cController[ifNumber].size;
 }
 
+int8_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
+	I2C_Controller *i2citf = &i2cController[ifNumber];
+	i2citf->operation = DATA_READ;
+	i2citf->cb = cb;
+	return I2C_StartStateMachine( i2citf, data, size);
+}
+
+int8_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
+	I2C_Controller *i2citf = &i2cController[ifNumber];
+	i2citf->operation = DATA_WRITE;
+	i2citf->cb = cb;
+	return I2C_StartStateMachine( i2citf, data, size);
+}
 
 void I2C0_IRQHandler(void){
 	I2C_StateMachine(&i2cController[I2C_IF0]);
