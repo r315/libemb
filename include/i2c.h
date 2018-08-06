@@ -29,18 +29,15 @@
 
 enum I2C_States{
 	I2C_IDLE = 0,
-	REPEATED_START,    //0x01
-	SLA_READ,          //0x02
-	SLA_WRITE,         //0x03
-	DATA_WRITE,        //0x04
-	DATA_READ,		   //0x05
-	ADDRESS_HIGH,      //0x06
-	ADDRESS_LOW,       //0x07
-	CALL_CB,
-	ERROR_SLA_W_NACK,  //0x08
-	ERROR_SLA_R_NACK,  //0x09
-	ERROR_DTA_W_NACK,  //0x0A
-	ERROR_DTA_R_NACK   //0x0B
+	REPEATED_START, 
+	SLA_READ, 
+	SLA_WRITE, 
+	DATA_WRITE, 
+	DATA_READ,
+	CALL_CB,           
+	ERROR_SLA_NACK,
+	ERROR_DTA_W_NACK, 
+	ERROR_DTA_R_NACK
 };
 
 typedef struct _I2C_Controller{
@@ -51,7 +48,7 @@ typedef struct _I2C_Controller{
 	volatile uint8_t state;     // current state
 	uint8_t operation;			// Read/Write
 	uint32_t count;             // current byte counter	
-	void (*cb)(void*);
+	void (*cb)(void*);          // callback for async api
 }I2C_Controller;
 
 //P0.27 -> SDA0
@@ -61,17 +58,17 @@ typedef struct _I2C_Controller{
 	LPC_PINCON->PINSEL1 |=  ((1<<24) | (1<<22)); \
 
 
-//P0.19 -> SDA1
-//P0.20 -> SCL1
-#define I2C1_ConfigPins()                     \
-	LPC_PINCON->PINSEL1 |=  (3<<8) | (3<<6);  \
+//P0.0 -> SDA1
+//P0.1 -> SCL1
+#define I2C1_ConfigPins()                        \
+	LPC_PINCON->PINSEL0 |=  (3<<0) | (3<<2);     \
 
 
 //P0.10 -> SDA2
 //P0.11 -> SCL2
 #define I2C2_ConfigPins()                        \
-	LPC_PINCON->PINSEL1 &= ~((3<<24) | (3<<22)); \
-	LPC_PINCON->PINSEL1 |=  ((2<<24) | (2<<22)); \
+	LPC_PINCON->PINSEL0 &= ~((3<<20) | (3<<22)); \
+	LPC_PINCON->PINSEL0 |=  ((2<<20) | (2<<22)); \
 
 #define I2C_AA   (1<<2)
 #define I2C_SI   (1<<3)
@@ -98,10 +95,10 @@ typedef struct _I2C_Controller{
 /**
  * @brief Faz a iniciação do interface i2c (0-2) e define o ritmo de clock
  *
- * \param i2cifc   - i2c controller structure
  * \param ifNumber - Number of hw interface 0-2
  * \param dev      - 8-Bit Slave address
  * 
+ * \return 		   - pointer to internal controller
  * */
 
 I2C_Controller *I2C_Init(uint8_t ifNumber, uint8_t dev);
@@ -109,15 +106,15 @@ I2C_Controller *I2C_Init(uint8_t ifNumber, uint8_t dev);
 /**
 * @brief Escreve dados de um buffer para o bus
 */
-int8_t I2C_Write(uint8_t ifNumber, uint8_t *data, uint32_t size);
+int32_t I2C_Write(uint8_t ifNumber, uint8_t *data, uint32_t size);
 
 /**
 * @brief Lê dados do bus i2c para um buffer
 **/
-int8_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size);
+int32_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size);
 
 /**
- * @brief Async read
+ * @brief Async I2C bus read
  * 
  * \param i2citfc	- 	Interface controller
  * \param data		- 	Destination buffer
@@ -126,11 +123,11 @@ int8_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size);
  * 
  * \return 			-	size No error, 0 error ocurred 
  * */
-int8_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(void*));
+int32_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(void*));
 
 
 /**
- * @brief Async Write
+ * @brief Async I2C bus Write
  * 
  * \param i2citfc	- 	Interface controller
  * \param data		- 	Source data
@@ -139,7 +136,7 @@ int8_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(vo
  * 
  * \return 			-	size No error, 0 error ocurred   
  * */
-int8_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(void*));
+int32_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(void*));
 
 
 

@@ -10,7 +10,7 @@
 #include <i2c.h>
 #include <debug.h>
 
-static volatile I2C_Controller i2cController[I2C_MAX_ITF];
+static I2C_Controller i2cController[I2C_MAX_ITF];
 
 I2C_Controller *I2C_Init(uint8_t ifNumber, uint8_t dev){
 
@@ -61,7 +61,7 @@ I2C_Controller *I2C_Init(uint8_t ifNumber, uint8_t dev){
  **/
 static void I2C_StateMachine(I2C_Controller *i2cifc){
 
-	DBG("%X\n",i2cifc->interface->I2STAT);
+	//DBG("%X\n",i2cifc->interface->I2STAT);
 	switch(i2cifc->interface->I2STAT)
 	{
 	case I2C_START:
@@ -75,7 +75,6 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 			i2cifc->state = SLA_WRITE;
 		}
 		i2cifc->interface->I2CONCLR = I2C_STA;
-		i2cifc->interface->I2CONCLR = I2C_SI;
 		break;
 
 		//SLA+W was transmitted, ACK from slave was received
@@ -93,7 +92,6 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 			i2cifc->state = CALL_CB;
 			i2cifc->interface->I2CONSET = I2C_STO;
 		}
-		i2cifc->interface->I2CONCLR = I2C_SI;
 		break;
 
 		//SLA+R was transmitted, ACK from slave was received
@@ -101,7 +99,6 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 	case I2C_SLA_R_ACK:
 		i2cifc->state = DATA_READ;
 		i2cifc->interface->I2CONSET = I2C_AA;
-		i2cifc->interface->I2CONCLR = I2C_SI;
 		break;
 		//Data was received and ACK transmitted,
 		//receive remaining data
@@ -114,47 +111,36 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 			i2cifc->state = CALL_CB;
 			i2cifc->interface->I2CONCLR = I2C_AA;
 		}
-		i2cifc->interface->I2CONCLR = I2C_SI;
 		break;
 
+    case I2C_SLA_R_NACK:
 	case I2C_SLA_W_NACK:
-		i2cifc->state = I2C_IDLE;
+		i2cifc->state = ERROR_SLA_NACK;
 		i2cifc->interface->I2CONCLR = I2C_STA;
-		i2cifc->interface->I2CONCLR = I2C_SI;
 		i2cifc->interface->I2CONSET = I2C_STO;
 		break;
 
 	case I2C_DTA_W_NACK:
 		i2cifc->state = I2C_IDLE;
-		i2cifc->interface->I2CONCLR = I2C_SI;
-		i2cifc->interface->I2CONSET = I2C_STO;
-		break;
-
-	case I2C_SLA_R_NACK:
-		i2cifc->state = I2C_IDLE;
-		i2cifc->interface->I2CONCLR = I2C_STA;
-		i2cifc->interface->I2CONCLR = I2C_SI;
 		i2cifc->interface->I2CONSET = I2C_STO;
 		break;
 
 	case I2C_DTA_R_NACK:
 		i2cifc->state = I2C_IDLE;
-		i2cifc->interface->I2CONCLR = I2C_SI;
 		i2cifc->interface->I2CONSET = I2C_STO;
 		break;
 
 	case I2C_SLA_LOST:
 		i2cifc->state = I2C_IDLE;
-		i2cifc->interface->I2CONCLR = I2C_STA | I2C_STO;
-		i2cifc->interface->I2CONCLR = I2C_SI;
+		i2cifc->interface->I2CONCLR = I2C_STO;
 		break;
 
 	case I2C_NO_INFO:
-		//i2cifc->interface->I2CONCLR = I2C_I2EN;
-		//i2cifc->interface->I2CONSET = I2C_I2EN;
-		i2cifc->interface->I2CONCLR = I2C_SI;
+	default:
 		break;
 	}
+
+	i2cifc->interface->I2CONCLR = I2C_SI;
 
 	if (i2cifc->state == CALL_CB){
 		if( i2cifc->cb != NULL){
@@ -186,27 +172,34 @@ uint32_t timeout = I2C_MAX_TIMEOUT;
 	return 0;	
 }
 
-int8_t I2C_Write(uint8_t ifNumber, uint8_t *data, uint32_t size){
+int32_t I2C_Write(uint8_t ifNumber, uint8_t *data, uint32_t size){
 	I2C_WriteAsync(ifNumber, data, size, NULL);
-	while( i2cController[ifNumber].state != I2C_IDLE);
+	while( i2cController[ifNumber].state != I2C_IDLE){
+       if(i2cController[ifNumber].state == ERROR_SLA_NACK){
+            return (ERROR_SLA_NACK<<8);
+        }  
+    }
 	return i2cController[ifNumber].size;
 }
 
-
-int8_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size){
+int32_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size){
 	I2C_ReadAsync(ifNumber, data, size, NULL);
-	while( i2cController[ifNumber].state != I2C_IDLE );
+	while( i2cController[ifNumber].state != I2C_IDLE ){
+        if(i2cController[ifNumber].state == ERROR_SLA_NACK){
+            return (ERROR_SLA_NACK<<8);
+        }
+    }
 	return i2cController[ifNumber].size;
 }
 
-int8_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
+int32_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
 	I2C_Controller *i2citf = &i2cController[ifNumber];
 	i2citf->operation = DATA_READ;
 	i2citf->cb = cb;
 	return I2C_StartStateMachine( i2citf, data, size);
 }
 
-int8_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
+int32_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
 	I2C_Controller *i2citf = &i2cController[ifNumber];
 	i2citf->operation = DATA_WRITE;
 	i2citf->cb = cb;
