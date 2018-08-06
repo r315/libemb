@@ -1,6 +1,10 @@
 #ifndef _SPI_1768_H_
 #define _SPI_1768_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <LPC17xx.h>
 
 #define SPI_PowerUp() SC->PCONP |= SPI0_ON
@@ -105,6 +109,10 @@ CPHA = 1  ____X___X___X___X___X___X___         X         X
 
 void SSP_Init(LPC_SSP_TypeDef *sspx, uint32_t speed, uint16_t dss);
 void SSP_Transfer(LPC_SSP_TypeDef *sspx, void *buffer, uint16_t lenght);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _SPI_1768_H_ */
 
