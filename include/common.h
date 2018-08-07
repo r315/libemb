@@ -37,6 +37,7 @@ void DelayMs(uint32_t ms);
 #include <i2c.h>
 
 #define DelayMs CLOCK_DelayMs
+#define GetTicks CLOCK_GetTicks
 
 #define YES 1
 #define NO  0
@@ -68,7 +69,7 @@ void DelayMs(uint32_t ms);
 #endif /* __EMU__ */
 
 //#define NULL (void*)0
-#define ElapsedTicks(x) (GetTicks() - x)
+#define ElapsedTicks(x) (GetTicks() - (x))
 
 void Board_Init(void);
 
