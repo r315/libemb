@@ -12,6 +12,7 @@
 #include <gpio.h>
 
 //-------------------------------------------------------------------
+#define LCD_REG_DRV_CODE		0x00
 #define LCD_START_OSC			0x00
 #define LCD_DRIV_OUT_CTRL		0x01
 #define LCD_DRIV_WAV_CTRL		0x02
@@ -163,7 +164,7 @@
 #else
 	#define VAL_ENTRY_MOD	0x0030	| BGR_BIT//16bit interface
 	#define SHIFT_DIR		0x0100	 //set SS
-	#define VAL_GATE_SCAN	0xA700 
+	#define VAL_GATE_SCAN	0xA800 
 	#define GRAM_ADX		LCD_GRAM_HOR_AD
 	#define GRAM_ADY		LCD_GRAM_VER_AD
 	#define START_ADX   	LCD_HOR_START_AD
@@ -250,6 +251,6 @@ void LCD_Rotation(uint8_t m);
 /*
  * @brief get display controller id 
  */
-uint16_t LCD_ReadID(void);
+uint16_t LCD_ID(void);
 #endif
 

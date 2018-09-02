@@ -16,7 +16,7 @@ void LCD_Bkl(uint8_t state){
 //--------------------------------------------------------
 //
 //--------------------------------------------------------				 
-#ifdef LCD_USE_ID
+#if defined(LCD_USE_ID)
 uint16_t LCD_ReadReg(uint8_t reg)
 {
 uint16_t dta = 0;
@@ -37,7 +37,7 @@ uint16_t dta = 0;
 return dta;
 }
 
-uint16_t LCD_ReadID(void){
+uint16_t LCD_ID(void){
 uint16_t id;
     if (LCD_ReadReg(0x04) == 0x8000) {
         if (LCD_ReadReg(0xD0) == 0x990000) {
@@ -49,7 +49,7 @@ uint16_t id;
     if (id == 0x9341) {
         return id;
     }
-return LCD_ReadReg(0);    
+return LCD_ReadReg(LCD_REG_DRV_CODE);    
 }
 #endif
 //--------------------------------------------------------
