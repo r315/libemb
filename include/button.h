@@ -67,10 +67,13 @@ enum Benvent{
 	#define BUTTON_LEFT  	(1<<15)
 	#define BUTTON_RIGHT 	(1<<13)
 	#define BUTTON_CENTER	(1<<14)
-	#define BUTTON_A 		BUTTON_CENTER
+	#define BUTTON_A 		  BUTTON_CENTER
+	
+	#define BUTTON_LEFT2	(BUTTON_LEFT | (1<<9))  
+	#define BUTTON_RIGHT2	(BUTTON_RIGHT | (1<<12))
 
 	#define BUTTON_Capture() (~GPIO_Read(GPIOB) & BUTTON_MASK)
-	#define BUTTON_MASK (BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A )
+	#define BUTTON_MASK (BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A | BUTTON_LEFT2 | BUTTON_RIGHT2)
 #endif /* boardselect */
 
 

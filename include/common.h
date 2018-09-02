@@ -25,6 +25,9 @@ typedef void (*CallBack)(void *);
 
 uint32_t GetTicks(void);
 void DelayMs(uint32_t ms);
+#define ON  1
+#define OFF 0
+
 
 #elif defined(__BB__) /* __TDO__ */
 
