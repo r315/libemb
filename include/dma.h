@@ -1,21 +1,25 @@
 #ifndef _dma_h_
 #define _dma_h_
 
-enum{   //DMA direction
-    mem_to_mem,
-    mem_to_dev,
-    dev_to_mem,
-    dev_to_dev
-};
+#include <stdint.h>
 
-typedef struct {
-	uint32_t chnum;				
-	uint32_t size;
-	uint32_t datasize;
-	uint32_t src;				
-	uint32_t dst;				
-	uint32_t dir;
-} Gpdma;
+typedef struct{
+   void *gpdma;
+   uint32_t src;
+   uint32_t dst;
+   uint32_t len;
+   uint8_t number;
+   uint8_t circular;
+   uint8_t priority;
+}Dmachannel;
+
+/**
+ * @brief
+ * */
+void DMA_Setup(Dmachannel *ch);
+void DMA_Start(Dmachannel *ch);
+void DMA_Stop(Dmachannel *ch);
+void DMA_Init(void);
 
 
 #endif /* _dma_h_ */
