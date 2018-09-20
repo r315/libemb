@@ -1,8 +1,7 @@
 
-
+#include <spi.h>
 #include <clock.h>
-#include <spi_lpc1768.h>
-
+#include "spi_lpc1768.h"
 
 void SSP_SetPCLK(LPC_SSP_TypeDef *sspx, uint8_t ck){
 uint8_t sBit;
@@ -27,9 +26,19 @@ uint32_t *pksel;
 	}
 }
 
-void SSP_Init(LPC_SSP_TypeDef *sspx, uint32_t speed, uint16_t dss){
+void SPI_Init(Spi_Type *spi){
 uint32_t cpsr;
 uint8_t ck;
+LPC_SSP_TypeDef *sspx;
+
+	if(spi->bus >= SPI_NUM_BUS)
+		return;
+
+	if(spi->bus == SPI_BUS0){
+		sspx = LPC_SSP0;
+	}else{
+		sspx = LPC_SSP1;
+	}
 
 	sspx->CR0 = 0;
 	sspx->CR1 = 0;	
@@ -46,8 +55,9 @@ uint8_t ck;
 		LPC_PINCON->PINSEL0 |= SSP1_PINS;
 	}
 
-	for(ck = 8; ck > 0; ck >>= 1){          //calculate ssp prescaler
-		cpsr = (SystemCoreClock/ck)/speed;  // CPSR = cclk/PCLKSEL/spi speed
+	//calculate ssp prescaler
+	for(ck = 8; ck > 0; ck >>= 1){          
+		cpsr = (SystemCoreClock/ck)/spi->freq;
 		if((cpsr < SSP_MIN_CLK) && (cpsr > SSP_MAX_CLK)){
 			SSP_SetPCLK(sspx, ck);			
 			break;
@@ -61,9 +71,9 @@ uint8_t ck;
 
 	sspx->CPSR = cpsr & 0xFE;	// must be an even number
 
-	sspx->CR0 = (dss & 0xFF) - 1; // data size
+	sspx->CR0 = (spi->cfg & 0x0F) - 1; // data size
 
-	switch(dss >> 8 ){
+	switch(spi->cfg & 0xF0){
 		case SPI_MODE0: break;
 		case SPI_MODE1: sspx->CR0 |= SSP_CPHA; break;
 		case SPI_MODE2: sspx->CR0 |= SSP_CPOL; break;
@@ -72,10 +82,14 @@ uint8_t ck;
 	}
 
 	sspx->CR1 = SSP_SSE;       // Enable ssp
+	
+	spi->dev = sspx;
 }
 
-void SSP_Transfer(LPC_SSP_TypeDef *sspx, void *buffer, uint16_t lenght){
+void SPI_Transfer(Spi_Type *spi, void *buffer, uint16_t lenght){
 volatile uint16_t dmy;
+
+LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->dev;
 
 	while(sspx->SR & SSP_SR_RNE){ // empty fifo
 		dmy = sspx->DR;
@@ -98,23 +112,28 @@ volatile uint16_t dmy;
 	}
 }
 
-
+/*
 // for compatibility
 void SPI_Init(int frequency, int bitData){
 	SSP0_PowerUp();
 	SSP0_ConfigPins();
 	SSP_Init(LPC_SSP0, frequency, bitData);
 }
-
-uint16_t SPI_Send(uint16_t data){
-	LPC_SSP0->DR = data;
-		while((LPC_SSP0->SR & SSP_SR_BSY));
-	return LPC_SSP0->DR;
-}
-
 void SPI_Transfer(unsigned short *txBuffer, unsigned short *rxBuffer, int lenght){
+
 	while(lenght--){
+
 		*rxBuffer++ = SPI_Send(*txBuffer++);
+
 	}
 }
+*/
+uint16_t SPI_Send(Spi_Type *spi, uint16_t data){
+LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->dev;
+	sspx->DR = data;
+		while((sspx->SR & SSP_SR_BSY));
+	return sspx->DR;
+}
+
+
 

@@ -85,30 +85,7 @@ select SSEL functionality on P0.7 and have HIGH level on this pin in order to ac
 #define SPI_8BIT 8
 #define SPI_16BIT 0
 
-enum{
-	SPI_MODE0 = 0,
-	SPI_MODE1,
-	SPI_MODE2,
-	SPI_MODE3,
-};
-
-
-/*
-SPI modes                                 0    1    2    3
-               _   _   _   _ 
-CPOL = 0    __| |_| |_| |_| |__           X    X         
-            __   _   _   _   __
-CPOL = 1      |_| |_| |_| |_|                       X    X
-          __ ___ ___ ___ ___ ___ ___   
-CPHA = 0  __X___X___X___X___X___X___      X         X     
-          ____ ___ ___ ___ ___ ___ ___ 
-CPHA = 1  ____X___X___X___X___X___X___         X         X
-
-*/
-
-
-void SSP_Init(LPC_SSP_TypeDef *sspx, uint32_t speed, uint16_t dss);
-void SSP_Transfer(LPC_SSP_TypeDef *sspx, void *buffer, uint16_t lenght);
+#define SPI_NUM_BUS 2
 
 #ifdef __cplusplus
 }
