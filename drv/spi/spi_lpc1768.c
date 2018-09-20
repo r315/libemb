@@ -87,12 +87,11 @@ LPC_SSP_TypeDef *sspx;
 }
 
 void SPI_Transfer(Spi_Type *spi, void *buffer, uint16_t lenght){
-volatile uint16_t dmy;
 
 LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->dev;
 
 	while(sspx->SR & SSP_SR_RNE){ // empty fifo
-		dmy = sspx->DR;
+	    LPC_RTC->GPREG0 = sspx->DR;
 	}
 
 	if((sspx->CR0 & 0x0F) < 8){	// check if 8 or 16 bit

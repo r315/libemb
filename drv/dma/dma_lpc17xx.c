@@ -73,7 +73,7 @@ uint8_t DMA_GetConnection(uint32_t address){
  * @brief Gets the dma structure correspondent to the dma channel number
  * */
 LPC_GPDMACH_TypeDef *DMA_GetChannel(uint8_t num){
-   return m_dmachs[num & 7];
+   return (LPC_GPDMACH_TypeDef *)m_dmachs[num & 7];
 }
 
 /**
@@ -102,7 +102,7 @@ LPC_GPDMACH_TypeDef *dmach;
 uint32_t control;
 
     if(ch->gpdma == NULL){        
-        ch->number = (void*) DMA_GetAvailableChannel(DMA_MAX_CHANNELS - 1 - ch->priority);
+        ch->number = DMA_GetAvailableChannel(DMA_MAX_CHANNELS - 1 - ch->priority);
         if(ch->number == DMA_MAX_CHANNELS){
             return;
         }
@@ -129,9 +129,9 @@ uint32_t control;
     if(ch->circular){
         m_lli[ch->number].src = ch->src;
         m_lli[ch->number].dst = ch->dst;
-        m_lli[ch->number].lli = &m_lli[ch->number];
+        m_lli[ch->number].lli = (uint32_t)&m_lli[ch->number];
         m_lli[ch->number].ctl = control;
-        dmach->DMACCLLI = &m_lli[ch->number];
+        dmach->DMACCLLI = (uint32_t)&m_lli[ch->number];
     }
 
     dmach->DMACCControl = control; 

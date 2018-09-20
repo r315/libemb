@@ -51,9 +51,6 @@ extern "C" {
 #define SSP_SR_RFF (1<<3)
 #define SSP_SR_BSY (1<<4)
 
-#define SSP_8BIT  8
-#define SSP_16BIT 16
-
 #define SSP_MAX_CLK 10
 #define SSP_MIN_CLK 254
 
@@ -82,8 +79,6 @@ select SSEL functionality on P0.7 and have HIGH level on this pin in order to ac
 
 #define SPI_MAX_CLK   8		//min pckl divider
 #define SPI_MAX_FREQ  0
-#define SPI_8BIT 8
-#define SPI_16BIT 0
 
 #define SPI_NUM_BUS 2
 
