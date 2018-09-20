@@ -38,6 +38,7 @@ void DelayMs(uint32_t ms);
 #include <timer.h>
 #include <pwm.h>
 #include <i2c.h>
+#include <dac.h>
 
 #define DelayMs CLOCK_DelayMs
 #define GetTicks CLOCK_GetTicks

@@ -49,8 +49,14 @@ extern "C" {
 #define CCLK_DIV4   0
 #define CCLK_DIV8   3 
 
-#define SET_PCLK_TIMER3(x) {LPC_SC->PCLKSEL1 &= ~(3<<PCLK_TIMER3); LPC_SC->PCLKSEL1 |= (x<<PCLK_TIMER3);}
-#define SET_PCLK_PWM1(x)  {LPC_SC->PCLKSEL0 = (LPC_SC->PCLKSEL0 & ~(3 << PCLK_PWM1)) | (x << PCLK_PWM1);}
+#define CCLK_100	100
+#define CCLK_80		80
+#define CCLK_72		72
+#define CCLK_48		48
+
+#define SET_PCLK_TIMER3(x) {LPC_SC->PCLKSEL1 = (LPC_SC->PCLKSEL1 & ~(3 << PCLK_TIMER3)) | (x<<PCLK_TIMER3);}
+#define SET_PCLK_PWM1(x)   {LPC_SC->PCLKSEL0 = (LPC_SC->PCLKSEL0 & ~(3 << PCLK_PWM1)) | (x << PCLK_PWM1);}
+#define SET_PCLK_DAC(x)    {LPC_SC->PCLKSEL1 = (LPC_SC->PCLKSEL1 & ~(3 << PCLK_DAC)) | (x << PCLK_DAC);}
 
 #define __USE_SYSTICK
 #endif
