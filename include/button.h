@@ -10,6 +10,11 @@
 #ifndef _button_h_
 #define _button_h_
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 typedef struct{
@@ -28,7 +33,7 @@ enum Benvent{
     BUTTON_TIMING,
     BUTTON_HOLD,
     BUTTON_RELEASED	
-}Bstate;
+};
 
 
 /**
@@ -133,5 +138,12 @@ void BUTTON_SetHoldTime(int t);
 *        
 **/
 char BUTTON_Pressed(int button);
+
+
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 

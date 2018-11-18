@@ -1,6 +1,11 @@
 #ifndef _lcd_h_
 #define _lcd_h_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #if defined(__EMU__)
 	#include <lcdsdl.h>
 #elif defined(_ILI9341_) || defined(__LPCXpresso__) || defined(__TDSO__) 
@@ -115,5 +120,9 @@ void LCD_Bkl(uint8_t state);
 * @brief
 **/
 void LCD_Scroll(uint16_t sc);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
