@@ -1,5 +1,5 @@
-#ifndef _SPI_1768_H_
-#define _SPI_1768_H_
+#ifndef _SPI_17xx_H_
+#define _SPI_17xx_H_
 
 #ifdef __cplusplus
 extern "C" {

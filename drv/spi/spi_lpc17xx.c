@@ -1,7 +1,7 @@
 
 #include <spi.h>
 #include <clock.h>
-#include "spi_lpc1768.h"
+#include "spi_lpc17xx.h"
 
 void SSP_SetPCLK(LPC_SSP_TypeDef *sspx, uint8_t ck){
 uint8_t sBit;
