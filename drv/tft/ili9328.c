@@ -38,7 +38,7 @@ return dta;
 }
 
 uint16_t LCD_ID(void){
-uint16_t id;
+/*uint16_t id;
     if (LCD_ReadReg(0x04) == 0x8000) {
         if (LCD_ReadReg(0xD0) == 0x990000) {
           return 0x8357;
@@ -48,7 +48,7 @@ uint16_t id;
     id = LCD_ReadReg(0xD3);
     if (id == 0x9341) {
         return id;
-    }
+    }*/
 return LCD_ReadReg(LCD_REG_DRV_CODE);    
 }
 #endif
@@ -140,7 +140,7 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t c){
 //-------------------------------------------------------------------
 void LCD_Scroll(uint16_t y)
 {
-	while (y < 0)
+	while ((int16_t)y < 0)
  		y += 320;
 	while (y >= 320)
  		y -= 320;
