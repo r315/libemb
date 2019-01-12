@@ -1,6 +1,6 @@
 
+#include <board.h>
 #include <clock.h>
-#include <lpc1768.h>
 
 #ifdef __USE_SYSTICK
 volatile unsigned int _systicks;

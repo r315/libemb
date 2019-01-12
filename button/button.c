@@ -6,9 +6,9 @@
 * @date		3 Nov. 2016
 * @author	Hugo Reis
 **********************************************************************/
+#include <board.h>
 #include <button.h>
 #include <gpio.h>
-#include <board.h>
 
 static BUTTON_Controller __button;
 
@@ -17,6 +17,7 @@ void BUTTON_Init(int ht){
     __button.last = BUTTON_EMPTY;
     __button.events = BUTTON_EMPTY;
     __button.htime = ht;
+	BUTTON_Cfg();
 }
 
 int BUTTON_Read(void){

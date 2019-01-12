@@ -36,39 +36,7 @@ enum Benvent{
 };
 
 
-/**
-* @brief Button connections
-*	P1.14, p1.15, p1.16, p1.17, p1.28
-**/
-#if defined(__BB__) || defined(__EMU__)
-    #define BUTTON_UP    (1<<15)
-    #define BUTTON_DOWN  (1<<17) //0x1001C000
-    #define BUTTON_LEFT  (1<<16) //0x1002C000
-    #define BUTTON_RIGHT (1<<28) //0x0003C000
-    #define BUTTON_A     (1<<14) //0x10038000
-    #define BUTTON_CENTER BUTTON_A
-
-#if defined(__USE_CMSIS)
-	#if defined(__LPCXpresso__)
-	#define BUTTON_Capture() (~(LPC_GPIO0->FIOPIN) & BUTTON_MASK)
-	#define BUTTON_SetInput(x) LPC_GPIO0->FIODIR &= ~(x)
-	#else
-	#define BUTTON_Capture() (~(LPC_GPIO1->FIOPIN) & BUTTON_MASK)
-	#define BUTTON_SetInput(x) LPC_GPIO1->FIODIR &= ~(x)
-	#endif
-#else
-	#if defined(__LPCXpresso__)
-	#define BUTTON_Capture() (~(GPIO0->FIOPIN) & BUTTON_MASK)
-	#define BUTTON_SetInput(x) GPIO0->FIODIR &= ~(x)
-	#else
-	#define BUTTON_Capture() (~(GPIO1->FIOPIN) & BUTTON_MASK)
-	#define BUTTON_SetInput(x) GPIO1->FIODIR &= ~(x)
-	#endif
-#endif
-
-#define BUTTON_MASK (BUTTON_UP | BUTTON_DOWN | BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A )
-
-#elif defined(__TDSO__)
+#if defined(__TDSO__)
 	#define BUTTON_LEFT  	(1<<15)
 	#define BUTTON_RIGHT 	(1<<13)
 	#define BUTTON_CENTER	(1<<14)
@@ -109,7 +77,7 @@ int BUTTON_Read(void);
 int BUTTON_Get(void);
 
 /**
-* @brief Devolve o código (bitmap) do estado do botão: 
+* @brief Devolve o ultimo evento registado: 
 * 		 pressionado (transição),
 *        libertado (transição),
 *        repetição (mantido pressionado)
@@ -118,7 +86,7 @@ int BUTTON_GetEvents(void);
 
 /**
  * @brief Devolve o codigo (bitmap) da tecla corrente
- *        EMPTY se nenhuma tecla pressionada
+ *        BUTTON_EMPTY se nenhuma tecla pressionada
  **/
 int BUTTON_GetValue(void); 
 

@@ -179,41 +179,6 @@
 	#define BGR_BIT (1<<12)
 #endif
 
-//-------------------------------------------------------------------
-#if defined(__BB__)
-#define  LCD_CS	 (1<<10) //P1.10
-#define  LCD_RS	 (1<<9)	 //P1.9
-#define  LCD_WR	 (1<<8)	 //P1.8
-#define  LCD_RD	 (1<<4)	 //P1.4
-#define  LCD_LED (1<<1)  //P1.1
-#define  LCD_RST (1<<0)	 //P1.0	
-
-
-#define  CTRLPORT    GPIO1
-#define  DATAPORT    GPIO0->FIOPIN0
-#define  DATAPORTDIR GPIO0->FIODIR0
-
-#define  LCDCS0      CTRLPORT->FIOCLR = LCD_CS;
-#define  LCDCS1      CTRLPORT->FIOSET = LCD_CS; 
-#define  LCDRS0      CTRLPORT->FIOCLR = LCD_RS;
-#define  LCDRS1      CTRLPORT->FIOSET = LCD_RS;
-#define  LCDWR0      CTRLPORT->FIOCLR = LCD_WR; //asm("nop");
-#define  LCDWR1      CTRLPORT->FIOSET = LCD_WR;  
-#define  LCDRD0      CTRLPORT->FIOCLR = LCD_RD;
-#define  LCDRD1      CTRLPORT->FIOSET = LCD_RD; 
-#define  LCDRST0     CTRLPORT->FIOCLR = LCD_RST;
-#define  LCDRST1     CTRLPORT->FIOSET = LCD_RST; 
-#define  LCD_BKL0    CTRLPORT->FIOCLR = LCD_LED;
-#define  LCD_BKL1    CTRLPORT->FIOSET = LCD_LED;
-
-#define LCD_IO_INIT                                                   \
-	CTRLPORT->FIODIR |= LCD_CS|LCD_RS|LCD_WR|LCD_RD|LCD_LED|LCD_RST;  \
-	DATAPORTDIR |= 0xFF;
-
-#endif
-
-void DelayMs(uint32_t dl);
-
 /**
  @brief Deprecated read data/reg from lcd
  **/
@@ -224,30 +189,11 @@ uint16_t LCD_ReadData(void);
  **/
 void LCD_Data(uint16_t data);
 
-/**
- @brief writes n data of same color
- **/
-void LCD_Fill( uint32_t n, uint16_t color);
-
-/**
- * @brief Get current display Width
- **/
-uint16_t LCD_GetWidth(void);
-
-/**
- * @brief Get current display Height
- **/
-uint16_t LCD_GetHeight(void);
-
-/**
- * @brief Get total number of pixels
- **/
-#define LCD_GetSize() (TFT_W*TFT_H)
-
 /*
  * @brief muda a orientação do lcd
  */
 void LCD_Rotation(uint8_t m);
+
 /*
  * @brief get display controller id 
  */

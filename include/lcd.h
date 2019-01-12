@@ -5,23 +5,7 @@
 extern "C" {
 #endif
 
-
-#if defined(__EMU__)
-	#include <lcdsdl.h>
-#elif defined(_ILI9341_) || defined(__LPCXpresso__) || defined(__TDSO__) 
-    #include "ili9341.h"
-#elif defined(_ST7735_)
-    #include "st7735.h"
-#elif defined(_ILI9328_) || defined(__BB__)
-    #include "ili9328.h"
-#else
-#error "Define a driver"
-#endif
-
-#ifndef ON
-	#define ON 1
-	#define OFF 0
-#endif
+#include <stdint.h>
 
 #ifdef BGR_MODE
     #define RGB(r,g,b)  (uint16_t)((b<<11) | (g<<5) | r)
@@ -66,6 +50,11 @@ extern "C" {
 void LCD_Init(void);
 
 /**
+ @brief writes n data of same color
+ **/
+void LCD_Fill( uint32_t n, uint16_t color);
+
+/**
  @brief Draws a filled rectangle
  **/
 void LCD_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
@@ -84,7 +73,6 @@ void LCD_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
  @brief Opens a window for writing data
  **/
 void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-
 
 /**
  @brief Open a 1x1 px window, addresses the pixel location and write data
@@ -120,6 +108,22 @@ void LCD_Bkl(uint8_t state);
 * @brief
 **/
 void LCD_Scroll(uint16_t sc);
+
+/**
+ * @brief Get current display Width
+ **/
+uint16_t LCD_GetWidth(void);
+
+/**
+ * @brief Get current display Height
+ **/
+uint16_t LCD_GetHeight(void);
+
+/**
+ * @brief Get total number of pixels
+ **/
+uint32_t LCD_GetSize(void);
+
 
 #ifdef __cplusplus
 }

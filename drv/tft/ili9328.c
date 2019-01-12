@@ -1,4 +1,5 @@
 //#include <clock.h>
+#include <board.h>
 #include <lcd.h>
 #include <ili9328.h>
 
@@ -22,17 +23,17 @@ uint16_t LCD_ReadReg(uint8_t reg)
 uint16_t dta = 0;
 
     LCDRS0;                         /* Set register */
-	DATAPORT = 0;
+	LCD_DATAPORT = 0;
 	LCDWR0;LCDWR0;LCDWR1;
-	DATAPORT =reg;
+	LCD_DATAPORT =reg;
 	LCDWR0;LCDWR0;LCDWR1;
 
-    DATAPORTDIR &= ~0xFF;          /* change to input */
+    LCD_DATAPORTDIR &= ~0xFF;          /* change to input */
     DelayMs(3);
 	LCDRS1;
-	LCDRD0; DelayMs(3); dta = (DATAPORT << 8); LCDRD1;
-	LCDRD0; DelayMs(3); dta |= (DATAPORT);     LCDRD1;
-	DATAPORTDIR |= 0xFF;          /* change to out      put */
+	LCDRD0; DelayMs(3); dta = (LCD_DATAPORT << 8); LCDRD1;
+	LCDRD0; DelayMs(3); dta |= (LCD_DATAPORT);     LCDRD1;
+	LCD_DATAPORTDIR |= 0xFF;          /* change to out      put */
     DelayMs(3);
 return dta;
 }
@@ -58,9 +59,9 @@ return LCD_ReadReg(LCD_REG_DRV_CODE);
 //--------------------------------------------------------
 void LCD_Data(uint16_t data)
 {
-	DATAPORT = data >> 8; // MSB
+	LCD_DATAPORT = data >> 8; // MSB
 	LCDWR0;LCDWR0;LCDWR1;
-	DATAPORT = data;      // LSB
+	LCD_DATAPORT = data;      // LSB
 	LCDWR0;LCDWR0;LCDWR1;	
 }
 //--------------------------------------------------------
@@ -69,9 +70,9 @@ void LCD_Data(uint16_t data)
 void LCD_Command(uint8_t ins) 
 {
 	LCDRS0;
-	DATAPORT = 0;
+	LCD_DATAPORT = 0;
 	LCDWR0;LCDWR0;LCDWR1;
-	DATAPORT = ins;
+	LCD_DATAPORT = ins;
 	LCDWR0;LCDWR0;LCDWR1;
 	LCDRS1;
 }
@@ -81,9 +82,9 @@ void LCD_Command(uint8_t ins)
 void LCD_Fill(uint32_t count, uint16_t color){
 	LCDRS1;
 	while(count--){
-		DATAPORT = color>>8;
+		LCD_DATAPORT = color>>8;
 		LCDWR0;LCDWR0;LCDWR1;
-		DATAPORT = color;	
+		LCD_DATAPORT = color;	
 		LCDWR0;LCDWR0;LCDWR1;
 	}
 }
@@ -291,6 +292,10 @@ uint16_t LCD_GetWidth(void){
 
 uint16_t LCD_GetHeight(void){
     return _height;
+}
+
+uint32_t LCD_GetSize(void){
+    return _width * _height;
 }
 
 void LCD_Rotation(uint8_t m) {

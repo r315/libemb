@@ -1,5 +1,5 @@
 
-#include <common.h>
+#include <board.h>
 #include <dma.h>
 
 #define DMA_MAX_CHANNELS    8

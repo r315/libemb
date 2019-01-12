@@ -3,7 +3,7 @@
 
 void LCD_Clear(uint16_t color){
 	LCD_Window(0,0, LCD_GetWidth(), LCD_GetHeight());
-	LCD_Fill(LCD_SIZE, color);
+	LCD_Fill(LCD_GetSize(), color);
 }
 
 void LCD_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){

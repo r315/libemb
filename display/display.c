@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
+#include <board.h>
 #include "fonts.c"
 
 int drawCharSimple(int x, int y, unsigned char *d_char);

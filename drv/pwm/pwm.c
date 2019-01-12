@@ -1,8 +1,8 @@
 
+#include <board.h>
+#include <pwm.h>
 
 #if defined(__BB__)
-#include <common.h>
-#include <pwm.h>
 
 void PWM_Init(uint32_t tcclk){
     LPC_SC->PCONP |= PCONP_PCPWM1;                   // Enable PWM Module

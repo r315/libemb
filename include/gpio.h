@@ -12,7 +12,7 @@
 #define _GPIO_H_
 
 #include <stdint.h>
-#include <common.h>
+#include <LPC17xx.h>
 
 #if defined(__TDSO__)
 

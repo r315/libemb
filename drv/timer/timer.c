@@ -1,5 +1,5 @@
-#include <common.h>
-#include "timer.h"
+#include <board.h>
+#include <timer.h>
 
 void TIMER_Start(Timer *tm, uint32_t interval){
     tm->initial = TIMER_GetTicks();

@@ -1,5 +1,4 @@
-#include <LPC17xx.h>
-#include <clock.h>
+#include <board.h>
 #include <dac.h>
 #include <dma.h>
 #include <string.h>

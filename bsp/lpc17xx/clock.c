@@ -1,6 +1,7 @@
 
+#include <board.h>
 #include <clock.h>
-#include <LPC17xx.h>
+
 
 #ifdef __USE_SYSTICK
 volatile unsigned int _systicks;
