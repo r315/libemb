@@ -58,6 +58,7 @@ void TIM_Restart(LPC_TIM_TypeDef *tim){
 
 static CallBack tim3matchcallback;
 static CallBack tim3capcallback;
+static void *tim3callbackptr;
 uint32_t capval;
 
 void TIMER_CAP_Init(LPC_TIM_TypeDef *tim, char ch, char edge, CallBack cb){
@@ -119,16 +120,15 @@ void TIMER3_IRQHandler(void){
     }
 
     if(LPC_TIM3->IR & ( 0X0f << 0)){
-        tim3matchcallback(NULL);
+        tim3matchcallback(tim3callbackptr);
         LPC_TIM3->IR = ( 0x0f << 0);
-    }
-    
+    }    
 }
   
 // -------------------------------------------------
 // Compare
 // -------------------------------------------------
-void TIMER_Match_Init(LPC_TIM_TypeDef *tim, char ch, uint32_t count, CallBack cb){
+void TIMER_Periodic(LPC_TIM_TypeDef *tim, char ch, uint32_t us, CallBack cb, void *ptr){
 
     if(cb == NULL){
         return ;       
@@ -143,7 +143,7 @@ void TIMER_Match_Init(LPC_TIM_TypeDef *tim, char ch, uint32_t count, CallBack cb
         LPC_SC->PCONP |= PCONP_PCTIM3;
         tim->TCR = TIMER_RESET;
         SET_PCLK_TIMER3(CCLK_DIV1);
-        *((uint32_t*)(&tim->MR0 + (ch << 2))) = count - 1;
+        *((uint32_t*)(&tim->MR0 + (ch << 2))) = us - 1;
         NVIC_EnableIRQ(TIMER3_IRQn);    
             
     }else{
@@ -151,10 +151,11 @@ void TIMER_Match_Init(LPC_TIM_TypeDef *tim, char ch, uint32_t count, CallBack cb
     }    
     
     tim3matchcallback = cb;
+    tim3callbackptr = ptr;
     tim->CCR = 0;                                                // Disable capture    
     tim->PR = (SystemCoreClock / 1000000UL) - 1;                 // Set TC Clock to 1Mhz
     tim->MCR |= (MCR_MRxI << (ch * 3)) | (MCR_MRxR << (ch * 3)); // Interrupt on match and reset timer     
-    tim->TCR = TIMER_ENABLE;
+    tim->TCR = TIMER_ENABLE;                                     // start timer
 }    
   
  

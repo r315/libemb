@@ -90,10 +90,11 @@ void TIMER_CAP_Init(LPC_TIM_TypeDef *tim, char ch, char edge, CallBack cb);
  * 
  * @param time   Timer structure to be used on match
  * @param ch     channel to be used [0,3]
- * @param count  max count of timer before generating the event
+ * @param us     number of us between callback calls
  * @param cb     callback function to execut on event.
+ * @param ptr    callback parameters pointer
  * */
-void TIMER_Match_Init(LPC_TIM_TypeDef *tim, char ch, uint32_t count, CallBack cb);
+void TIMER_Periodic(LPC_TIM_TypeDef *tim, char ch, uint32_t us, CallBack cb, void *ptr);
 
 /**
  * Stops generating events
