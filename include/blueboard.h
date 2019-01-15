@@ -130,17 +130,20 @@ extern "C" {
 //
 //-----------------------------------------------------
 #ifndef LEDS
-	#define LED1 (1<<29) //P1.29 (D8)
+	#define LED1 (1<<29) //P1.29 (D8 BLUE)
 	#define LED1_ON  LPC_GPIO1->FIOSET = LED1
 	#define LED1_OFF LPC_GPIO1->FIOCLR = LED1
+	#define LED1_TOGGLE LPC_GPIO1->FIOPIN ^= LED1
 	
-	#define LED2 (1<<18) //P1.18 (D7)
+	#define LED2 (1<<18) //P1.18 (D7 RED)
 	#define LED2_OFF LPC_GPIO1->FIOSET = LED2
 	#define LED2_ON  LPC_GPIO1->FIOCLR = LED2
 	
-	#define LED3 (1<<9)  //P2.9 (D1)
+	#define LED3 (1<<9)  //P2.9 (D1 RED)
 	#define LED3_OFF LPC_GPIO2->FIOSET = LED3
 	#define LED3_ON  LPC_GPIO2->FIOCLR = LED3
+
+	#define LEDS_CFG
 #endif
 
 #define ACCEL_CS (1<<6)
@@ -180,6 +183,24 @@ extern "C" {
 	LCD_CTRLPORT->FIODIR |= LCD_CS|LCD_RS|LCD_WR|LCD_RD|LCD_LED|LCD_RST;  \
 	LCD_DATAPORTDIR |= 0xFF;
 
+
+#define BOARD_Init() \
+{                                    \
+	LPC_GPIO0->FIODIR |= 0xFF;       \
+	LPC_GPIO1->FIODIR |= LED1|LED2;  \
+	LPC_GPIO2->FIODIR |= LED3;       \
+    /* accelerometer cs pin */       \
+    LPC_GPIO0->FIODIR   |= ACCEL_CS;  /* en cs pin */ \
+    LPC_PINCON->PINSEL0 &= ~(3<<12);  /* P0.6 (used as GPIO) */ \
+    /* mmc cs pin */ \
+	LPC_GPIO0->FIODIR   |=  MMC_CS;   /* SET MMC_CS pin  as output */ \
+	LPC_PINCON->PINSEL1 &= ~(3<<0);   /* P0.16 (used as GPIO)   */ \
+	LED1_OFF;                        \
+	LED2_OFF;                        \
+	LED3_OFF;                        \
+	DESELECT_ACCEL();                \
+	DESELECT_CARD();                 \
+}
 
 //-----------------------------------------------------
 void BB_Init(void);
