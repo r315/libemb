@@ -3,32 +3,19 @@
 #include <spi.h>
 #include "spi_lpc17xx.h"
 
-void SSP_SetPCLK(LPC_SSP_TypeDef *sspx, uint8_t ck){
-uint8_t sBit;
-uint32_t *pksel;
-
-	if(sspx == LPC_SSP0){
-		pksel = (uint32_t*)&LPC_SC->PCLKSEL1;
-		sBit = PCLK_SSP0;
-	}else{
-		pksel = (uint32_t*)&LPC_SC->PCLKSEL0;
-		sBit = PCLK_SSP1;
-	}
-
-	*pksel &= ~(3<<sBit);  //set default pclock
-
+void SSP_SetPCLK(uint8_t psel, uint8_t ck){	
 	switch(ck){
-		case 1: *pksel |= (PCLK_1<<sBit); break; //SystemCoreClock
-		case 2: *pksel |= (PCLK_2<<sBit); break; //SystemCoreClock / 2
-		case 4: *pksel |= (PCLK_4<<sBit); break; //SystemCoreClock / 4
+		case 1: CLOCK_SetPCLK(psel, PCLK_1); break;
+		case 2: CLOCK_SetPCLK(psel, PCLK_2); break;
+		case 4: CLOCK_SetPCLK(psel, PCLK_4); break;
 		default:
-		case 8: *pksel |= (PCLK_8<<sBit); break; //SystemCoreClock / 8
+		case 8: CLOCK_SetPCLK(psel, PCLK_8); break;
 	}
 }
 
 void SPI_Init(Spi_Type *spi){
 uint32_t cpsr;
-uint8_t ck;
+uint8_t ck, psel;
 LPC_SSP_TypeDef *sspx;
 
 	if(spi->bus >= SPI_NUM_BUS)
@@ -36,8 +23,10 @@ LPC_SSP_TypeDef *sspx;
 
 	if(spi->bus == SPI_BUS0){
 		sspx = LPC_SSP0;
+        psel = PCLK_SSP0;
 	}else{
 		sspx = LPC_SSP1;
+        psel = PCLK_SSP1;
 	}
 
 	sspx->CR0 = 0;
@@ -59,13 +48,13 @@ LPC_SSP_TypeDef *sspx;
 	for(ck = 8; ck > 0; ck >>= 1){          
 		cpsr = (SystemCoreClock/ck)/spi->freq;
 		if((cpsr < SSP_MIN_CLK) && (cpsr > SSP_MAX_CLK)){
-			SSP_SetPCLK(sspx, ck);			
+			SSP_SetPCLK(psel, ck);			
 			break;
 		}
 	}	
 
 	if(!ck){
-		SSP_SetPCLK(sspx, ck);
+		SSP_SetPCLK(psel, ck);
 		cpsr = SSP_MIN_CLK;
 	}
 

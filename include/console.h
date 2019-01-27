@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include "consoleout.h"
+#include "stdout.h"
 #include "console_command.h"
 
 #define NO        0
@@ -37,13 +37,13 @@ extern "C" {
 		char line[COMMAND_MAX_LEN];
 		uint8_t lineLen;
 		const char *prompt;
-		ConsoleOut *out;
+		StdOut *out;
 
 	public:
 		Console(void);
-		Console(ConsoleOut *sp, const char *prt);
+		Console(StdOut *sp, const char *prt);
 
-		void init(ConsoleOut *sp, const char *prt);
+		void init(StdOut *sp, const char *prt);
 
 		char getLine(char *line, uint8_t max);
 		char getLineNonBlocking(char *line, uint8_t *curLen, uint8_t max);

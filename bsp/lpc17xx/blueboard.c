@@ -35,7 +35,15 @@ void BB_Init(void)
 	LED3_OFF;
 	
 	DESELECT_ACCEL();	
-	DESELECT_CARD();	
+	DESELECT_CARD();
+}
+
+
+void SW_Reset(void){
+
+    LPC_WDT->WDCLKSEL = WDCLKSEL_WDSEL_PCLK;
+    LPC_WDT->WDMOD |= WDMOD_WDEN | WDMOD_WDRESET;    
+    WDT_RELOAD;
 }
 
 

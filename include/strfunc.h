@@ -8,19 +8,19 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-	char *nextParameter(char *line);
-	int32_t nextInt(char **line);
-	uint32_t nextHex(char **line);
-	char nextChar(char **line);
-	char *strsub(char *str, const char token, uint8_t len, char **saveptr);
-	char xstrcmp(char const *str1, char const *str2);
-	int yatoi(char *str);
-	uint32_t hatoi(char *str);
-	int xatoi(char **str, long *res);
-	char *pftoa(double f, char places);
-	char* pitoa(long val, int radix, int len);
-//	char * strchr(const char *str, int c);
-	size_t strlen(const char *str);
+    char *nextParameter(char *line);
+    int8_t nextInt(char **line, int32_t *value);
+    uint8_t nextHex(char **line, uint32_t *value);
+    char nextChar(char **line);
+    char *strsub(char *str, const char token, uint8_t len, char **saveptr);
+    char xstrcmp(char const *str1, char const *str2);
+    uint8_t yatoi(char *str, int32_t *value);
+    uint8_t hatoi(char *str, uint32_t *value);
+    int xatoi (char **str, long *res);
+    char *pftoa(double f, char places);
+    char* pitoa (long val, int radix, int len);
+    char * strchr ( const char *str, int c);
+    size_t strlen(const char *str);
 
 #ifdef __cplusplus
 }

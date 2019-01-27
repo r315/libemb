@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #if defined(__BB__)
-#include "clock.h"
+#include "clock_lpc17xx.h"
 
 #define PCTIM0 1
 #define PCTIM1 2

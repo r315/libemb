@@ -16,7 +16,7 @@ Dmachannel dacdma;
 
 void DAC_Init(){
 
-    SET_PCLK_DAC(PCLK_8);
+    CLOCK_SetPCLK(PCLK_DAC, PCLK_8);
     DAC_CFG_PIN;
     memset(&dacdma, 0, sizeof(Dmachannel));
     DMA_Init();

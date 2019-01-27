@@ -23,20 +23,20 @@ void TIMER_SetClockDivider(uint8_t tim, uint8_t div){
     div &= 3;
     switch(tim){
         case 0:
-            LPC_SC->PCLKSEL0 &= ~(3<<PCLK_TIMER0);
-            LPC_SC->PCLKSEL0 |= ~(div<<PCLK_TIMER0);
+            LPC_SC->PCLKSEL0 &= ~(3<<PCLK_TIMER0_pos);
+            LPC_SC->PCLKSEL0 |= ~(div<<PCLK_TIMER0_pos);
             break;
         case 1:
-            LPC_SC->PCLKSEL0 &= ~(3<<PCLK_TIMER1);
-            LPC_SC->PCLKSEL0 |= ~(div<<PCLK_TIMER1);
+            LPC_SC->PCLKSEL0 &= ~(3<<PCLK_TIMER1_pos);
+            LPC_SC->PCLKSEL0 |= ~(div<<PCLK_TIMER1_pos);
             break;
         case 2:
-            LPC_SC->PCLKSEL1 &= ~(3<<PCLK_TIMER2);
-            LPC_SC->PCLKSEL1 |= ~(div<<PCLK_TIMER2);
+            LPC_SC->PCLKSEL1 &= ~(3<<PCLK_TIMER2_pos);
+            LPC_SC->PCLKSEL1 |= ~(div<<PCLK_TIMER2_pos);
             break;
         case 3:
-            LPC_SC->PCLKSEL1 &= ~(3<<PCLK_TIMER3);
-            LPC_SC->PCLKSEL1 |= ~(div<<PCLK_TIMER3);
+            LPC_SC->PCLKSEL1 &= ~(3<<PCLK_TIMER3_pos);
+            LPC_SC->PCLKSEL1 |= ~(div<<PCLK_TIMER3_pos);
             break;
         default: 
             break;
@@ -75,7 +75,7 @@ void TIMER_CAP_Init(LPC_TIM_TypeDef *tim, char ch, char edge, CallBack cb){
     }else if (tim == LPC_TIM3){
         LPC_SC->PCONP |= PCONP_PCTIM3;
         tim->TCR = TIMER_RESET;                              // Stop Timer and reset
-        SET_PCLK_TIMER3(CCLK_DIV1); 
+        CLOCK_SetPCLK(PCLK_TIMER3, PCLK_1); 
 
         if(ch == 0){
             PINSEL_P0_23(P0_23_CAP3_0);
@@ -142,7 +142,7 @@ void TIMER_Periodic(LPC_TIM_TypeDef *tim, char ch, uint32_t us, CallBack cb, voi
     }else if (tim == LPC_TIM3){
         LPC_SC->PCONP |= PCONP_PCTIM3;
         tim->TCR = TIMER_RESET;
-        SET_PCLK_TIMER3(CCLK_DIV1);
+        CLOCK_SetPCLK(PCLK_TIMER3, PCLK_1);
         *((uint32_t*)(&tim->MR0 + (ch << 2))) = us - 1;
         NVIC_EnableIRQ(TIMER3_IRQn);    
             

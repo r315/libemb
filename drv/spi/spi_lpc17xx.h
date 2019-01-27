@@ -54,11 +54,6 @@ extern "C" {
 #define SSP_MAX_CLK 10
 #define SSP_MIN_CLK 254
 
-#define PCLK_SSP0 10
-#define PCLK_SSP0_MASK (3<<PCLK_SSP0)
-#define PCLK_SSP1 20
-#define PCLK_SSP1_MASK (3<<PCLK_SSP1)
-
 /* Control bits */
 #define SPI0_EN_NBITS (1<<2)	//transfered bits selected by bits 11:8
 #define SPI0_CPHA     (1<<3)

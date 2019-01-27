@@ -24,7 +24,7 @@ void DelayMs(uint32_t ms);
 
 #include <LPC17xx.h>
 #include <blueboard.h>
-#include <clock.h>
+#include <clock_lpc17xx.h>
 #include <gpio.h>
 #include <timer.h>
 #include <pwm.h>
