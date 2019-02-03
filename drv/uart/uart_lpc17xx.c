@@ -166,14 +166,14 @@ unsigned char DLest;
         default: return;
     }
 
-    puart->LCR = 0x83;		// 8 bits, no Parity, 1 Stop bit, DLAB=1
+    puart->LCR = 0x83;		// 8 bits, 1 Parity, 2 Stop bit, DLAB=1
     DLest = frdivLookup(&frdiv, uart->baudrate, CLOCK_GetPCLK(PCLK_UART0));	
     puart->DLM = DLest >> 8;
     puart->DLL = DLest & 0xFF;
 	puart->FDR = frdiv.FdrVal;
 
 
-    puart->LCR = 0x03;		// 8 bits, no Parity, 1 Stop bit DLAB = 0
+    puart->LCR = 0x1F;		// 8 bits, no Parity, 1 Stop bit DLAB = 0
     puart->FCR = 0x07;		// Enable and reset TX and RX FIFO
 
     uart->dev = puart;

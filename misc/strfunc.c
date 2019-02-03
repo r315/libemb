@@ -10,8 +10,15 @@ size_t count = 0;
 	}
 	return count;	
 }
-
-char * strchr ( const char *str, int c){
+/**
+ * Searches for the first occurrence of the character c
+ * in the string pointed to by the argument str.
+ * 
+ * \param str   - input string
+ * \param c     - character to be found
+ * \retunrn     - pointer to found char if found, pointer to string terminator if not 
+ * */
+char *chrinstr(const char *str, char c){
 	while(*str){
 		if(*str == c)
 			break;
@@ -20,8 +27,14 @@ char * strchr ( const char *str, int c){
 	return (char*)str;
 }
 
-char *nextParameter(char *line){
-    line = strchr(line, ' ');
+/**
+ * Return pointer to next separated word by ' ' in the given string
+ * 
+ * \param line  - pointer to string
+ * \return      - pointer to first character of next word, pointer to string terminator
+ * */
+char *nextWord(char *line){
+    line = chrinstr(line, ' ');
     if(*line != '\0')
         line++;
     return line;
@@ -37,7 +50,7 @@ char *nextParameter(char *line){
  * */
 uint8_t nextHex(char **line, uint32_t *value){ 
     if(hatoi(*line, value)){
-    	*line = nextParameter(*line);
+    	*line = nextWord(*line);
 		return 1;
 	}
     return 0;
@@ -52,7 +65,7 @@ uint8_t nextHex(char **line, uint32_t *value){
  * */
 int8_t nextInt(char **line, int32_t *value){
     if(yatoi(*line, value)){
-    	*line = nextParameter(*line);
+    	*line = nextWord(*line);
 		return 1;
 	}
     return 0;
@@ -61,8 +74,24 @@ int8_t nextInt(char **line, int32_t *value){
 char nextChar(char **line){
 char c;    
     c = *line[0];
-    *line = nextParameter(*line);
+    *line = nextWord(*line);
     return c;
+}
+
+/**
+ * Compare if first word in a string is equal to the given word.
+ *  
+ * \param str   - pointer to word pointer to be compared
+ * \param word  - pointer to comparing word
+ * \return      - 1 if match and move word pointer to next word, 
+ *                0 not equal and no parameter changed
+ * */
+uint8_t isNextWord(char **str, const char *word){
+    if(!xstrcmp((*str), word)){
+        *str = nextWord(*str);
+        return 1;
+    }
+    return 0;
 }
 
 
