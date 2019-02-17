@@ -14,14 +14,15 @@ extern "C" {
     char nextChar(char **line);
     uint8_t isNextWord(char **str, const char *word);
     char *strsub(char *str, const char token, uint8_t len, char **saveptr);
+	void xstrcpy(char *dst, char *src, uint8_t maxLen);
     char xstrcmp(char const *str1, char const *str2);
+    size_t strlen(const char *str);
     uint8_t yatoi(char *str, int32_t *value);
     uint8_t hatoi(char *str, uint32_t *value);
     int xatoi(char **str, long *res);
     char *pftoa(double f, char places);
     char* pitoa(long val, int radix, int len);
     char * chrinstr( const char *str, char c);
-    size_t strlen(const char *str);
 
 #ifdef __cplusplus
 }

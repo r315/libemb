@@ -143,11 +143,19 @@ char *ptr, i = 0;
 }
 
 char xstrcmp(char const *str1, char const *str2){
-	do{
-		if(*str1 != *str2)
-			return (*str1 - *str2);		
-	}while(*(++str1) && *(++str2));
-	return 0;
+	while (*str1 == *str2) {
+		if (*str1 == '\0')
+			return 0;
+		str1++;
+		str2++;
+	}
+	return (*str1 - *str2);
+}
+
+void xstrcpy(char *dst, char *src, uint8_t maxLen) {
+	while (*src != '\0' && maxLen--) {
+		*dst++ = *src++;
+	}
 }
 
 /**

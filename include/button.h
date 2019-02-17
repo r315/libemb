@@ -52,6 +52,12 @@ enum Benvent{
 
 
 #if defined(__EMU__)
+#define BUTTON_LEFT  	(1<<0)
+#define BUTTON_RIGHT 	(1<<1)
+#define BUTTON_CENTER	(1<<2)
+#define BUTTON_UP    	(1<<3)
+#define BUTTON_DOWN  	(1<<4)
+#define BUTTON_A        (1<<5)		  
 #define loop BUTTON_GetEvents() != 256 //SDL_QUIT
 #else
 #define loop 1

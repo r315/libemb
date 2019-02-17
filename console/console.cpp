@@ -17,11 +17,12 @@ Console::Console(StdOut *sp, const char *prt) {
 void Console::init(StdOut *sp, const char *prt) {
 	memset(cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
 	memset(line, '\0', COMMAND_MAX_LEN);
-	lineLen = 0;
 	cmdListSize = 0;
 	executing = NO;
 	out = sp;
-	prompt = prt;	
+	prompt = prt;
+	historyClear();	
+	line_len = 0;
 	//addCommand(&help); // since all cpp support is disabled, classes on .data section are not initialized
 	print("\e[2J\r%s" ,prompt);
 }
@@ -37,11 +38,11 @@ void Console::addCommand(ConsoleCommand *cmd) {
 	cmdList[cmdListSize++] = cmd;	
 }
 
-char Console::parseCommand(char *line, uint8_t len) {
+char Console::parseCommand(char *line) {
 	char res = CMD_NOT_FOUND, *cmdname, *param;
 	ConsoleCommand **cmd = cmdList;
 
-	if (len == 1) /* the should not exists commands with only one char */
+	if (*line == '\n' || *line == '\r' || *line == '\0')
 		return CMD_OK;
 
 	cmdname = strsub(line, ' ', COMMAND_MAX_LEN, &param);
@@ -56,21 +57,23 @@ char Console::parseCommand(char *line, uint8_t len) {
 		}	
 	}
 
+	memset(line, '\0', COMMAND_MAX_LEN);
+
 	if (res == CMD_NOT_FOUND) {
 		puts("Command not found\r");
 	}
 	else if (res == CMD_BAD_PARAM) {
 		puts("Bad parameter ");
 	}
-	memset(line, '\0', COMMAND_MAX_LEN);
+
 	return res;
 }
 
 void Console::process(void) {
-	if (getLineNonBlocking(line, &lineLen, COMMAND_MAX_LEN)) {
-		parseCommand(line, lineLen);
+	if (getLineNonBlocking(line, &line_len, COMMAND_MAX_LEN)) {
+		historyAdd(line);
+		parseCommand(line);
 		print(prompt);
-		lineLen = 0;
 	}
 }
 
@@ -102,41 +105,51 @@ char Console::getchar(void)
 	return c;
 }
 
-char Console::getLineNonBlocking(char *line, uint8_t *curLen, uint8_t max) {
+char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 	char c;
-	uint8_t len = 0;
+	uint8_t len;
 
 	if (out->getCharNonBlocking(&c)) {
-		len = *curLen;
-		if (c == '\b') {
-			if (len > 0) {
-				out->putchar(c);
-				out->putchar(' ');
-				out->putchar(c);
-				len--;
-			}
-		}
-		else {
-			if (len < max) {
-				out->putchar(c);
-				*(line + len) = c;
-				len++;
-			}
-		}
-
-		*curLen = len;
-
+		len = *cur_len;
+		
 		if ((c == '\n') || (c == '\r')) {
-			*(line + len) = '\0';
+			*(dst + (len++)) = '\0';
+			out->putchar(c);
+			*cur_len = 0;
+			return len;
 		}
-		else {
-			len = 0;
+		else if (c == '\b') {
+			if (len > 0) {
+				out->puts("\b \b");
+				(*cur_len)--;
+			}
 		}
+		else if (c == 0x1b) {
+			while (out->getCharNonBlocking(&c)) {
+				//print("%X ", c);				
+			}
+
+			switch (c) {
+				case 0x41:  // UP arrow
+					changeLine(historyBack());
+					break;
+				case 0x42:  // Down arrow
+					changeLine(historyForward());
+					break;
+			}
+		}
+		else if (c == '_') {
+			historyDump();		
+		}else if (len < maxLen) {
+			out->putchar(c);
+			*(dst + len) = c;
+			(*cur_len)++;
+		}	
 	}
-	return len;
+	return 0;
 }
 
-char Console::getline(char *line, uint8_t max)
+char Console::getline(char *dst, uint8_t max)
 {
 	uint8_t len = 0;
 	char c;
@@ -148,19 +161,19 @@ char Console::getline(char *line, uint8_t max)
 				out->putchar(c);
 				out->putchar(' ');
 				out->putchar(c);
-				line--;
+				dst--;
 				len--;
 			}
 		}
 		else {
 			if (len < max) {
 				out->putchar(c);
-				*line++ = c;
+				*dst++ = c;
 				len++;
 			}
 		}
 	} while ((c != '\n') && (c != '\r'));
-	*line = '\0';
+	*dst = '\0';
 	return len;
 }
 
@@ -232,4 +245,80 @@ uint8_t Console::kbhit(void) {
 
 void Console::putc(char c) {
 	out->putchar(c);
+}
+
+char *Console::historyGet(void) {
+	return &history[hist_cur][0];
+}
+
+void Console::historyDump(void) {
+	for (uint8_t i = 0; i < HISTORY_SIZE; i++)
+	{
+		print("\n %u %s", i, history[i]);
+	}
+	out->putchar('\n');
+}
+
+void Console::historyAdd(char *entry) {
+	if (*line != '\n' && *line != '\r' && *line != '\0') {
+		xstrcpy(history[hist_cur], entry, COMMAND_MAX_LEN);
+
+		if (++hist_cur == HISTORY_SIZE)
+			hist_cur = 0;		
+		hist_idx = hist_cur;
+
+		if (hist_size < HISTORY_SIZE) {
+			hist_size++;
+		}
+	}
+}
+
+char *Console::historyBack(void) {
+	uint8_t new_idx = hist_idx;
+	if (hist_size == HISTORY_SIZE) {
+		// History is full, wrap arround is allowed
+		if (--new_idx > HISTORY_SIZE)
+			new_idx = HISTORY_SIZE - 1;
+		if (new_idx != hist_cur) {
+			hist_idx = new_idx;
+		}
+	}
+	else if(hist_idx > 0){
+		hist_idx--;
+	}
+	
+	return &history[hist_idx][0];
+}
+
+char *Console::historyForward(void) {
+	if (hist_idx != hist_cur) {
+		if (++hist_idx == HISTORY_SIZE)
+			hist_idx = 0;
+	}
+	
+	if(hist_idx == hist_cur){
+		// Clear current line to avoid duplicating history navigation
+		memset(history[hist_cur], '\0', COMMAND_MAX_LEN);
+	}
+	return &history[hist_idx][0];
+}
+
+void Console::historyClear(void) {
+	for (uint8_t i = 0; i < HISTORY_SIZE; i++)
+	{
+		memset(history[i], '\0', COMMAND_MAX_LEN);
+	}
+	hist_idx = hist_cur = hist_size = 0;
+}
+
+void Console::changeLine(char *new_line) {
+	uint8_t i;
+	while (line_len--) {
+		out->puts("\b \b");
+	}
+	out->puts(new_line);
+	line_len = strlen(new_line);
+	for(i = 0; i < line_len; i++){
+		*(line + i) = *new_line++;
+	}
 }

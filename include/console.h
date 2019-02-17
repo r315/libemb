@@ -27,6 +27,7 @@ extern "C" {
 
 #define CONSOLE_MAX_COMMANDS 64
 #define COMMAND_MAX_LEN		 64
+#define HISTORY_SIZE		 5
 
 
 	class Console {
@@ -35,9 +36,21 @@ extern "C" {
 		uint8_t cmdListSize;
 		uint8_t executing;
 		char line[COMMAND_MAX_LEN];
-		uint8_t lineLen;
+		uint8_t line_len;
 		const char *prompt;
 		StdOut *out;
+		
+		char history[HISTORY_SIZE][COMMAND_MAX_LEN];
+		void historyDump(void);
+		void historyAdd(char *entry);
+		char *historyBack(void);
+		char *historyForward(void);
+		char *historyGet(void);
+		void historyClear(void);
+		void changeLine(char *new_line);
+		uint8_t hist_idx;
+		uint8_t hist_cur;
+		uint8_t hist_size;
 
 	public:
 		Console(void);
@@ -46,11 +59,11 @@ extern "C" {
 		void init(StdOut *sp, const char *prt);
 
 		char getLine(char *line, uint8_t max);
-		char getLineNonBlocking(char *line, uint8_t *curLen, uint8_t max);
+		char getLineNonBlocking(char *line, uint8_t *cur_len, uint8_t max);
 		void process(void);
 
 		void addCommand(ConsoleCommand *cmd);
-		char parseCommand(char *line, uint8_t len);
+		char parseCommand(char *line);
 		char executeCommand(void *ptr);
 		void putc(char c);
 		void puts(const char* str);
