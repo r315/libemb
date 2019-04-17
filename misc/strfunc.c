@@ -112,11 +112,16 @@ char nextChar(char **line) {
  *                0 not equal and no parameter changed
  * */
 uint8_t isNextWord(char **str, const char *word) {
-	if (!xstrcmp((*str), word)) {
-		*str = nextWord(*str);
-		return 1;
-	}
-	return 0;
+	char *str1 = *str;
+
+	while (*word != '\0') {
+		if (*str1 != *word)
+			return 0;
+		str1++;
+		word++;
+	}	
+	*str = nextWord(*str);	
+	return 1;
 }
 
 

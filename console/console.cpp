@@ -124,10 +124,12 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 		len = *cur_len;
 		
 		if ((c == '\n') || (c == '\r')) {
-			*(dst + (len++)) = '\0';
+			// *(dst + (len++)) = '\0';
+			//Remove all extra text from previous commands
+			memset(dst + len, '\0', COMMAND_MAX_LEN - len);
 			out->xputchar(c);
 			*cur_len = 0;
-			return len;
+			return len + 1;
 		}
 		else if (c == '\b') {
 			if (len > 0) {
@@ -162,28 +164,59 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 
 char Console::getline(char *dst, uint8_t max)
 {
-	uint8_t len = 0;
+	uint8_t len = 0, hasLine = 0;
 	char c;
 
-	do {
-		c = out->getchar();
-		if (c == '\b') {
+	while (!hasLine) {
+		c = out->xgetchar();
+		switch (c) {
+		case '\b':
 			if (len != 0) {
 				out->xputchar(c);
 				out->xputchar(' ');
 				out->xputchar(c);
 				len--;
 			}
-		}
-		else {
+			break;
+
+		case '\n':
+		case '\r':
+			hasLine = 1;
+			out->xputchar(c);
+			break;
+
+		case 0x1b:
+			c = out->xgetchar();
+			c = out->xgetchar();
+			//print("%X ", c);
+			switch (c) {
+			case 0x41:  // [1B, 5B, 41] UP arrow
+				len = changeLine(historyBack());
+				break;
+			case 0x42:  // [1B, 5B, 42] Down arrow
+				len = changeLine(historyForward());
+			default:
+				break;
+			}
+			break;
+
+		case '<':
+			historyDump();
+			hasLine = 1;
+			break;
+
+		default:
 			if (len < max) {
-				*dst++ = c;
 				out->xputchar(c);
+				dst[len] = c;
 				len++;
 			}
+			break;
 		}
-	} while ((c != '\n') && (c != '\r'));
-	*dst = '\0';
+	}
+
+	//Remove all extra text from previous commands
+	memset(dst + len, '\0', COMMAND_MAX_LEN - len);
 	return len;
 }
 
