@@ -12,11 +12,11 @@ extern "C" {
 
 		void(*init)(void);
 		/**
-		 * std function
+		 * C library stdio functions
 		 * */
-		char(*getchar)(void);
-		void(*putchar)(char c);
-		void(*puts)(const char* str);
+		char(*xgetchar)(void);
+		void(*xputchar)(char c);
+		void(*xputs)(const char* str);
 
 		/**
 		 * Checks if any char was received and return it on parameter c,

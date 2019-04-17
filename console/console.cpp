@@ -78,31 +78,42 @@ void Console::process(void) {
 }
 
 /**
- * libc functions *
+ * libc compatible functions *
  * */
-void Console::puts(const char* str)
+int Console::xputs(const char* str)
 {
-	out->puts(str);
-	out->putchar('\n');
+	out->xputs(str);
+	out->xputchar('\n');
+	return 1;
 }
 
-void Console::gets(char* str)
+char *Console::xgets(char* str)
 {
+	uint8_t i = 0;
 	char c;
-	c = out->getchar();
+
+	c = out->xgetchar();
+
 	while ((c != '\n') && (c != '\r'))
 	{
-		*str++ = c;
-		c = out->getchar();
+		*(str + i++) = c;		
+		c = out->xgetchar();
 	}
-	*str = '\0';
+	*(str + i) = '\0';
+
+	return str;
 }
 
-char Console::getchar(void)
+int Console::xputchar(int c) {
+	out->xputchar(c);
+	return (int)c;
+}
+
+int Console::xgetchar(void)
 {
-	char c = out->getchar();
-	out->putchar(c);
-	return c;
+	char c = out->xgetchar();
+	out->xputchar(c);
+	return (int)c;
 }
 
 char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
@@ -114,13 +125,13 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 		
 		if ((c == '\n') || (c == '\r')) {
 			*(dst + (len++)) = '\0';
-			out->putchar(c);
+			out->xputchar(c);
 			*cur_len = 0;
 			return len;
 		}
 		else if (c == '\b') {
 			if (len > 0) {
-				out->puts("\b \b");
+				out->xputs("\b \b");
 				(*cur_len)--;
 			}
 		}
@@ -141,7 +152,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 		else if (c == '_') {
 			historyDump();		
 		}else if (len < maxLen) {
-			out->putchar(c);
+			out->xputchar(c);
 			*(dst + len) = c;
 			(*cur_len)++;
 		}	
@@ -158,17 +169,16 @@ char Console::getline(char *dst, uint8_t max)
 		c = out->getchar();
 		if (c == '\b') {
 			if (len != 0) {
-				out->putchar(c);
-				out->putchar(' ');
-				out->putchar(c);
-				dst--;
+				out->xputchar(c);
+				out->xputchar(' ');
+				out->xputchar(c);
 				len--;
 			}
 		}
 		else {
 			if (len < max) {
-				out->putchar(c);
 				*dst++ = c;
+				out->xputchar(c);
 				len++;
 			}
 		}
@@ -186,7 +196,7 @@ void Console::print(const char* str, ...)
 
 	while ((d = *str++) != 0) {
 		if (d != '%') {
-			out->putchar(d); continue;
+			out->xputchar(d); continue;
 		}
 		d = *str++; w = r = s = l = 0;
 		if (d == '.') {
@@ -205,11 +215,11 @@ void Console::print(const char* str, ...)
 		}
 		if (!d) break;
 		if (d == 's') {
-			out->puts(va_arg(arp, char*));
+			out->xputs(va_arg(arp, char*));
 			continue;
 		}
 		if (d == 'c') {
-			out->putchar((char)va_arg(arp, int));
+			out->xputchar((char)va_arg(arp, int));
 			continue;
 		}
 		if (d == 'u') r = 10;
@@ -219,19 +229,19 @@ void Console::print(const char* str, ...)
 		if (d == 'f') {
 			if (!f)
 				w = 6;						// dafault 6 decimal places
-			out->puts(pftoa(va_arg(arp, double), w));
+			out->xputs(pftoa(va_arg(arp, double), w));
 			continue;
 		}
 		if (!r) break;
 		if (s) w = -w;
 		if (l) {
-			out->puts(pitoa((long)va_arg(arp, long), r, w));
+			out->xputs(pitoa((long)va_arg(arp, long), r, w));
 		}
 		else {
 			if (r > 0)
-				out->puts(pitoa((unsigned long)va_arg(arp, int), r, w));
+				out->xputs(pitoa((unsigned long)va_arg(arp, int), r, w));
 			else
-				out->puts(pitoa((long)va_arg(arp, int), r, w));
+				out->xputs(pitoa((long)va_arg(arp, int), r, w));
 		}
 	}
 
@@ -243,10 +253,6 @@ uint8_t Console::kbhit(void) {
 	return out->kbhit();
 }
 
-void Console::putc(char c) {
-	out->putchar(c);
-}
-
 char *Console::historyGet(void) {
 	return &history[hist_cur][0];
 }
@@ -256,7 +262,7 @@ void Console::historyDump(void) {
 	{
 		print("\n %u %s", i, history[i]);
 	}
-	out->putchar('\n');
+	out->xputchar('\n');
 }
 
 void Console::historyAdd(char *entry) {
@@ -311,14 +317,18 @@ void Console::historyClear(void) {
 	hist_idx = hist_cur = hist_size = 0;
 }
 
-void Console::changeLine(char *new_line) {
+uint8_t Console::changeLine(char *new_line) {
 	uint8_t i;
 	while (line_len--) {
-		out->puts("\b \b");
+		out->xputs("\b \b");
 	}
-	out->puts(new_line);
+
+	out->xputs(new_line);
 	line_len = strlen(new_line);
-	for(i = 0; i < line_len; i++){
+
+	for (i = 0; i < line_len; i++) {
 		*(line + i) = *new_line++;
 	}
+
+	return line_len;
 }

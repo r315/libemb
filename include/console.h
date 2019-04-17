@@ -47,7 +47,7 @@ extern "C" {
 		char *historyForward(void);
 		char *historyGet(void);
 		void historyClear(void);
-		void changeLine(char *new_line);
+		uint8_t changeLine(char *new_line);
 		uint8_t hist_idx;
 		uint8_t hist_cur;
 		uint8_t hist_size;
@@ -65,10 +65,10 @@ extern "C" {
 		void addCommand(ConsoleCommand *cmd);
 		char parseCommand(char *line);
 		char executeCommand(void *ptr);
-		void putc(char c);
-		void puts(const char* str);
-		char getchar(void);
-		void gets(char* str);
+		int xputchar(int c);
+		int xputs(const char* str);
+		int xgetchar(void);
+		char *xgets(char* str);
 		char getline(char *line, uint8_t max);
 		void print(const char* str, ...);
 		uint8_t kbhit(void);
