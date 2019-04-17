@@ -4,7 +4,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
 
 #include <stdint.h>
 #include "stdout.h"
@@ -77,7 +76,7 @@ extern "C" {
 		ConsoleCommand *getCmdIndexed(uint8_t idx) { return cmdList[idx]; } // security issues??
 	};
 
-#ifdef __cplusplus
+
 }
 #endif
 
