@@ -11,8 +11,6 @@
 #define _ili9341_h_
 
 #include <stdint.h>
-#include <spi.h>
-
 #include <gpio.h>
 
 #define LCD_ILI9341
@@ -96,33 +94,7 @@
             GPIO_SetOutput(LCD_BKL);    \
 
 #elif defined(__TDSO__)
-/**
-* @brief Lcd Pin configuration:
-*       PA4  CS
-*       PB1  RST
-*       PB10 C'/D
-*       PA7  SI
-*       PA5  SCK
-*       PB11 Backlight enable
-*       PA6  SO
-**/
-
-#define LCD_CS   GPIO_PIN_4
-#define LCD_CD   GPIO_PIN_10
-#define LCD_RST  GPIO_PIN_1
-#define LCD_BKL  GPIO_PIN_11
-
-#define LCD_CS0  GPIO_Clr(GPIOA, LCD_CS)
-#define LCD_CS1  GPIO_Set(GPIOA, LCD_CS)
-#define LCD_CD0  GPIO_Clr(GPIOB, LCD_CD)
-#define LCD_CD1  GPIO_Set(GPIOB, LCD_CD)
-#define LCD_RST0 GPIO_Clr(GPIOB, LCD_RST)
-#define LCD_RST1 GPIO_Set(GPIOB, LCD_RST)
-#define LCD_BKL0 GPIO_Clr(GPIOB, LCD_BKL)
-#define LCD_BKL1 GPIO_Set(GPIOB, LCD_BKL)
-
-#define LCD_PIN_INIT // handle by HAL_Init
-
+// Moved to board.h
 #elif defined(__ESP03__)
 /**
 * @brief Lcd Pin configuration:

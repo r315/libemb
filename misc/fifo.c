@@ -54,12 +54,23 @@ uint8_t fifo_get(fifo_t *fifo, uint8_t *pc)
 	return 1;
 }
 
+/**
+ * get the number of bytes on fifo
+ * 
+ * @param fifo:		pointer to target fifo
+ * returns			number of bytes on fifo, 0 if empty
+ * */
 int fifo_avail(fifo_t *fifo)
 {
 	return (fifo->size + fifo->head - fifo->tail) % fifo->size;
 }
 
-
+/**
+ * get the number of available bytes on fifo
+ * 
+ * @param fifo:		pointer to target fifo
+ * returns			number of bytes available on fifo, 0 if full
+ * */
 int fifo_free(fifo_t *fifo)
 {
 	return (fifo->size - 1 - fifo_avail(fifo));

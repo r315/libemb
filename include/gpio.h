@@ -12,7 +12,6 @@
 #define _GPIO_H_
 
 #include <stdint.h>
-#include <LPC17xx.h>
 
 #if defined(__TDSO__)
 
@@ -55,6 +54,8 @@
 }
 
 #elif defined(__BB__) /* __TDSO__ */
+
+#include <LPC17xx.h>
 
 #define P0_0
 

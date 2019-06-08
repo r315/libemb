@@ -33,19 +33,7 @@
 #define LED_OFF LED_BLUE_OFF
 
 #elif defined(__TDSO__) /* __BLUEBOARD__ */
-/* Led is connected on PB3 in common anode configuration */
-/* jag option must be disable to use PB3 as GPIO*/
-#define LED_Init() // Handle by HAL init
-
-#define LED GPIO_PIN_3
-#define LED_ON  GPIO_Clr(GPIOB, LED)
-#define LED_OFF GPIO_Set(GPIOB, LED)
-
-// Bluepill LED 
-#define LED1 GPIO_PIN_13
-#define LED1_ON  GPIO_Clr(GPIOC, LED1)
-#define LED1_OFF GPIO_Set(GPIOC, LED1)
-
+// moved to board.h
 #elif defined(__EMU__) /* __TDSO__ */
 #define LED1_ON
 #define LED1_OFF
