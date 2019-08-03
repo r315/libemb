@@ -1,5 +1,7 @@
+
+#include <board.h>
 #include <LPC17xx.h>
-#include <accel.h>
+//#include <accel.h>
 #include <spi.h>
 
 #include "lis302.h"
@@ -12,7 +14,7 @@ static Spi_Type *accel_spi;
 //--------------------------------------
 uint8_t ACCEL_Init(void *dev)
 {
-uint8_t i, id = 0;
+uint8_t id = 0;
 	
 	accel_spi = (Spi_Type *)dev;
 

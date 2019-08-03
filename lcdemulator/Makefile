@@ -1,8 +1,8 @@
 GCC =gcc
 #####################################################
 #TARGET =EmulatorTest
-SRCPATH =../button ../display ../lcdemulator
-INCPATH =. ../include
+SRCPATH =. ../button ../display ../drv/tft
+INCPATH =. ../include $(APP_PATH)
 #LIBPATH =../../lib
 #SRCS=emulatorTest.c font8x16.c lcdsdl2.c emulator.c #lcd.c
 #OBJS =$(SRCS:.c=.o)
@@ -11,7 +11,7 @@ LIBTARGET =emu
 LIBTARGETPATH =$(PWD)
 LIBOBJS =lcdsdl2.o emulator.o lcd.o fonts.o display.o
 #####################################################
-VPATH +=$(SRCPATH)
+VPATH +=$(SRCPATH) $(APP_PATH)
 
 ifeq ($(shell uname -s),Linux)
 CFLAGS =-Wall -D__EMU__

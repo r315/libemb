@@ -2,7 +2,7 @@
 #include <display.h>
 
 // default font
-const unsigned char defaultFontData[]={
+const uint8_t defaultFontData[]={
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	//	space	0x20
 0x20,0x20,0x20,0x20,0x20,0x00,0x20,0x00,	//	!
 0x50,0x50,0x50,0x00,0x00,0x00,0x00,0x00,	//	"
@@ -446,7 +446,7 @@ const unsigned char lcdFontData[] = {
 // 0x20
 // http://www.dafont.com/pixeldust.font
 // 7x7 style font
-#pragma message "pixelDustFont Only support lower case characters"
+//#pragma message "pixelDustFont Only support lower case characters"
 //_Pragma ("pixelDustFont Only support lower case characters")
 const unsigned char pixelDustFontData[] = {
 0x00,0x00,0x00,0x00,0x00,0x00,0x00, // Space	

@@ -7,18 +7,12 @@
 
 #include <stdio.h> 
 #include <string.h>
-#include "lcd.h"
-#include "lcdsdl.h"
+#include <board.h>
 
 #define UPDATE_TIME 30 //30ms => 33fps
 
-#ifndef COSTUM_LCD
-#define WINDOW_W 240
-#define WINDOW_H 320
-#else
 #define WINDOW_W LCD_W
 #define WINDOW_H LCD_H
-#endif
 
 #define LCD_OFFSETX 0 
 #define LCD_OFFSETY 0
@@ -43,12 +37,16 @@ Lcd lcd, blcd;
 void LCD_Scroll(uint16_t y){}
 void LCD_Bkl(uint8_t state){}
 
-uint32_t LCD_Update(uint32_t interval, void *ptr){
+uint32_t LCD_Auto_Update(uint32_t interval, void *ptr){
 Lcd *plcd = (Lcd*)ptr;    
-	 SDL_UpdateWindowSurface(plcd->window);
+	SDL_UpdateWindowSurface(plcd->window);
     if(!plcd->auto_update)
       return 0;	
     return interval;
+}
+
+void LCD_Update(void){
+    SDL_UpdateWindowSurface(lcd.window);
 }
 
 SDL_Window *Window_Init(Lcd *plcd){
@@ -73,11 +71,11 @@ SDL_Window *Window_Init(Lcd *plcd){
      
     fprintf(stdout,"LCDSDL: Window size %dx%d %dbpp\n",plcd->surface->w, plcd->surface->h, plcd->surface->format->BitsPerPixel);    
       
-    SDL_FillRect(plcd->surface, NULL, SDL_MapRGB(plcd->surface->format, 0x0, 0x0, 0x0 ) );    
+    SDL_FillRect(plcd->surface, NULL, SDL_MapRGB(plcd->surface->format, 0xFF, 0x0, 0x0 ) );    
     
     plcd->auto_update = 1;
   
-    SDL_AddTimer(UPDATE_TIME, LCD_Update, plcd);
+    SDL_AddTimer(UPDATE_TIME, LCD_Auto_Update, plcd);
     return plcd->window;
 }
 

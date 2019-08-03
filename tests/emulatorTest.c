@@ -34,10 +34,13 @@ int main(void) {
 #include <stdio.h> 
 #include <button.h>
 #include <lcd.h>
-
 #include <display.h>
+#include <font.h>
 
 #define FONT (unsigned char *)font8x16
+
+#define LCD_H LCD_GetHeight()
+#define LCD_W LCD_GetWidth()
 
 void hexDump(char *mem, int len);
 
@@ -122,10 +125,10 @@ int main(int argc, char *argv[]){
 
 #endif
 
-   LCD_Rotation(LCD_LANDSCAPE);
+   //LCD_Rotation(LCD_LANDSCAPE);
    LCD_SetColors(GREEN,BLACK);  
 	
-	DISPLAY_SetFont(FONT_BOLD);
+	//DISPLAY_SetFont(FONT_BOLD);
 	DISPLAY_printf("Hello\n");
 	hexDump((char*)font8x16,128);
 

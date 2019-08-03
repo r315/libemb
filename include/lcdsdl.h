@@ -3,12 +3,6 @@
 
 #include <stdint.h>
 
-
-#ifndef LCD_W
-	#define LCD_W LCD_GetWidth()
-	#define LCD_H LCD_GetHeight()
-#endif	
-
 #define LCD_PORTRAIT  0
 #define LCD_LANDSCAPE 1
 #define LCD_REVERSE_PORTRAIT  2
@@ -32,4 +26,5 @@ uint16_t LCD_GetHeight(void);
  **/
 void LCD_Push(void);
 void LCD_Pop(void);
+void LCD_Update(void);
 #endif

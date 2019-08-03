@@ -48,9 +48,10 @@ typedef struct {
   double p; //estimation error covariance
   double k; //kalman gain
 } Kalman_Filter;
+*/
 
-
-/*http://interactive-matter.eu/blog/2009/12/18/filtering-sensor-data-with-a-kalman-filter/ 
+/*
+http://interactive-matter.eu/blog/2009/12/18/filtering-sensor-data-with-a-kalman-filter/ 
 extern Kalman_Filter accel[3];
 Kalman_Filter filterInit(double q, double r, double p, double intial_value);
 void filterUpdate(Kalman_Filter* state, double measurement);

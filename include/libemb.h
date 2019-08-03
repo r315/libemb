@@ -7,6 +7,19 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>  // NULL
+#include <lcd.h>
+#include <display.h>
+#include <button.h>
+
+#ifndef ON
+#define ON 1
+#define OFF  0
+#endif
+
+#ifndef YES
+#define YES 1
+#define NO  0
+#endif
 
 typedef void (*CallBack)(void *);
 
@@ -16,9 +29,6 @@ typedef void (*CallBack)(void *);
 
 uint32_t GetTicks(void);
 void DelayMs(uint32_t ms);
-#define ON  1
-#define OFF 0
-
 
 #elif defined(__BB__) /* __TDO__ */
 
@@ -34,17 +44,10 @@ void DelayMs(uint32_t ms);
 #define DelayMs CLOCK_DelayMs
 #define GetTicks CLOCK_GetTicks
 
-#define YES 1
-#define NO  0
-
 #elif defined(__EMU__) /* __BLUEBOARD__ */
-#ifdef _WIN32
-#include <SDL.h>
-#else
-#include <SDL2/SDL.h>
-#endif
-#define DelayMs(x) SDL_Delay(x)
-#define GetTicks() SDL_GetTicks()
+
+
+
 #define SystemCoreClock 100000000UL
 
 #elif defined(__ESP03__) /* __EMU__  */
@@ -64,7 +67,6 @@ void DelayMs(uint32_t ms);
 #endif /* __EMU__ */
 
 //#define NULL (void*)0
-#define ElapsedTicks(x) (GetTicks() - (x))
 
 void Board_Init(void);
 
