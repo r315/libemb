@@ -12,7 +12,9 @@ extern "C" {
 
 #include <stdint.h>
 
+#ifndef __BB__
 #define __BB__
+#endif
 
 #include <LPC17xx.h>
 #include <clock_lpc17xx.h>
@@ -91,22 +93,22 @@ extern "C" {
 //-----------------------------------------------------
 //
 //-----------------------------------------------------
-#ifndef LEDS
-	#define LED1 (1<<29) //P1.29 (D8 BLUE)
-	#define LED1_ON  LPC_GPIO1->FIOSET = LED1
-	#define LED1_OFF LPC_GPIO1->FIOCLR = LED1
-	#define LED1_TOGGLE LPC_GPIO1->FIOPIN ^= LED1
-	
-	#define LED2 (1<<18) //P1.18 (D7 RED)
-	#define LED2_OFF LPC_GPIO1->FIOSET = LED2
-	#define LED2_ON  LPC_GPIO1->FIOCLR = LED2
-	
-	#define LED3 (1<<9)  //P2.9 (D1 RED)
-	#define LED3_OFF LPC_GPIO2->FIOSET = LED3
-	#define LED3_ON  LPC_GPIO2->FIOCLR = LED3
 
-	#define LEDS_CFG
-#endif
+#define LED1 (1<<29) //P1.29 (D8 BLUE)
+#define LED1_ON  LPC_GPIO1->FIOSET = LED1
+#define LED1_OFF LPC_GPIO1->FIOCLR = LED1
+#define LED1_TOGGLE LPC_GPIO1->FIOPIN ^= LED1
+
+#define LED2 (1<<18) //P1.18 (D7 RED)
+#define LED2_OFF LPC_GPIO1->FIOSET = LED2
+#define LED2_ON  LPC_GPIO1->FIOCLR = LED2
+
+#define LED3 (1<<9)  //P2.9 (D1 RED)
+#define LED3_OFF LPC_GPIO2->FIOSET = LED3
+#define LED3_ON  LPC_GPIO2->FIOCLR = LED3
+
+#define LEDS_CFG
+
 
 #define ACCEL_CS (1<<6)
 #define SELECT_ACCEL()    LPC_GPIO0->FIOCLR = ACCEL_CS
