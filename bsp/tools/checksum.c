@@ -60,8 +60,7 @@ uint32_t tmp;
 	}
 
 	if(tmp != sum){
-    	printf("Fail to verify checksum. expected: 0x%08X, read: 0x%08X\n", sum, tmp);	
-		goto on_error;
+    	printf("Fail to verify checksum. expected: 0x%08X, read: 0x%08X\n", sum, tmp);
 	}	
 	
 
@@ -70,6 +69,6 @@ on_error:
 		fclose(fp);
 	}
 
-
+	printf("\n");
 return 0;
 }
