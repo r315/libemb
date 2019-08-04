@@ -126,9 +126,9 @@ extern "C" {
 #define  LCD_LED 		(1<<1)  //P1.1
 #define  LCD_RST 		(1<<0)	 //P1.0	
 
-#define  LCD_CTRLPORT    	GPIO1
-#define  LCD_DATAPORT    	GPIO0->FIOPIN0
-#define  LCD_DATAPORTDIR 	GPIO0->FIODIR0
+#define  LCD_CTRLPORT    	LPC_GPIO1
+#define  LCD_DATAPORT    	LPC_GPIO0->FIOPIN0
+#define  LCD_DATAPORTDIR 	LPC_GPIO0->FIODIR0
 
 #define  LCDCS0      LCD_CTRLPORT->FIOCLR = LCD_CS;
 #define  LCDCS1      LCD_CTRLPORT->FIOSET = LCD_CS; 
@@ -168,7 +168,11 @@ extern "C" {
 
 //-----------------------------------------------------
 void BB_Init(void);
+void BB_ConfigPLL(uint8_t fmhz);
 void SW_Reset(void);
+void DelayMs(uint32_t dl);
+uint32_t GetTicks(void);
+
 
 #define RAM_FUNC __attribute__ ((section(".ram_code")))
 

@@ -30,26 +30,6 @@ typedef void (*CallBack)(void *);
 uint32_t GetTicks(void);
 void DelayMs(uint32_t ms);
 
-#elif defined(__BB__) /* __TDO__ */
-
-#include <LPC17xx.h>
-#include <blueboard.h>
-#include <clock_lpc17xx.h>
-#include <gpio.h>
-#include <timer.h>
-#include <pwm.h>
-#include <i2c.h>
-#include <dac.h>
-
-#define DelayMs CLOCK_DelayMs
-#define GetTicks CLOCK_GetTicks
-
-#elif defined(__EMU__) /* __BLUEBOARD__ */
-
-
-
-#define SystemCoreClock 100000000UL
-
 #elif defined(__ESP03__) /* __EMU__  */
 //#include "c_types.h"
 //#include "esp8266_auxrom.h"

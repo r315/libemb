@@ -9,7 +9,6 @@
 #define _ili9328_h_
 
 #include <stdint.h>
-#include <gpio.h>
 
 //-------------------------------------------------------------------
 #define LCD_REG_DRV_CODE		0x00
