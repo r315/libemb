@@ -47,7 +47,7 @@
 #define MCR_MRxS    (1<<2)
 
 
-
+typedef void (*CallBack)(void *);
 
 /**
  * Capture related macros

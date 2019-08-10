@@ -27,6 +27,13 @@ extern "C" {
 #include <ili9328.h>
 #include <display.h>
 #include <uart_lpc17xx.h>
+#include <timer.h>
+
+
+#define PLL48   0
+#define PLL72   1
+#define PLL80   2
+#define PLL100  3
 
 /* Watchdog */
 #define WDMOD_WDEN    (1 << 0)
@@ -38,42 +45,6 @@ extern "C" {
     LPC_WDT->WDFEED = 0xAA; \
     LPC_WDT->WDFEED = 0x55; \
 }
-
-
-/* valores dados por NXP lpc17xx.pll.calculator.xls */	 
-
-#ifdef PLL48
-/* Fcclk = 48Mhz, Fcco = 288Mhz */
-	#define PLL0_MValue 12
-	#define PLL0_NValue 1
-	#define CCLKDivValue 6	
-	#define _PLL
-#endif
-
-#ifdef PLL72
-/* Fcclk = 72Mhz, Fcco = 288Mhz */
-	#define PLL0_MValue 24
-	#define PLL0_NValue 2
-	#define CCLKDivValue 4	
-	#define _PLL
-#endif
-
-#ifdef PLL100
-/* Fcclk = 100Mhz, Fcco = 300Mhz */
-	#define PLL0_MValue 25
-	#define PLL0_NValue 2
-	#define CCLKDivValue 3
-	#define _PLL
-#endif
-
-#ifdef PLL80
-/* Fcclk = 80Mhz, Fcco = 400Mhz */
-  #define PLL0_MValue 50
-	#define PLL0_NValue 3
-	#define CCLKDivValue 5
-	#define _PLL
-#endif
-
 
 //-----------------------------------------------------
 // Joystick pins P1.14, p1.15, p1.16, p1.17, p1.28
@@ -110,14 +81,14 @@ extern "C" {
 #define LEDS_CFG
 
 
-#define ACCEL_CS (1<<6)
-#define SELECT_ACCEL()    LPC_GPIO0->FIOCLR = ACCEL_CS
-#define DESELECT_ACCEL()  LPC_GPIO0->FIOSET = ACCEL_CS
+#define ACCEL_CS_PIN      (1<<6)
+#define SELECT_ACCEL      LPC_GPIO0->FIOCLR = ACCEL_CS_PIM
+#define DESELECT_ACCEL    LPC_GPIO0->FIOSET = ACCEL_CS_PIN
 
-#define MMC_CS (1<<16)
-#define SELECT_CARD()	LPC_GPIO0->FIOCLR = MMC_CS		/* MMC CS = L */
-#define	DESELECT_CARD()	LPC_GPIO0->FIOSET = MMC_CS		/* MMC CS = H */
-#define	MMC_SEL       	!(LPC_GPIO0->FIOPIN & MMC_CS)		/* MMC CS status (true:selected) */
+#define MMC_CS_PIN      (1<<16)
+#define SELECT_CARD     LPC_GPIO0->FIOCLR = MMC_CS_PIN		/* MMC CS = L */
+#define	DESELECT_CARD	LPC_GPIO0->FIOSET = MMC_CS_PIN		/* MMC CS = H */
+#define	MMC_SEL       	!(LPC_GPIO0->FIOPIN & MMC_CS_PIN)		/* MMC CS status (true:selected) */
 
 #define  LCD_CS	 		(1<<10) //P1.10
 #define  LCD_RS	 		(1<<9)	 //P1.9
@@ -148,26 +119,25 @@ extern "C" {
 	LCD_DATAPORTDIR |= 0xFF;
 
 
-#define BOARD_Init() \
-{                                    \
-	LPC_GPIO0->FIODIR |= 0xFF;       \
-	LPC_GPIO1->FIODIR |= LED1|LED2;  \
-	LPC_GPIO2->FIODIR |= LED3;       \
-    /* accelerometer cs pin */       \
-    LPC_GPIO0->FIODIR   |= ACCEL_CS;  /* en cs pin */ \
-    LPC_PINCON->PINSEL0 &= ~(3<<12);  /* P0.6 (used as GPIO) */ \
-    /* mmc cs pin */ \
-	LPC_GPIO0->FIODIR   |=  MMC_CS;   /* SET MMC_CS pin  as output */ \
-	LPC_PINCON->PINSEL1 &= ~(3<<0);   /* P0.16 (used as GPIO)   */ \
-	LED1_OFF;                        \
-	LED2_OFF;                        \
-	LED3_OFF;                        \
-	DESELECT_ACCEL();                \
-	DESELECT_CARD();                 \
+#define BB_Init()                                                        \
+{                                                                        \
+	LPC_GPIO0->FIODIR |= 0xFF;                                           \
+	LPC_GPIO1->FIODIR |= LED1|LED2;                                      \
+	LPC_GPIO2->FIODIR |= LED3;                                           \
+    /* accelerometer cs pin */                                           \
+    LPC_GPIO0->FIODIR   |= ACCEL_CS_PIN;  /* en cs pin */                \
+    LPC_PINCON->PINSEL0 &= ~(3<<12);  /* P0.6 (used as GPIO) */          \
+    /* mmc cs pin */                                                     \
+	LPC_GPIO0->FIODIR   |=  MMC_CS_PIN;   /* SET MMC_CS pin  as output */\
+	LPC_PINCON->PINSEL1 &= ~(3<<0);   /* P0.16 (used as GPIO)   */       \
+	LED1_OFF;                                                            \
+	LED2_OFF;                                                            \
+	LED3_OFF;                                                            \
+	DESELECT_ACCEL;                                                      \
+	DESELECT_CARD;                                                       \
 }
 
 //-----------------------------------------------------
-void BB_Init(void);
 void BB_ConfigPLL(uint8_t fmhz);
 void SW_Reset(void);
 void DelayMs(uint32_t dl);

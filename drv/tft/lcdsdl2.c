@@ -2,7 +2,7 @@
 #ifdef _WIN32
 #include <SDL.h>
 #else
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #endif
 
 #include <stdio.h> 
@@ -71,7 +71,7 @@ SDL_Window *Window_Init(Lcd *plcd){
      
     fprintf(stdout,"LCDSDL: Window size %dx%d %dbpp\n",plcd->surface->w, plcd->surface->h, plcd->surface->format->BitsPerPixel);    
       
-    SDL_FillRect(plcd->surface, NULL, SDL_MapRGB(plcd->surface->format, 0xFF, 0x0, 0x0 ) );    
+    SDL_FillRect(plcd->surface, NULL, SDL_MapRGB(plcd->surface->format, 0x00, 0x0, 0x0 ) );    
     
     plcd->auto_update = 1;
   
