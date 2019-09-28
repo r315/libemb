@@ -62,13 +62,13 @@ SECTIONS {
 		__exidx_end = .;
 	} > ram0
 	
-		
+/*		
 	.stack : {
 		. = ALIGN(4);		
 		*(.stack*)
 		. = ALIGN(4);	
 		end = .;	
 	} > ram0
-
+*/
 	
 }

@@ -5,6 +5,10 @@
  @date 06-02-2017
  **/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef _ili9328_h_
 #define _ili9328_h_
 
@@ -197,5 +201,10 @@ void LCD_Rotation(uint8_t m);
  * @brief get display controller id 
  */
 uint16_t LCD_ID(void);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 

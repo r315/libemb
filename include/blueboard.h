@@ -18,16 +18,17 @@ extern "C" {
 
 #include <LPC17xx.h>
 #include <clock_lpc17xx.h>
-#include <pwm.h>
-#include <i2c.h>
-#include <dac.h>
-#include <spi.h>
-#include <lcd.h>
-#include <button.h>
-#include <ili9328.h>
-#include <display.h>
-#include <uart_lpc17xx.h>
-#include <timer.h>
+//#include <pwm.h>
+//#include <i2c.h>
+//#include <dac.h>
+//#include <spi.h>
+//#include <lcd.h>
+//#include <button.h>
+//#include <ili9328.h>
+//#include <display.h>
+//#include <uart_lpc17xx.h>
+//#include <timer.h>
+
 
 
 #define PLL48   0
@@ -117,34 +118,13 @@ extern "C" {
 #define LCD_IO_INIT                                                   \
 	LCD_CTRLPORT->FIODIR |= LCD_CS|LCD_RS|LCD_WR|LCD_RD|LCD_LED|LCD_RST;  \
 	LCD_DATAPORTDIR |= 0xFF;
-
-
-#define BB_Init()                                                        \
-{                                                                        \
-	LPC_GPIO0->FIODIR |= 0xFF;                                           \
-	LPC_GPIO1->FIODIR |= LED1|LED2;                                      \
-	LPC_GPIO2->FIODIR |= LED3;                                           \
-    /* accelerometer cs pin */                                           \
-    LPC_GPIO0->FIODIR   |= ACCEL_CS_PIN;  /* en cs pin */                \
-    LPC_PINCON->PINSEL0 &= ~(3<<12);  /* P0.6 (used as GPIO) */          \
-    /* mmc cs pin */                                                     \
-	LPC_GPIO0->FIODIR   |=  MMC_CS_PIN;   /* SET MMC_CS pin  as output */\
-	LPC_PINCON->PINSEL1 &= ~(3<<0);   /* P0.16 (used as GPIO)   */       \
-	LED1_OFF;                                                            \
-	LED2_OFF;                                                            \
-	LED3_OFF;                                                            \
-	DESELECT_ACCEL;                                                      \
-	DESELECT_CARD;                                                       \
-}
+    
+#define RAM_FUNC __attribute__ ((section(".ram_code")))
 
 //-----------------------------------------------------
-void BB_ConfigPLL(uint8_t fmhz);
-void SW_Reset(void);
-void DelayMs(uint32_t dl);
-uint32_t GetTicks(void);
-
-
-#define RAM_FUNC __attribute__ ((section(".ram_code")))
+void BB_Init(void);
+void BB_SW_Reset(void);
+void BB_ConfigClockOut(uint8_t en);
 
 #ifdef __cplusplus
 }
