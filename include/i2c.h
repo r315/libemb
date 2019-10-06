@@ -10,6 +10,9 @@
 #ifndef _I2C_H_
 #define _I2C_H_
 
+#if 0
+#error "Depracated, fix for board"
+
 #include <stdint.h>
 #include <LPC17xx.h>
 
@@ -138,6 +141,6 @@ int32_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(v
  * */
 int32_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*)(void*));
 
-
+#endif
 
 #endif

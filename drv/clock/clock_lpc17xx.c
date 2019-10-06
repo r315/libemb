@@ -87,10 +87,6 @@ uint32_t CLOCK_CalculateCCLK(void){
   }
 }
 
-__attribute__ ((weak)) void SystemCoreClockUpdate(void){
-	SystemCoreClock = CLOCK_CalculateCCLK();
-}
-
 void CLOCK_setCCLK(uint32_t targetcclk){
 	
 	LPC_SC->SCS       = 0x20;               /* Main Oscillator enable             */
