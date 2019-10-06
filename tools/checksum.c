@@ -18,7 +18,7 @@ uint32_t tmp;
 		return -1;
 	}
 
-	fp = fopen(filename, "r+");
+	fp = fopen(filename, "rwb");
 
 	if(fp == NULL){
 		printf("Error opening file: %s\n", filename);
