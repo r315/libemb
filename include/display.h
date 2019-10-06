@@ -8,6 +8,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <lcd.h>
+#include <font.h>
 
 #ifndef __EMU__
 	#define toupper(c) ( (c)-'a'+'A' )
@@ -23,17 +24,11 @@ enum Attributes{
 };
 
 typedef struct{
-	uint8_t	w;
-	uint8_t h;
-	const uint8_t *data;
-}Font;
-
-typedef struct{
 	void (*xputc)(char);		//for use on xstdout
 	char (*xgetchar)(void);
 	uint16_t forecolor;
 	uint16_t backcolor;
-	Font font;
+	font_t *font;
 	uint8_t vspace;
 	uint16_t cx;
 	uint16_t cy;
@@ -42,17 +37,8 @@ typedef struct{
 }Display;
 
 
-#if !defined(SINGLE_FONT)	
-	extern Font defaultBoldFont;
-	extern Font lcdFont;
-	extern Font pixelDustFont;	
-	extern Font courierFont;
-#endif
-
-extern Font defaultFont;
-
 void DISPLAY_Init(uint8_t initlcd);
-void DISPLAY_SetFont(Font fnt);
+void DISPLAY_SetFont(font_t *fnt);
 void DISPLAY_SetAttribute(uint8_t atr);
 int  DISPLAY_Char(int  x, int y, unsigned char c); 
 int  DISPLAY_Text(int x, int y, const char *s);
