@@ -17,13 +17,13 @@ void BUTTON_Init(int ht){
     __button.last = BUTTON_EMPTY;
     __button.events = BUTTON_EMPTY;
     __button.htime = ht;
-	BUTTON_Cfg();
+	BUTTON_HW_INIT;
 }
 
 int BUTTON_Read(void){
 uint32_t cur;
 
-    cur = BUTTON_Capture();
+    cur = BUTTON_HW_READ;
 
     switch(__button.events){
 

@@ -1,6 +1,10 @@
 #ifndef __timer_h__
 #define __timer_h__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #if defined(__BB__)
@@ -149,5 +153,9 @@ void TIMER_Restart(Timer *tm);
  *@brief set clock divider for timerx
  **/
 void TIMER_SetClockDivider(uint8_t tim, uint8_t div);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
