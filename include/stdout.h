@@ -33,6 +33,11 @@ extern "C" {
 		 * */
 		uint8_t(*kbhit)(void);
 
+		/**
+		 * User context, for extra parameters
+		 */
+		void *user_ctx;
+
 	}StdOut;
 
 #ifdef __cplusplus
