@@ -58,8 +58,8 @@ extern "C" {
 #define BUTTON_A     (1<<14) //0x10038000
 #define BUTTON_CENTER BUTTON_A
 
-#define BUTTON_Capture() (~(LPC_GPIO1->FIOPIN) & BUTTON_MASK)
-#define BUTTON_Cfg() (LPC_GPIO1->FIODIR &= ~(BUTTON_MASK))
+#define BUTTON_HW_READ (~(LPC_GPIO1->FIOPIN) & BUTTON_MASK)
+#define BUTTON_HW_INIT (LPC_GPIO1->FIODIR &= ~(BUTTON_MASK))
 
 #define BUTTON_MASK (BUTTON_UP | BUTTON_DOWN | BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A )
 //-----------------------------------------------------

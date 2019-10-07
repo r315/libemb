@@ -7,7 +7,8 @@
  * @author	Hugo Reis
  **********************************************************************/
 
-#include <i2c.h>
+#include <stdint.h>
+#include "i2c_lpc17xx.h"
 #include <debug.h>
 
 static I2C_Controller i2cController[I2C_MAX_ITF];
@@ -172,6 +173,20 @@ uint32_t timeout = I2C_MAX_TIMEOUT;
 	return 0;	
 }
 
+int32_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
+	I2C_Controller *i2citf = &i2cController[ifNumber];
+	i2citf->operation = DATA_READ;
+	i2citf->cb = cb;
+	return I2C_StartStateMachine( i2citf, data, size);
+}
+
+int32_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
+	I2C_Controller *i2citf = &i2cController[ifNumber];
+	i2citf->operation = DATA_WRITE;
+	i2citf->cb = cb;
+	return I2C_StartStateMachine( i2citf, data, size);
+}
+
 int32_t I2C_Write(uint8_t ifNumber, uint8_t *data, uint32_t size){
 	I2C_WriteAsync(ifNumber, data, size, NULL);
 	while( i2cController[ifNumber].state != I2C_IDLE){
@@ -190,20 +205,6 @@ int32_t I2C_Read(uint8_t ifNumber, uint8_t *data, uint32_t size){
         }
     }
 	return i2cController[ifNumber].size;
-}
-
-int32_t I2C_ReadAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
-	I2C_Controller *i2citf = &i2cController[ifNumber];
-	i2citf->operation = DATA_READ;
-	i2citf->cb = cb;
-	return I2C_StartStateMachine( i2citf, data, size);
-}
-
-int32_t I2C_WriteAsync(uint8_t ifNumber, uint8_t *data, uint32_t size, void (*cb)(void*)){
-	I2C_Controller *i2citf = &i2cController[ifNumber];
-	i2citf->operation = DATA_WRITE;
-	i2citf->cb = cb;
-	return I2C_StartStateMachine( i2citf, data, size);
 }
 
 void I2C0_IRQHandler(void){
