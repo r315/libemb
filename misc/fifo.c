@@ -11,7 +11,14 @@ void fifo_init(fifo_t *fifo)
 	fifo->tail = 0;
 }
 
-
+/**
+ * Adds a character to the fifo
+ *
+ * @param fifo:    destination fifo
+ * @param c:       character to put
+ *
+ * returns         1 success, 0 fifo full
+ * */
 uint8_t fifo_put(fifo_t *fifo, uint8_t c)
 {
 	uint32_t next;
@@ -75,6 +82,13 @@ int fifo_free(fifo_t *fifo)
 {
 	return (fifo->size - 1 - fifo_avail(fifo));
 }
+
+/**
+ * Discard all data on fifo
+ *
+ * @param fifo     fifo to be discarted
+ *
+ * */
 
 void fifo_flush(fifo_t *fifo)
 {
