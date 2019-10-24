@@ -9,7 +9,7 @@ INCPATH =. ../include $(APP_PATH)
 #####################################################
 LIBTARGET =emu
 LIBTARGETPATH =$(PWD)
-LIBOBJS =lcdsdl2.o emulator.o lcd.o font.o display.o
+OBJS =lcdsdl2.o emulator.o lcd.o font.o display.o $(EXT_OBJS)
 #####################################################
 VPATH +=$(SRCPATH) $(APP_PATH)
 
@@ -23,20 +23,21 @@ LIBPATH +=-L"C:/tools/SDL2/lib" -L"C:/tools/MinGw/lib"
 LDFLAGS = -w -Wl,-subsystem,windows -lmingw32 -lSDL2main -lSDL2
 endif
 #####################################################
-lib: $(LIBOBJS)
-	ar rcs $(LIBTARGETPATH)/lib$(LIBTARGET).a $(LIBOBJS)
+lib: $(OBJS)
+	ar rcs $(LIBTARGETPATH)/lib$(LIBTARGET).a $(OBJS)
 	rm -f *.o
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(LIBPATH) $(OBJS) -o $(TARGET) $(LDFLAGS)
+	$(CC) $(OBJS) $(LIBPATH) -o $(TARGET) $(LDFLAGS)
 	./$(TARGET) 
 
 clean:
-	rm -f $(OBJS) $(TARGET) $(TARGET).exe $(LIBTARGETPATH)/lib$(LIBTARGET).a
+	rm -f *.o $(TARGET) $(TARGET).exe $(LIBTARGETPATH)/lib$(LIBTARGET).a
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o ./$@
 
-
+test:
+	$(MAKE) EXT_OBJS="font8x16.o emulatorTest.o util.o" APP_PATH=". ../misc ../display" TARGET=emuTest emuTest
 #####################################################
 	

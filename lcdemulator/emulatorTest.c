@@ -32,19 +32,14 @@ int main(void) {
 
 #if 1
 #include <stdio.h> 
-#include <button.h>
-#include <lcd.h>
-#include <display.h>
+#include "board.h"
 #include <font.h>
 
 #define FONT (unsigned char *)font8x16
 
-#define LCD_H LCD_GetHeight()
-#define LCD_W LCD_GetWidth()
-
 void hexDump(char *mem, int len);
 
-extern const unsigned char font8x16[97][16];
+//extern const unsigned char font8x16[97][16];
 static uint16_t _x, _y;
 static uint16_t _fColor, _bColor;
 
