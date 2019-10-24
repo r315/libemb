@@ -9,17 +9,17 @@ INCPATH =. ../include $(APP_PATH)
 #####################################################
 LIBTARGET =emu
 LIBTARGETPATH =$(PWD)
-LIBOBJS =lcdsdl2.o emulator.o lcd.o fonts.o display.o
+LIBOBJS =lcdsdl2.o emulator.o lcd.o font.o display.o
 #####################################################
 VPATH +=$(SRCPATH) $(APP_PATH)
 
 ifeq ($(shell uname -s),Linux)
-CFLAGS =-Wall -D__EMU__
-LDFLAGS =-lSDL2 -lSDL2main
+CFLAGS =-Wall -D__EMU__ $(addprefix -I ,$(INCPATH)) $(shell sdl2-config --cflags)
+LDFLAGS =$(shell sdl2-config --libs) -lSDL2main
 else
 CFLAGS =-Wall -D__EMU__
 INCPATH +="C:/tools/SDL2/include"
-LIBPATH +="C:/tools/SDL2/lib" "C:/tools/MinGw/lib"
+LIBPATH +=-L"C:/tools/SDL2/lib" -L"C:/tools/MinGw/lib"
 LDFLAGS = -w -Wl,-subsystem,windows -lmingw32 -lSDL2main -lSDL2
 endif
 #####################################################
@@ -28,14 +28,14 @@ lib: $(LIBOBJS)
 	rm -f *.o
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(addprefix -I, $(INCPATH)) $(addprefix -L, $(LIBPATH)) $(OBJS) -o $(TARGET) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(LIBPATH) $(OBJS) -o $(TARGET) $(LDFLAGS)
 	./$(TARGET) 
 
 clean:
 	rm -f $(OBJS) $(TARGET) $(TARGET).exe $(LIBTARGETPATH)/lib$(LIBTARGET).a
 
 .c.o:
-	$(CC) $(addprefix -I, $(INCPATH)) $(CFLAGS) -c $< -o ./$@
+	$(CC) $(CFLAGS) -c $< -o ./$@
 
 
 #####################################################
