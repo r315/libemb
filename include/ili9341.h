@@ -11,7 +11,6 @@
 #define _ili9341_h_
 
 #include <stdint.h>
-#include <gpio.h>
 
 #define LCD_ILI9341
 

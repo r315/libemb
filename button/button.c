@@ -8,7 +8,6 @@
 **********************************************************************/
 #include <board.h>
 #include <button.h>
-#include <gpio.h>
 
 static BUTTON_Controller __button;
 
