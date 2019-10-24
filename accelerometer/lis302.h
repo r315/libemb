@@ -71,8 +71,6 @@ void getFilteredAxis(signed char *buf);
 #define DESELECT_ACCEL
 #endif
 
-extern void DelayMs(uint32_t ms);
-
 #ifdef __cplusplus
 }
 #endif
