@@ -32,16 +32,23 @@ typedef struct _Wnd{
     uint32_t auto_update;
 }Lcd;
 
-Lcd lcd, blcd;
+static Lcd lcd, blcd;
 
 void LCD_Scroll(uint16_t y){}
 void LCD_Bkl(uint8_t state){}
 
+
 uint32_t LCD_Auto_Update(uint32_t interval, void *ptr){
 Lcd *plcd = (Lcd*)ptr;    
-	SDL_UpdateWindowSurface(plcd->window);
+
+	if(SDL_UpdateWindowSurface(plcd->window) < 0){
+		printf("SDL_UdateWindowSurface failed: %s\n", SDL_GetError());
+		return 0;
+	}
+
     if(!plcd->auto_update)
       return 0;	
+
     return interval;
 }
 
