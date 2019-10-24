@@ -325,7 +325,7 @@ int DISPLAY_Text(int x, int y, const char *s)
 //
 //----------------------------------------------------------
 void *DISPLAY_GetReference(void){
-	DISPLAY_Init(OFF);
+	DISPLAY_Init(0);
 	return &_display;
 }
 
@@ -346,7 +346,7 @@ void DISPLAY_Init(uint8_t initlcd){
 	if(initlcd){
 		LCD_Init();
 		LCD_Clear(_display.backcolor);
-		LCD_Bkl(ON);
+		LCD_Bkl(1);
 	}
 }
 //----------------------------------------------------------
