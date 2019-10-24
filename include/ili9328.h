@@ -200,7 +200,7 @@ void LCD_Rotation(uint8_t m);
 /*
  * @brief get display controller id 
  */
-uint16_t LCD_ID(void);
+uint16_t LCD_ReadId(void);
 
 #ifdef __cplusplus
 }

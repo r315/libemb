@@ -16,10 +16,8 @@ void LCD_Bkl(uint8_t state){
 
 //--------------------------------------------------------
 //
-//--------------------------------------------------------				 
-#if defined(LCD_USE_ID)
-uint16_t LCD_ReadReg(uint8_t reg)
-{
+//--------------------------------------------------------
+uint16_t LCD_ReadReg(uint8_t reg){
 uint16_t dta = 0;
 
     LCDRS0;                         /* Set register */
@@ -38,7 +36,7 @@ uint16_t dta = 0;
 return dta;
 }
 
-uint16_t LCD_ID(void){
+uint16_t LCD_ReadId(void){
 /*uint16_t id;
     if (LCD_ReadReg(0x04) == 0x8000) {
         if (LCD_ReadReg(0xD0) == 0x990000) {
@@ -52,7 +50,7 @@ uint16_t LCD_ID(void){
     }*/
 return LCD_ReadReg(LCD_REG_DRV_CODE);    
 }
-#endif
+
 //--------------------------------------------------------
 //write data to LCD
 //TODO: ver se � possivel alterar 2 sinals simultaneamente
