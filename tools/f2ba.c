@@ -1,17 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+
+/**
+ * File to byte Array
+ * 
+ * */
 
 #define NCOLS 32
-
 
 void help(){
     printf("File to byte array ");
     printf("Usage: f2ba <input file> <output file>\n");
 }
 
-void savetofile(char *filename, char *buf, int len){
+void savetofile(char *filename, uint8_t *buf, int len){
 FILE *fp;
+char namecpy[20];
 
     fp = fopen(filename, "wb");
 
@@ -23,9 +29,10 @@ FILE *fp;
     char *name = strchr(filename, '.');
     *name = '\0';
 
-    fprintf(fp,"#if 0\n%.*s\n#endif\n", len, buf);
-
-    fprintf(fp,"const char %s[%d] = {", filename, len);
+    //fprintf(fp,"#if 0\n%.*s\n#endif\n", len, buf); // print file content if printable chars??
+    strcpy(namecpy, filename);
+    fprintf(fp,"#define %s_SIZE    %d\n", strupr(namecpy), len);
+    fprintf(fp,"const char %s[] = {", filename);
 
     for(int i = 0; i < len; i++){
         if((i % NCOLS) == 0){
@@ -87,7 +94,7 @@ char *buf;
 
     fclose(fp);
 
-    savetofile(argv[2], buf, size);
+    savetofile(argv[2], (uint8_t*)buf, size);
 
     free(buf);
 
