@@ -36,7 +36,7 @@ extern "C" {
 		uint8_t executing;
 		char line[COMMAND_MAX_LEN];
 		uint8_t line_len;
-		const char *prompt;
+		const char *prt;
 		StdOut *out;
 		
 		char history[HISTORY_SIZE][COMMAND_MAX_LEN];

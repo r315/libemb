@@ -39,6 +39,8 @@ extern "C" {
 		void *user_ctx;
 
 	}StdOut;
+	
+typedef StdOut stdout_t;
 
 #ifdef __cplusplus
 }

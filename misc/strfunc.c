@@ -1,5 +1,5 @@
 
-#include "strfunc.h"
+#include <strfunc.h>
 
 #define FLOAT_MAX_PRECISION 6
 

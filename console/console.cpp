@@ -10,21 +10,21 @@ Console::Console(void) {
 
 }
 
-Console::Console(StdOut *sp, const char *prt) {
-	init(sp, prt);
+Console::Console(StdOut *sp, const char *prompt) {
+	init(sp, prompt);
 }
 
-void Console::init(StdOut *sp, const char *prt) {
+void Console::init(StdOut *sp, const char *prompt) {
 	memset(cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
 	memset(line, '\0', COMMAND_MAX_LEN);
 	cmdListSize = 0;
 	executing = NO;
 	out = sp;
-	prompt = prt;
+	prt = prompt;
 	historyClear();	
 	line_len = 0;
 	//addCommand(&help); // since all cpp support is disabled, classes on .data section are not initialized
-	print("\e[2J\r%s" ,prompt);
+	print("\e[2J\r%s" ,prt);
 }
 
 void Console::addCommand(ConsoleCommand *cmd) {
@@ -79,7 +79,7 @@ void Console::process(void) {
 	{
 		historyAdd(line);
 		parseCommand(line);
-		print(prompt);
+		print(prt);
 	}
 }
 
