@@ -104,11 +104,12 @@ char nextChar(char **line) {
 }
 
 /**
- * Compare if first word in a string is equal to the given word.
+ * @brief Compare if first word in a string is equal to the given word.
  *
- * \param str   - pointer to word pointer to be compared
- * \param word  - pointer to comparing word
- * \return      - 1 if match and move word pointer to next word,
+ * @param str:    pointer to word pointer to be compared
+ * @param word:   pointer to comparing word
+ * 
+ * @return      - 1 if match and move word pointer to next word,
  *                0 not equal and no parameter changed
  * */
 uint8_t isNextWord(char **str, const char *word) {
@@ -126,7 +127,7 @@ uint8_t isNextWord(char **str, const char *word) {
 
 
 /**
- * get first occuring substring from a token split of a given string
+ * @brief get first occuring substring from a token split of a given string
  *
  * @param str:		reference to input string, on return the reference will pointer
  * 					for then remaining string.
@@ -172,6 +173,14 @@ char *strsub(char *str, const char token, uint8_t len, char **saveptr) {
 	return str;
 }
 
+/**
+ * @brief Compares two if strings are equal until str1 end
+ * 
+ * @param str1: first string
+ * @param str2: second string
+ * 
+ * @return 0 if equal, difference of first non equal char
+ * */
 char xstrcmp(char const *str1, char const *str2) {
 	while (*str1 == *str2) {
 		if (*str1 == '\0')
