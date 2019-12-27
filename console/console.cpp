@@ -38,6 +38,12 @@ void Console::addCommand(ConsoleCommand *cmd) {
 	cmdList[cmdListSize++] = cmd;	
 }
 
+void Console::registerCommandList(ConsoleCommand **list){
+	while(*list != NULL){
+		addCommand(*(list++));
+	}
+}
+
 char Console::parseCommand(char *line) {
 	char res = CMD_NOT_FOUND, *cmdname, *param;
 	ConsoleCommand **cmd = cmdList;
@@ -147,9 +153,10 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 			}
 		}
 		else if (c == 0x1b) {
-			while (out->getCharNonBlocking(&c)) {
+			do{
 				//print("%X ", c);				
-			}
+			}while (out->getCharNonBlocking(&c));
+			
 
 			switch (c) {
 				case 0x41:  // UP arrow

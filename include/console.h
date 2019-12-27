@@ -62,6 +62,7 @@ extern "C" {
 		void process(void);
 
 		void addCommand(ConsoleCommand *cmd);
+		void registerCommandList(ConsoleCommand **list);
 		char parseCommand(char *line);
 		char executeCommand(void *ptr);
 		int xputchar(int c);
