@@ -8,14 +8,16 @@ extern "C" {
 
 #include <stdint.h>
 
+#ifndef FIFO_SIZE
 #define FIFO_SIZE	512
+#endif
 
-	typedef struct {
-		uint32_t head;
-		uint32_t tail;
-		uint32_t size;
-		uint8_t	buf[FIFO_SIZE];
-	} fifo_t;
+typedef struct {
+	uint32_t head;
+	uint32_t tail;
+	uint32_t size;
+	uint8_t	buf[FIFO_SIZE];
+} fifo_t;
 
 
 void fifo_init(fifo_t *fifo);
