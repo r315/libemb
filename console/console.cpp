@@ -153,7 +153,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 			}
 		}
 		else if (c == 0x1b) {
-			uint16_t count = 100; // counter to ensure that escape sequences are received
+			uint16_t count = 1000; // counter to ensure that escape sequences are received
 			do{
 				//print("%X ", c);				
 			}while (out->getCharNonBlocking(&c) || count--);
