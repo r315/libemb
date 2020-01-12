@@ -155,9 +155,27 @@ uint32_t NV_Write(uint16_t offset, uint8_t *data, uint32_t count){
  * private functions
  */
 static uint32_t checkEmptyBlock(uint8_t *address){
-	for (uint16_t i = 0; i < NVDATA_BLOCK_SIZE; i++, address++)
+	for (uint16_t i = 0; i < NVDATA_BLOCK_SIZE; i++){
+		if(*(address++) != (uint8_t)0xFF){
+			return 0;
+		}
+	}
+	return 1;
+}
+
+/**
+ * @brief verify the last written block against the
+ * 			current data on the internal structure.
+ * 
+ * @return : 1 if the content is the same, 0 if not
+ * 
+ * */
+static uint32_t verify(void){
+uint8_t *ptr = nvd.data - NVDATA_BLOCK_SIZE;
+
+	for (uint16_t i = 0; i < NVDATA_SIZE; i++)
 	{
-		if(*address != 0xFF)
+		if(nvd.data[i] != ptr[i])
 			return 0;
 	}
 	return 1;
@@ -167,7 +185,7 @@ static uint32_t checkEmptyBlock(uint8_t *address){
  * @brief Perform sector end check and perform sector erase
  * 			if required, then write full data block
  * 
- * @return : NVDATA_SIZE
+ * @return : NVDATA_SIZE on success, 0 if fail
  */
 static uint32_t  commit_nv(void){
 
@@ -179,6 +197,10 @@ static uint32_t  commit_nv(void){
 	nvd.state = NVDATA_VALID;
 	NVDATA_SECTOR_WRITE(nvd.freeBlock, nvd.data, NVDATA_BLOCK_SIZE);
 	nvd.freeBlock += NVDATA_BLOCK_SIZE;
+
+	if(!verify()){
+		return 0;
+	}
 
 	return NVDATA_SIZE;
 }
