@@ -97,6 +97,13 @@ uint32_t NV_Read(uint16_t offset, uint8_t *data, uint32_t count);
  */
 uint32_t NV_Write(uint16_t offset, uint8_t *data, uint32_t count);
 
+/**
+ * @brief Erase NV Data
+ * 
+ * @return : 0 if fail to erase flash sector, NVDATA size if ok
+ * */
+uint32_t NV_Erase(void);
+
 
 #ifdef __cplusplus
 }

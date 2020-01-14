@@ -171,7 +171,7 @@ static uint32_t checkEmptyBlock(uint8_t *address){
  * 
  * */
 static uint32_t verify(void){
-uint8_t *ptr = nvd.data - NVDATA_BLOCK_SIZE;
+uint8_t *ptr = nvd.freeBlock - NVDATA_BLOCK_SIZE;
 
 	for (uint16_t i = 0; i < NVDATA_SIZE; i++)
 	{
@@ -203,4 +203,18 @@ static uint32_t  commit_nv(void){
 	}
 
 	return NVDATA_SIZE;
+}
+
+/**
+ * @brief Erase NV Data
+ * 
+ * @return : 0 if fail to erase flash sector, NVDATA_OK if ok
+ * */
+uint32_t NV_Erase(void){
+	// no data found initialize sector
+	NVDATA_SECTOR_ERASE((uint32_t)NVDATA_SECTOR_START);
+	memset(nvd.data, 0xff, NVDATA_SIZE);
+	nvd.freeBlock = (uint8_t*)NVDATA_SECTOR_START;
+	nvd.state = NVDATA_EMPTY;
+	return (verify() == 0) ? 0 : NVDATA_SIZE;
 }
