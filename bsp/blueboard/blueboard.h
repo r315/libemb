@@ -122,6 +122,7 @@ extern "C" {
 	LCD_DATAPORTDIR |= 0xFF;
     
 #define RAM_FUNC __attribute__ ((section(".ram_code")))
+#define RAM_CODE RAM_FUNC
 
 #define P0_0
 

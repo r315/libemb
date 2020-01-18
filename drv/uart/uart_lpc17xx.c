@@ -1,7 +1,14 @@
-
+#include <stdint.h>
+#include <stdio.h>
 #include <LPC17xx.h>
 #include <clock_lpc17xx.h>
 #include <uart_lpc17xx.h>
+
+static uart_t *uart0;
+static uart_t *uart1;
+static uart_t *uart2;
+static uart_t *uart3;
+
 
 //Fractional Divider setting look-up table
 static const struct FdrPair _frdivTab[]={
@@ -187,6 +194,93 @@ LPC_UART0_TypeDef *puart = (LPC_UART0_TypeDef*)(uart->dev);
     }
 }
 
+uint8_t UART_Receive(Uart *uart, uint8_t *data, uint32_t len){
+	return 0;
+}
+
 void UART_SendDMA(Uart *uart, uint8_t *data, uint32_t len){
 
 }
+
+void UART_ReceiveIT(Uart *uart, uint8_t *data, uint32_t len){
+
+		if(uart->rxcb == NULL){
+			return;
+		}
+
+		((LPC_UART_TypeDef*)uart->dev)->IER |= IER_RBR;
+
+		switch((uint32_t)uart->dev){
+			case (uint32_t)LPC_UART0:
+				uart0 = uart;
+				//NVIC_SetPriority(UART0_IRQn, ((0x01<<3)|0x01));
+				((LPC_UART_TypeDef*)uart->dev)->FCR = 0x07;
+				NVIC_EnableIRQ(UART0_IRQn);
+				break;
+
+			case (uint32_t)LPC_UART1:
+				uart1 = uart;
+				NVIC_EnableIRQ(UART1_IRQn);
+				break;
+
+			case (uint32_t)LPC_UART2:
+				uart2 = uart;
+				NVIC_EnableIRQ(UART2_IRQn);
+				break;
+			
+			case (uint32_t)LPC_UART3:
+				uart3 = uart;
+				NVIC_EnableIRQ(UART3_IRQn);
+				break;
+		}
+
+		
+
+}
+
+void UARTx_IRQHandler(uart_t *uart){
+uint32_t int_status = ((LPC_UART_TypeDef*)uart->dev)->IIR;
+	if(!(int_status & IIR_PEND)){
+		// Check intid
+		switch((int_status>>1) & 7){
+			case 0: // Modem interrupt
+				break;
+			case 1: // THRE Interrupt
+				break;
+			case 2: // Receive Data Available (RDA)
+				//if(uart->rxcb != NULL)
+				{					
+					uint32_t status;
+					while((status = ((LPC_UART_TypeDef*)uart->dev)->LSR) & LSR_RDR){
+						uint32_t data = ((LPC_UART_TypeDef*)uart->dev)->RBR;					
+						data = ((status & LSR_OE) == 0)? data : data | (LSR_OE << 16); // Put flag on upper 16bits
+						uart->rxcb(data);
+					}
+				}
+				break;
+			case 3: // Receive Line Status (RLS)
+				break;
+			case 6:	// Character Time-out Indicator (CTI)
+				break;
+		}
+	}
+}
+
+void UART0_IRQHandler(void){
+	UARTx_IRQHandler(uart0);
+}
+
+void UART1_IRQHandler(void){
+	UARTx_IRQHandler(uart1);
+}
+
+void UART2_IRQHandler(void){
+	UARTx_IRQHandler(uart1);
+}
+
+void UART3_IRQHandler(void){
+	UARTx_IRQHandler(uart3);
+}
+
+
+
