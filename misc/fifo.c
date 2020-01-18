@@ -20,7 +20,7 @@ void fifo_init(fifo_t *fifo)
  *
  * returns         1 success, 0 fifo full
  * */
-uint8_t fifo_put(fifo_t *fifo, uint8_t c)
+uint32_t fifo_put(fifo_t *fifo, uint8_t c)
 {
 	uint32_t next;
 
@@ -45,7 +45,7 @@ uint8_t fifo_put(fifo_t *fifo, uint8_t c)
  * @param pc:		placeholder for retrieved char
  * returns			1 if one char was placed on placeholder, 0 no data on fifo
  * */
-uint8_t fifo_get(fifo_t *fifo, uint8_t *pc)
+uint32_t fifo_get(fifo_t *fifo, uint8_t *pc)
 {
 	int next;
 
@@ -68,7 +68,7 @@ uint8_t fifo_get(fifo_t *fifo, uint8_t *pc)
  * @param fifo:		pointer to target fifo
  * returns			number of bytes on fifo, 0 if empty
  * */
-int fifo_avail(fifo_t *fifo)
+uint32_t fifo_avail(fifo_t *fifo)
 {
 	return (fifo->size + fifo->head - fifo->tail) % fifo->size;
 }
@@ -79,7 +79,7 @@ int fifo_avail(fifo_t *fifo)
  * @param fifo:		pointer to target fifo
  * returns			number of bytes available on fifo, 0 if full
  * */
-int fifo_free(fifo_t *fifo)
+uint32_t fifo_free(fifo_t *fifo)
 {
 	return (fifo->size - 1 - fifo_avail(fifo));
 }
@@ -95,4 +95,14 @@ void fifo_flush(fifo_t *fifo)
 {
 	fifo->head = 0;
 	fifo->tail = 0;
+}
+
+/**
+ * Observe data on fifo head
+ * 
+ * @param fifo:		pointer to target fifo
+ * return : 		value pointed by fifo head
+ * */
+uint32_t fifo_peek(fifo_t *fifo){
+	return fifo->buf[fifo->tail];
 }
