@@ -18,13 +18,12 @@ void Console::init(StdOut *sp, const char *prompt) {
 	memset(cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
 	memset(line, '\0', COMMAND_MAX_LEN);
 	cmdListSize = 0;
-	executing = NO;
+	processing = NO;
 	out = sp;
 	prt = prompt;
 	historyClear();	
 	line_len = 0;
 	//addCommand(&help); // since all cpp support is disabled, classes on .data section are not initialized
-	print("\e[2J\r%s" ,prt);
 }
 
 void Console::addCommand(ConsoleCommand *cmd) {
@@ -76,6 +75,11 @@ char Console::parseCommand(char *line) {
 }
 
 void Console::process(void) {
+	if(processing == NO){
+		processing = YES;
+		print(prt);
+		return;
+	}
 #if defined(CONSOLE_BLOCKING)
 	line_len = 0;
 	line_len = getline(line, COMMAND_MAX_LEN);	
@@ -87,6 +91,10 @@ void Console::process(void) {
 		parseCommand(line);
 		print(prt);
 	}
+}
+
+void Console::cls(void){
+	out->xputs("\e[2J\r");	
 }
 
 /**

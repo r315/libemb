@@ -33,7 +33,7 @@ extern "C" {
 
 		ConsoleCommand *cmdList[CONSOLE_MAX_COMMANDS];
 		uint8_t cmdListSize;
-		uint8_t executing;
+		uint8_t processing;
 		char line[COMMAND_MAX_LEN];
 		uint8_t line_len;
 		const char *prt;
@@ -60,6 +60,7 @@ extern "C" {
 		char getLine(char *line, uint8_t max);
 		char getLineNonBlocking(char *line, uint8_t *cur_len, uint8_t max);
 		void process(void);
+		void cls(void);
 
 		void addCommand(ConsoleCommand *cmd);
 		void registerCommandList(ConsoleCommand **list);
