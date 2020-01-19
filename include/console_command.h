@@ -12,7 +12,9 @@ extern "C" {
 enum {
 	CMD_OK,
 	CMD_NOT_FOUND,
-	CMD_BAD_PARAM
+	CMD_BAD_PARAM,
+	CMD_OK_LF,
+	CMD_OK_NO_PRT,
 };
 
 class ConsoleCommand {

@@ -66,9 +66,10 @@ char Console::parseCommand(char *line) {
 
 	if (res == CMD_NOT_FOUND) {
 		xputs("Command not found\r");
-	}
-	else if (res == CMD_BAD_PARAM) {
+	}else if (res == CMD_BAD_PARAM) {
 		xputs("Bad parameter ");
+	}else if(res == CMD_OK_LF){
+		xputchar('\n');
 	}
 
 	return res;
@@ -88,8 +89,9 @@ void Console::process(void) {
 #endif
 	{
 		historyAdd(line);
-		parseCommand(line);
-		print(prt);
+		if(parseCommand(line) != CMD_OK_NO_PRT){
+			print(prt);
+		}
 	}
 }
 
