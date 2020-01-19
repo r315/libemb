@@ -10,7 +10,7 @@ extern void dbg_putc(char c);
 
 #define LINESIZE 0x8
 
-static void dbgHexDumpLine(uint8_t *mem, uint8_t print_ascii, uint32_t len){
+void dbgHexDumpLine(uint8_t *mem, uint32_t len, uint8_t print_ascii ){
 int i;	
 
     for(i=0; i<len; i++){
@@ -29,6 +29,7 @@ int i;
 		}
 		mem++;
 	}
+	dbg_putc('\n');
 }
 
 
@@ -36,8 +37,7 @@ void dbgHexDump(uint8_t *mem, uint32_t len){
     dbg_printf("\n Dump address: 0x%p\n\n",mem);
 	for(int i=0; i<len ;i+=LINESIZE){
 		dbg_printf("%02X: ",i);
-		dbgHexDumpLine(mem, 1, LINESIZE);
-		dbg_putc('\n');
+		dbgHexDumpLine(mem, LINESIZE, 1);		
 		mem += LINESIZE;
 	}
 }
