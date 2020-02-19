@@ -59,7 +59,7 @@ void dbg_printf(const char* str, ...)
 		if (d != '%') {
 			dbg_putc(d); continue;
 		}
-		d = *str++; w = r = s = l = 0;
+		d = *str++; f = w = r = s = l = 0;
 		if (d == '.') {
 			d = *str++; f = 1;
 		}
