@@ -61,6 +61,7 @@ extern "C" {
 		char getLineNonBlocking(char *line, uint8_t *cur_len, uint8_t max);
 		void process(void);
 		void cls(void);
+		void setOutput(StdOut *sp);
 
 		void addCommand(ConsoleCommand *cmd);
 		void registerCommandList(ConsoleCommand **list);

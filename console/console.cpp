@@ -100,6 +100,12 @@ void Console::cls(void){
 }
 
 /**
+ * */
+void Console::setOutput(StdOut *sp){
+	out = sp;	
+}
+
+/**
  * libc compatible functions *
  * */
 int Console::xputs(const char* str)
