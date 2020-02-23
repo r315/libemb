@@ -55,7 +55,7 @@ int i;
 
 
 void dbg_HexDump(uint8_t *mem, uint32_t len){
-    dbg_printf("\n Dump address: 0x%p\n\n",mem);
+    dbg_printf("\nDump address: 0x%x \n\n",(uint32_t)mem);
 	for(int i=0; i<len ;i+=LINESIZE){
 		dbg_printf("%02X: ",i);
 		dbg_HexDumpLine(mem, LINESIZE, 1);		
