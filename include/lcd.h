@@ -8,9 +8,9 @@ extern "C" {
 #include <stdint.h>
 
 #ifdef BGR_MODE
-    #define RGB(r,g,b)  (uint16_t)((b<<11) | (g<<5) | r)
+    #define RGB565(r,g,b)  (uint16_t)((b<<11) | (g<<5) | r)
 #else
-    #define RGB(r,g,b)  (uint16_t)((r<<11) | (g<<5) | b)
+    #define RGB565(r,g,b)  (uint16_t)((r<<11) | (g<<5) | b)
 #endif
 
 //-------------------------------------------------------------------
@@ -22,17 +22,17 @@ extern "C" {
 // color names
 // http://www.w3schools.com/html/html_colornames.asp
 *****************************************************/
-#define RED         RGB(31,0,0)
-#define GREEN       RGB(0,63,0)
-#define BLUE        RGB(0,0,31) 
-#define BLACK       RGB(0,0,0)
-#define WHITE       RGB(31,63,31)
-#define GRAY        RGB(16,32,16)
-#define YELLOW      RGB(31,63,0)
-#define	ORANGE      RGB(31,32,0)
-#define CYAN        RGB(0,63,31)
-#define PINK        RGB(31,0,31)
-#define FBBLUE      RGB(7,22,19)
+#define RED         RGB565(31,0,0)
+#define GREEN       RGB565(0,63,0)
+#define BLUE        RGB565(0,0,31)
+#define BLACK       RGB565(0,0,0)
+#define WHITE       RGB565(31,63,31)
+#define GRAY        RGB565(16,32,16)
+#define YELLOW      RGB565(31,63,0)
+#define ORANGE      RGB565(31,32,0)
+#define CYAN        RGB565(0,63,31)
+#define PINK        RGB565(31,0,31)
+#define FBBLUE      RGB565(7,22,19)
 #define SILVER      0xC618
 #define SKYBLUE     0x867D
 #define ROYALBLUE   0x435C
@@ -41,7 +41,7 @@ extern "C" {
 #define GREENYELLOW 0xAFE5
 #define DIMGRAY     0x6B4D
 #define DARKORANGE  0xFC60
-#define TEAL        0x410
+#define TEAL        0x0410
 
 
 /**
@@ -87,12 +87,12 @@ void LCD_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t colo
 /**
  @brief Draws a Horizontal line
  **/
-void LCD_Line_H(uint16_t x1, uint16_t x2, uint16_t y, uint16_t color);
+void LCD_Line_H(uint16_t x, uint16_t y, uint16_t width, uint16_t color);
 
 /**
  @brief Draws a Vertical line
  **/
-void LCD_Line_V(uint16_t x, uint16_t y1, uint16_t y2, uint16_t color);
+void LCD_Line_V(uint16_t x, uint16_t y, uint16_t height, uint16_t color);
 
 /**
  @brief 
