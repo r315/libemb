@@ -43,6 +43,12 @@ extern "C" {
 #define DARKORANGE  0xFC60
 #define TEAL        0x0410
 
+// General symbols
+#define LCD_PORTRAIT  			0
+#define LCD_LANDSCAPE 			1
+#define LCD_REVERSE_PORTRAIT  	2
+#define LCD_REVERSE_LANDSCAPE 	3
+
 
 /**
  @brief 
@@ -123,6 +129,11 @@ uint16_t LCD_GetHeight(void);
  * @brief Get total number of pixels
  **/
 uint32_t LCD_GetSize(void);
+
+/*
+ * @brief Change display orientation
+ */
+void LCD_Rotation(uint8_t m);
 
 
 #ifdef __cplusplus
