@@ -78,7 +78,7 @@ char Console::parseCommand(char *line) {
 void Console::process(void) {
 	if(processing == NO){
 		processing = YES;
-		print(prt);
+		out->xputs(prt);
 		return;
 	}
 #if defined(CONSOLE_BLOCKING)
@@ -90,7 +90,7 @@ void Console::process(void) {
 	{
 		historyAdd(line);
 		if(parseCommand(line) != CMD_OK_NO_PRT){
-			print(prt);
+			out->xputs(prt);
 		}
 	}
 }
