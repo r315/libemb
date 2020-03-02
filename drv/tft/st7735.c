@@ -189,11 +189,9 @@ void LCD_Fill(uint32_t n, uint16_t color){
 	if(!n) return;
 	LCD_CS0;
 #ifdef SPI_BLOCK_XFER
-	uint8_t buf[2];
-	buf[0] = color>>8;
-	buf[1] = color;
+	uint16_t data = (color >> 8) | (color << 8);
 	while(n--)
-		SPI_Write(buf, 2);
+		SPI_Write((uint8_t*)&data, 2);
 #else
 	while(n--){
 		SPI_Send(color>>8);
