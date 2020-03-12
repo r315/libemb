@@ -31,8 +31,7 @@ uint8_t data[2];
 	data[0] = 0x00;   // Co = 0, D/C = 0
 	data[1] = c;
 
-  I2C_Write(SSD1306_I2C_ADDRESS, data, 2);  
-	//HAL_I2C_Master_Transmit(&hi2c2, SSD1306_I2C_ADDRESS << 1, data, 2, 100);
+  I2C_Write(SSD1306_I2C_ADDRESS, data, 2);
 }
 
 // startscrollright
@@ -56,11 +55,7 @@ void LCD_StopScroll(void){
 
 
 uint8_t LCD_Init(void){
-#if defined(USE_I2C_DMA)  
-  i2cCfgDMA((uint8_t*)&frame, sizeof(Frame) + 1); /* DMA Transfer conplete is active 
-                                                    after the last byte is placed on I2C->DR, 
-                                                    not when tha last byte is sent by i2c */
-#endif  
+ 
   if(ssd1306_waitPowerUp())
     return 1;
 
@@ -98,7 +93,7 @@ uint8_t LCD_Init(void){
   ssd1306_command(SSD1306_MEMORYMODE);                    // 0x20
   ssd1306_command(0x00);                                  // 0x0 act like ks0108  
   
-  //ssd1306_command(SSD1306_DEACTIVATE_SCROLL);  
+  ssd1306_command(SSD1306_DEACTIVATE_SCROLL);  
   //ssd1306_command(SSD1306_SETPRECHARGE);                  // 0xd9
   //ssd1306_command(0xF1);
   //ssd1306_command(SSD1306_SETVCOMDETECT);                 // 0xDB
@@ -154,12 +149,7 @@ void LCD_Update(void) {
   ssd1306_command(3); // Page end address
   
   frame.control = 0x40;
-#if defined(USE_I2C_DMA)  
-  I2C_WriteDMA(SSD1306_I2C_ADDRESS, (uint8_t*)&frame, sizeof(frame));
-#else
-  I2C_Write(SSD1306_I2C_ADDRESS, (uint8_t*)&frame, sizeof(frame));
-#endif
-  //HAL_I2C_Master_Transmit(&hi2c2, SSD1306_I2C_ADDRESS << 1, (uint8_t*)&frame, sizeof(frame), 500);  
+  I2C_WriteBlock(SSD1306_I2C_ADDRESS, (uint8_t*)&frame, sizeof(frame));
 }
 
 void LCD_Fill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color){
