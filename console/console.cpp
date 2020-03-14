@@ -253,67 +253,14 @@ char Console::getline(char *dst, uint8_t max)
 	return len;
 }
 
-void Console::print(const char* str, ...)
-{
+void Console::print(const char* fmt, ...){
+	char buf[PRINT_MAX_LEN];
 	va_list arp;
-	int d, r, w, s, l, f;
-
-	va_start(arp, str);
-
-	while ((d = *str++) != 0) {
-		if (d != '%') {
-			out->xputchar(d); continue;
-		}
-		d = *str++; f = w = r = s = l = 0;
-		if (d == '.') {
-			d = *str++; f = 1;
-		}
-		if (d == '0') {
-			d = *str++; s = 1;
-		}
-		while ((d >= '0') && (d <= '9')) {
-			w += w * 10 + (d - '0');
-			d = *str++;
-		}
-		if (d == 'l') {
-			l = 1;
-			d = *str++;
-		}
-		if (!d) break;
-		if (d == 's') {
-			out->xputs(va_arg(arp, char*));
-			continue;
-		}
-		if (d == 'c') {
-			out->xputchar((char)va_arg(arp, int));
-			continue;
-		}
-		if (d == 'u') r = 10;
-		if (d == 'd') r = -10;
-		if (d == 'X' || d == 'x') r = 16; // 'x' added by mthomas in increase compatibility
-		if (d == 'b') r = 2;
-		if (d == 'f') {
-			if (!f)
-				w = 6;						// dafault 6 decimal places
-			out->xputs(pftoa(va_arg(arp, double), w));
-			continue;
-		}
-		if (!r) break;
-		if (s) w = -w;
-		if (l) {
-			out->xputs(pitoa((long)va_arg(arp, long), r, w));
-		}
-		else {
-			if (r > 0)
-				out->xputs(pitoa((unsigned long)va_arg(arp, int), r, w));
-			else
-				out->xputs(pitoa((long)va_arg(arp, int), r, w));
-		}
-	}
-
+	va_start(arp, fmt);
+	strformater(buf, fmt, arp);
 	va_end(arp);
+	out->xputs(buf);
 }
-
 
 uint8_t Console::kbhit(void) {
 	return out->kbhit();
@@ -348,6 +295,7 @@ void Console::historyAdd(char *entry) {
 
 char *Console::historyBack(void) {
 	uint8_t new_idx = hist_idx;
+
 	if (hist_size == HISTORY_SIZE) {
 		// History is full, wrap arround is allowed
 		if (--new_idx > HISTORY_SIZE)
@@ -359,7 +307,7 @@ char *Console::historyBack(void) {
 	else if(hist_idx > 0){
 		hist_idx--;
 	}
-	
+
 	return &history[hist_idx][0];
 }
 

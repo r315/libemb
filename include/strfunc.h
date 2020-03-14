@@ -5,8 +5,12 @@
 extern "C" {
 #endif
 
+#define XPITOA_BUF_SIZE		20
+#define FLOAT_MAX_PRECISION 6
+
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 	char *nextWord(char *line);
 	uint8_t nextInt(char **line, int32_t *value);
@@ -20,11 +24,11 @@ extern "C" {
 	uint8_t yatoi(char *str, int32_t *value);
 	uint8_t hatoi(char *str, uint32_t *value);
 	uint8_t fatoi(char *str, double *value);
-	int xatoi(char **str, long *res);
-	char *pftoa(double f, char places);
-	char *pitoa(long val, int radix, int len);
+	uint32_t xpftoa(char *dst, float f, uint8_t places);
+	uint32_t xpitoa(char *dst, int32_t val, int radix, int ndig);
 	char *chrinstr(const char *str, char c);
 	char *strsub(char *str, const char token, uint8_t len, char **saveptr);
+	uint32_t strformater(char *dst, const char* fmt, va_list arp);
 
 #ifdef __cplusplus
 }

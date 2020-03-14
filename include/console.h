@@ -27,6 +27,7 @@ extern "C" {
 #define CONSOLE_MAX_COMMANDS 64
 #define COMMAND_MAX_LEN		 64
 #define HISTORY_SIZE		 5
+#define PRINT_MAX_LEN		 64
 
 
 	class Console {

@@ -1,7 +1,7 @@
 
 #include <strfunc.h>
+#include <stdarg.h>
 
-#define FLOAT_MAX_PRECISION 6
 
 size_t strlen(const char *str) {
 	size_t count = 0;
@@ -307,81 +307,106 @@ uint8_t fatoi(char *str, double *value) {
 
 	return s & 0x3F;
 }
+
 /**
-* Original code by ELM_ChaN. Modified by Martin Thomas
-*
-* Convert string with diferent radix to integer
-*  0x-----
-*  0b-----
-*  01-----
-* */
-int xatoi(char **str, long *res)
-{
-	int32_t val;
-	uint8_t c, radix, s = 0;
+ * @brief sprintf
+ * */
+uint32_t strformater(char *dst, const char* fmt, va_list arp){
+	
+	int d, r, w, s, l, f;
+	char *p,*a;
+	a = dst;
 
+	while ((d = *fmt++) != '\0') {
 
-	while ((c = **str) == ' ') (*str)++;
-	if (c == '-') {
-		s = 1;
-		c = *(++(*str));
-	}
-	if (c == '0') {
-		c = *(++(*str));
-		if (c <= ' ') {
-			*res = 0; return 1;
+		if (d != '%') {
+			*(dst++) = d; 
+			continue;
 		}
-		if (c == 'x') {
-			radix = 16;
-			c = *(++(*str));
+
+		d = *fmt++;		
+			
+		f = w = r = s = l = 0;
+
+		if (d == '.') {
+			d = *fmt++; f = 1;
+		}
+
+		if (d == '0') {
+			d = *fmt++; s = 1;
+		}
+
+		while ((d >= '0') && (d <= '9')) {
+			w += w * 10 + (d - '0');
+			d = *fmt++;
+		}
+
+		if (d == 'l') {
+			l = 1;
+			d = *fmt++;
+		}
+
+		if (d == '\0'){
+			break;
+		}
+		
+		if (d == 's') {
+			p = va_arg(arp, char*);
+			while(*p){
+				*(dst++) = *(p++);
+			}
+			continue;
+		}
+
+		if (d == 'c') {
+			*(dst++) = (char)va_arg(arp, int);
+			continue;
+		}
+
+		if (d == 'u') r = 10;
+		if (d == 'd') r = -10;
+		if (d == 'X' || d == 'x') r = 16;
+		if (d == 'b') r = 2;
+		if (d == 'f') {
+			if (!f)
+				w = FLOAT_MAX_PRECISION;
+			dst += xpftoa(dst, va_arg(arp, double), w);
+			continue;
+		}
+		
+		if (r == 0){
+			break;	
+		} 
+
+		if (s) w = -w;
+
+		if (l) {
+			dst += xpitoa(dst, (long)va_arg(arp, long), r, w);
 		}
 		else {
-			if (c == 'b') {
-				radix = 2;
-				c = *(++(*str));
-			}
-			else {
-				if ((c >= '0') && (c <= '9'))
-					radix = 8;
-				else
-					return 0;
-			}
+			if (r > 0)
+				dst += xpitoa(dst, (unsigned long)va_arg(arp, int), r, w);
+			else
+				dst += xpitoa(dst, (long)va_arg(arp, int), r, w);
 		}
 	}
-	else {
-		if ((c < '1') || (c > '9'))
-			return 0;
-		radix = 10;
-	}
-	val = 0;
-	while (c > ' ') {
-		if (c >= 'a') c -= 0x20;
-		c -= '0';
-		if (c >= 17) {
-			c -= 7;
-			if (c <= 9) return 0;
-		}
-		if (c >= radix) return 0;
-		val = val * radix + c;
-		c = *(++(*str));
-	}
-	if (s) val = -val;
-	*res = val;
-	return 1;
+
+	*dst = '\0';
+	return dst - a;
 }
 
 /**
- * Convert integer to string
+ * @brief Convert 32-bit integer number to string string
  *
- * \param val		value to be converted
- * \param radix		base of convertion [-10,10,16]
- * \param len 		number of digits, len > 0 pad with ' ', len < 0 pad with '0'
- * \return 			pointer to string
+ * \param dst 	:	pointer to destination buffer
+ * \param val	:	value to be converted
+ * \param radix	:	base of convertion [-10,10,16]
+ * \param ndig 	:	minimum number of digits, ndig > 0 pad with ' ', ndig < 0 pad with '0'
+ * \return 		:	number of digits written to dst
  * */
-#define XTOA_BUF_SIZE 20
-char* pitoa(long val, int radix, int len)
-{
-	static uint8_t s[XTOA_BUF_SIZE];
+
+uint32_t xpitoa(char *dst, int32_t val, int radix, int ndig){
+	char buf[XPITOA_BUF_SIZE];
 	uint8_t i, c, r, sgn = 0, pad = ' ';
 	uint32_t v;
 
@@ -396,50 +421,59 @@ char* pitoa(long val, int radix, int len)
 	v = val;
 	r = radix;
 
-	if (len < 0) {
-		len = -len;
+	if (ndig < 0) {
+		ndig = -ndig;
 		pad = '0';
 	}
 
-	if (len > XTOA_BUF_SIZE) {
-		len = XTOA_BUF_SIZE;
+	if (ndig > XPITOA_BUF_SIZE) {
+		ndig = XPITOA_BUF_SIZE;
 	}
 
-	len = XTOA_BUF_SIZE - 1 - len;
-	i = XTOA_BUF_SIZE;
-	s[--i] = '\0';
+	ndig = XPITOA_BUF_SIZE - 1 - ndig;
+	i = XPITOA_BUF_SIZE;
+	buf[--i] = '\0';
 
 	do {
 		c = (uint8_t)(v % r);
 		if (c >= 10) c += 7;
 		c += '0';
-		s[--i] = c;
+		buf[--i] = c;
 		v /= r;
 	} while (v);
 
-	if (sgn) s[--i] = sgn;
+	if (sgn) buf[--i] = sgn;
 
-	while (i > len) {
-		s[--i] = pad;
+	while (i > ndig) {
+		buf[--i] = pad;
 	}
 
-	return (char*)(s + i);
+	ndig = XPITOA_BUF_SIZE - 1 - i;
+
+	while(buf[i]){
+		*dst++ = buf[i++];
+	}
+
+	*dst = '\0';
+
+	return ndig;
 }
 
 /**
- * Convert double to string
+ * @brief Convert float to string
  *
  * https://en.wikipedia.org/wiki/Single-precision_floating-point_format
  * https://wirejungle.wordpress.com/2011/08/06/displaying-floating-point-numbers
  *
- * \param f			value to be converted
- * \param places	number of decimal places
- * \return 			pointer to string
+ * \param dst 		: pointer to destination buffer
+ * \param f			: value to be converted
+ * \param places	: number of decimal places
+ * \return 			: number of digits written to dst
  * */
-char *pftoa(double f, char places) {
-	long int_part, frac_part;
-	char prec;
-	static char s[XTOA_BUF_SIZE], *pstr, *pdst;
+uint32_t xpftoa(char *dst, float f, uint8_t places){
+	int32_t int_part, frac_part;
+	uint8_t prec;
+	char *s = dst;
 
 	int_part = (long)(f);
 
@@ -454,22 +488,11 @@ char *pftoa(double f, char places) {
 		frac_part = (frac_part * 10) + (long)f - ((long)f / 10) * 10;  //((long)f%10);			
 	}
 
-	pdst = s;
-	pstr = pitoa(int_part, -10, 0);
+	dst += xpitoa(dst, int_part, -10, 0);
+	*dst++ = '.';
+	dst += xpitoa(dst, abs(frac_part), 10, -places);
 
-	while (*pstr) {
-		*(pdst++) = (*pstr++);
-	}
-
-	*pdst++ = '.';
-
-	pstr = pitoa(abs(frac_part), 10, -places);
-
-	do {
-		*(pdst++) = (*pstr);
-	} while (*pstr++);
-
-	return s;
+	return (dst - s);
 }
 
 //-----------------------------------------------------------

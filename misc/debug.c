@@ -15,7 +15,7 @@ void dummy_puts(const char *str){ }
 uint8_t dummy_nb(char *c){ return 0; }
 uint8_t dummy_kbhit(void){ return 0;}
 
- static stdout_t dummy_out = {
+static stdout_t dummy_out = {
 	dummy_init,
 	dummy_getchar,
 	dummy_putchar,
@@ -24,6 +24,8 @@ uint8_t dummy_kbhit(void){ return 0;}
 	dummy_kbhit
 };
 static stdout_t *sto = &dummy_out;
+
+static char dbg_out[40];
 
 void dbg_init(stdout_t *stdo){
 	if(stdo != NULL){
@@ -55,7 +57,7 @@ int i;
 
 
 void dbg_HexDump(uint8_t *mem, uint32_t len){
-    dbg_printf("\nDump address: 0x%x \n\n",(uint32_t)mem);
+    //dbg_printf("\nDump address: 0x%X \n\n",(uint32_t)&mem[0]);
 	for(int i=0; i<len ;i+=LINESIZE){
 		dbg_printf("%02X: ",i);
 		dbg_HexDumpLine(mem, LINESIZE, 1);		
@@ -67,64 +69,11 @@ void dbg_puts(char *str){
 	sto->xputs(str);
 }
 
-void dbg_printf(const char* str, ...)
-{
+void dbg_printf(const char* fmt, ...){
 	va_list arp;
-	int d, r, w, s, l, f;
-
-	va_start(arp, str);
-
-	while ((d = *str++) != 0) {
-		if (d != '%') {
-			sto->xputchar(d); continue;
-		}
-		d = *str++; f = w = r = s = l = 0;
-		if (d == '.') {
-			d = *str++; f = 1;
-		}
-		if (d == '0') {
-			d = *str++; s = 1;
-		}
-		while ((d >= '0') && (d <= '9')) {
-			w += w * 10 + (d - '0');
-			d = *str++;
-		}
-		if (d == 'l') {
-			l = 1;
-			d = *str++;
-		}
-		if (!d) break;
-		if (d == 's') {
-			sto->xputs(va_arg(arp, char*));
-			continue;
-		}
-		if (d == 'c') {
-			sto->xputchar((char)va_arg(arp, int));
-			continue;
-		}
-		if (d == 'u') r = 10;
-		if (d == 'd') r = -10;
-		if (d == 'X' || d == 'x') r = 16; // 'x' added by mthomas in increase compatibility
-		if (d == 'b') r = 2;
-		if (d == 'f') {
-			if (!f)
-				w = 6;						// dafault 6 decimal places
-			sto->xputs(pftoa(va_arg(arp, double), w));
-			continue;
-		}
-		if (!r) break;
-		if (s) w = -w;
-		if (l) {
-			sto->xputs(pitoa((long)va_arg(arp, long), r, w));
-		}
-		else {
-			if (r > 0)
-				sto->xputs(pitoa((unsigned long)va_arg(arp, int), r, w));
-			else
-				sto->xputs(pitoa((long)va_arg(arp, int), r, w));
-		}
-	}
-
+	va_start(arp, fmt);
+	strformater(dbg_out, fmt, arp);
+	sto->xputs(dbg_out);
 	va_end(arp);
 }
 #endif
