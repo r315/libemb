@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <stdout.h>
 
+#ifndef DBG_PRINT_MAX_LEN
+#define DBG_PRINT_MAX_LEN   64
+#endif
+
 void dbg_HexDump(uint8_t *mem, uint32_t len);
 void dbg_HexDumpLine(uint8_t *mem, uint32_t len, uint8_t print_ascii);
 void dbg_printf(const char*, ...);

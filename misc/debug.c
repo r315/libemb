@@ -6,7 +6,8 @@
 #include <strfunc.h>
 #include <dbg.h>
 
-#define LINESIZE 0x8
+#define LINE_NCOLS 0x8		// Number of columens per line
+
 
 void dummy_init(void){ }
 char dummy_getchar(void){ return 255; }
@@ -24,8 +25,6 @@ static stdout_t dummy_out = {
 	dummy_kbhit
 };
 static stdout_t *sto = &dummy_out;
-
-static char dbg_out[40];
 
 void dbg_init(stdout_t *stdo){
 	if(stdo != NULL){
@@ -58,10 +57,10 @@ int i;
 
 void dbg_HexDump(uint8_t *mem, uint32_t len){
     //dbg_printf("\nDump address: 0x%X \n\n",(uint32_t)&mem[0]);
-	for(int i=0; i<len ;i+=LINESIZE){
+	for(int i=0; i<len ;i+=LINE_NCOLS){
 		dbg_printf("%02X: ",i);
-		dbg_HexDumpLine(mem, LINESIZE, 1);		
-		mem += LINESIZE;
+		dbg_HexDumpLine(mem, LINE_NCOLS, 1);		
+		mem += LINE_NCOLS;
 	}
 }
 
@@ -70,10 +69,11 @@ void dbg_puts(char *str){
 }
 
 void dbg_printf(const char* fmt, ...){
+	char dbg_out[DBG_PRINT_MAX_LEN];
 	va_list arp;
 	va_start(arp, fmt);
 	strformater(dbg_out, fmt, arp);
-	sto->xputs(dbg_out);
 	va_end(arp);
+	sto->xputs(dbg_out);
 }
 #endif

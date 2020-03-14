@@ -254,7 +254,7 @@ char Console::getline(char *dst, uint8_t max)
 }
 
 void Console::print(const char* fmt, ...){
-	char buf[PRINT_MAX_LEN];
+	char buf[CONSOLE_PRINT_MAX_LEN];
 	va_list arp;
 	va_start(arp, fmt);
 	strformater(buf, fmt, arp);
