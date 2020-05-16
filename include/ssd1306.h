@@ -64,19 +64,49 @@ enum{
     INVERSE
 };
 
+/**
+ * @brief Starts right scrolling
+ * Activate a right handed scroll for rows start through stop
+ * Hint, the display is 16 rows tall. To scroll the whole display, run:
+ * display.scrollright(0x00, 0x0F)
+ * */
 void LCD_ScrollRight(uint8_t start, uint8_t stop);
 void LCD_StopScroll(void);
 
 uint16_t LCD_GetWidth(void);
 uint16_t LCD_GetHeight(void);
+uint8_t LCD_Init(void);
 
+/**
+ * @brief Draws a filled rectangle on internal frame buffer.
+ * No display update is performed
+ * */
+void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+
+/**
+ * @brief Update display with internal frame buffer
+ * */
 void LCD_Update(void);
-void LCD_Fill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+
+/**
+ * @brief Copy data to internal frame buffer, first byte of data 
+ * should contain data length.
+ * No display update is performed
+ * 
+ * @param c : Column 0-127
+ * @param p : page 0-1
+ * @param data : pointer to data
+ * */
 void LCD_SetFrame(uint16_t c, uint16_t p, uint8_t *data);
 
-uint8_t LCD_Init(void);
+/**
+ * @brief Change a pixel within internal frame buffer
+ * */
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color);
 
+/**
+ * @brief Get internal frame buffer data
+ * */
 uint8_t *LCD_GetPixels(void);
 
 #endif
