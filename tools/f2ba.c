@@ -10,9 +10,15 @@
 
 #define NCOLS 32
 
+typedef struct{
+    int offset;
+    char *infile;
+    char *outfile;
+}Arguments;
+
 void help(){
     printf("File to byte array ");
-    printf("Usage: f2ba <input file> <output file>\n");
+    printf("Usage: f2ba <-if input file> <-of output file> [-ofs <offset>]\n");
 }
 
 void savetofile(char *filename, uint8_t *buf, int len){
@@ -50,21 +56,48 @@ char namecpy[20];
     fclose(fp);
 }
 
+static void parseCmdl(int ac, char** av, Arguments* arg){
+
+    arg->offset = 0;
+    arg->infile = NULL;
+    arg->outfile = NULL;
+
+     /* parse options in any order */
+    for (int pos = 1; pos < ac && av[pos][0] == '-'; pos++)
+    {
+        if (!strcmp(av[pos], "-if"))
+        {
+             arg->infile = av[++pos];
+        }
+
+        if (!strcmp(av[pos], "-of"))
+        {
+            arg->outfile = av[++pos];
+        }
+
+        if (!strcmp(av[pos], "-ofs"))
+        {
+            arg->offset = atoi(av[++pos]);
+        }
+    }
+
+}
 
 int main(int argc, char **argv){
 FILE *fp;
 char *filename;
 int size;
 char *buf;
+Arguments args;
 
     if(argc < 3){
         help();
         exit(0);
     }
 
-    filename = argv[1];
+    parseCmdl(argc, argv, &args);
     
-    fp = fopen(filename, "rb");
+    fp = fopen(args.infile, "rb");
 
     if(fp == NULL){
         fprintf(stderr,"Unable to open file '%s'\n", filename);
@@ -72,8 +105,8 @@ char *buf;
     }
 
     fseek(fp,0,SEEK_END);
-    size = ftell(fp);
-    fseek(fp,0,SEEK_SET);
+    size = ftell(fp) - args.offset;
+    fseek(fp, args.offset, SEEK_SET);
 
     buf = (char*)malloc(size);
 
@@ -94,7 +127,7 @@ char *buf;
 
     fclose(fp);
 
-    savetofile(argv[2], (uint8_t*)buf, size);
+    savetofile(args.outfile, (uint8_t*)buf, size);
 
     free(buf);
 
