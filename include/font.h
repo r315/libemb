@@ -22,9 +22,17 @@ extern font_t defaultFont;
 #if !defined(SINGLE_FONT)	
 	extern font_t defaultBoldFont;
 	extern font_t lcdFont;
-	extern font_t pixelDustFont;	
+	extern font_t pixelDustFont;
+#ifdef USE_COURIER_FONT
 	extern font_t courierFont;
 #endif
+#ifdef USE_GROTESKBOLD_FONT    	
+    extern font_t GroteskBold16x32;
+#endif
+#ifdef USE_UBUNTU_FONT
+    extern font_t ubuntuFont;
+#endif
+#endif /* SINGLE_FONT */
 
 #ifdef __cplusplus
 }
