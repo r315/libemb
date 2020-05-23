@@ -83,7 +83,7 @@ void Console::process(void) {
 	}
 #if defined(CONSOLE_BLOCKING)
 	line_len = 0;
-	line_len = getline(line, COMMAND_MAX_LEN);	
+	line_len = getLine(line, COMMAND_MAX_LEN);	
 #else
 	if (getLineNonBlocking(line, &line_len, COMMAND_MAX_LEN)) 
 #endif
@@ -195,7 +195,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 	return 0;
 }
 
-char Console::getline(char *dst, uint8_t max)
+char Console::getLine(char *dst, uint8_t max)
 {
 	uint8_t len = 0, hasLine = 0;
 	char c;

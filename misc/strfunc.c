@@ -512,3 +512,11 @@ void * memset(void * ptr, int value, size_t num) {
 	}
 	return ptr;
 }
+
+void *memset16(void *ptr, int value, size_t num){
+	uint16_t *aux = ptr;
+	while(num--){
+		*aux++ = (uint16_t)value;
+	}
+	return ptr;
+}
