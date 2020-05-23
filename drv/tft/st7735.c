@@ -1,21 +1,36 @@
-
-//#include <lcd.h>
 #include <st7735.h>
 #include <board.h>
+#include <lcd.h>
+
+//--------------------------------
+#ifndef TFT_OFFSET_SOURCE
+#define TFT_OFFSET_SOURCE	0
+#endif
+
+#ifndef TFT_OFFSET_GATE
+#define TFT_OFFSET_GATE		0
+#endif
+
+#ifdef TFT_BGR_FILTER
+// Applys for TFT's with BGR filter or IPS
+#define DEFAULT_MADC		0x08
+#else
+#define DEFAULT_MADC		0x00
+#endif
 
 #define STATE_LANDSCAPE		(1<<0)
 #define STATE_INITIALYZED	(1<<1)
+#define pgm_read_byte(x) 	*((uint8_t*)(x))
 
 #define DELAY 				0x80
 
-static uint16_t _width, _height;
+static uint16_t _width, _height, _color;
 static uint8_t madd, start_x, start_y, state;
 
-
-#if 0
+#if TFT_W == 128
 // Can't remember where I got this ...
 // Init for 7735R, part 1 (red or green tab)
-const uint8_t PROGMEM  InitCmd[] = {
+const uint8_t InitCmd[] = {
 		17,                       //  17 commands in list:
 		ST7735_SWRESET,   DELAY,  //  1: Software reset, 0 args, w/delay
 		150,                      //     150 ms delay
@@ -63,12 +78,12 @@ const uint8_t PROGMEM  InitCmd[] = {
 		ST7735_DISPON ,    DELAY, // 17: Main screen turn on, no args w/delay
 		100						  //      100 ms delay
 };
-#else
+#elif TFT_W == 80
 /**
  * Values for 132x162 GRAM, visible 80x160
  * Looks good on small 80x160 IPS display
  */
-const uint8_t PROGMEM InitCmd [] = {
+const uint8_t InitCmd [] = {
 	18,                       //  18 commands in list:
 	ST7735_SWRESET,   DELAY,  //  1: Software reset, 0 args, w/delay
 	120,                      //     120ms delay
@@ -127,8 +142,8 @@ const uint8_t PROGMEM InitCmd [] = {
 /**
  * @brief Writes command to display
  */
-void LCD_Command(uint8_t data){
-	LCD_CD0;
+static void LCD_Command(uint8_t data){
+	LCD_CD0; 
 	SPI_Send(data);
 	LCD_CD1;
 }
@@ -137,23 +152,14 @@ void LCD_Command(uint8_t data){
  * @brief Write single data 16bit in Big-endian
  *
  */
-void LCD_Data(uint16_t data){
-	LCD_CS0;
-#ifdef SPI_BLOCK_XFER
-	uint8_t buf[2];
-	buf[0] = data>>8;
-	buf[1] = data;
-	SPI_Write(buf, 2);
-#else
+static inline void LCD_Data(uint16_t data){
 	SPI_Send(data>>8);
 	SPI_Send(data);
-#endif
-	LCD_CS1;
 }
 
 /*
  * @brief Companion code to the above tables.  Reads and issues
- * a series of LCD commands stored in PROGMEM byte array.
+ * a series of LCD commands stored as byte array.
  * */
 void LCD_CommandList(const uint8_t *addr) {
 	uint8_t  numCommands, numArgs;
@@ -161,18 +167,18 @@ void LCD_CommandList(const uint8_t *addr) {
 
 	numCommands = pgm_read_byte(addr++);       // Number of commands to follow
 	while(numCommands--) {                     // For each command...
-		writecommand(pgm_read_byte(addr++));   //   Read, issue command
+		LCD_Command(pgm_read_byte(addr++));   //   Read, issue command
 		numArgs  = pgm_read_byte(addr++);      //   Number of args to follow
 		ms       = numArgs & DELAY;            //   If hibit set, delay follows args
 		numArgs &= ~DELAY;                     //   Mask out delay bit
 		while(numArgs--) {                     //   For each argument...
-			writedata(pgm_read_byte(addr++));  //     Read, issue argument
+			SPI_Send(pgm_read_byte(addr++));  //   Read, issue argument
 		}
 
 		if(ms) {
 			ms = pgm_read_byte(addr++);        // Read post-command delay time (ms)
 			if(ms == 255) ms = 500;
-			myDelay(ms);
+			DelayMs(ms);
 		}
 	}
 }
@@ -180,22 +186,19 @@ void LCD_CommandList(const uint8_t *addr) {
 void LCD_Scroll(uint16_t sc){
 	LCD_CS0;
 	LCD_Command(ST7735_VSCSAD);
-	SPI_Send(sc >> 8);
-	SPI_Send(sc);
+	LCD_Data(sc);
 	LCD_CS1;
 }
 
-void LCD_Fill(uint32_t n, uint16_t color){
-	if(!n) return;
+void LCD_Fill(uint32_t count, uint16_t color){
+	if(!count) return;
 	LCD_CS0;
-#ifdef SPI_BLOCK_XFER
-	uint16_t data = (color >> 8) | (color << 8);
-	while(n--)
-		SPI_Write((uint8_t*)&data, 2);
+#ifdef SPI_BLOCK_DMA
+	_color = color;
+	SPI_WriteDMA(&_color, count | 0x80000000);
 #else
-	while(n--){
-		SPI_Send(color>>8);
-		SPI_Send(color);
+	while(count--){
+		LCD_Data(color);
 	}
 #endif
 	LCD_CS1;
@@ -208,42 +211,24 @@ void LCD_Fill(uint32_t n, uint16_t color){
 void LCD_Write(uint16_t *data, uint32_t count){
 	if(count == 0) return;
 	LCD_CS0;
-#ifdef SPI_BLOCK_XFER
-	SPI_Write((uint8_t*)data, count);
+#ifdef SPI_BLOCK_DMA
+	SPI_WriteDMA(data, count);
 #else
 	while(count--){
-		SPI_Send((*data)>>8);
-		SPI_Send(*(data++));
+		LCD_Data(*(data++));
 	}
 #endif
 	LCD_CS1;
 }
 
-void LCD_WriteMapped(uint16_t *palette, uint8_t *map, uint32_t size){
-	LCD_CS0;
-#ifdef SPI_BLOCK_XFER
-	while(size--){
-		uint16_t color = palette[*(map++)];
-		SPI_Write((uint8_t*)&color, 2);
-	}
-#else
-	while(size--){
-		SPI_Send(palette[*map]>>8);
-		SPI_Send(palette[*map]);
-		map += 1;
-	}
-#endif
-	LCD_CS1;
-}
-
-void LCD_Pixel(uint16_t x, uint16_t y, uint16_t c){
+void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
 
 	x += start_x;
 	y += start_y;
 
 	LCD_CS0;
 
-#ifdef SPI_BLOCK_XFER
+#ifdef _SPI_BLOCK_DMA
 	uint32_t buf;
 	buf = (x << 24) | (x << 8) | (x >> 8);
 	LCD_Command(ST7735_CASET);
@@ -253,25 +238,20 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t c){
 	LCD_Command(ST7735_RASET);
 	SPI_Write((uint8_t*)&buf, 4);
 
-	buf = (c >> 8) | (c << 8);
+	buf = (color >> 8) | (color << 8);
 	LCD_Command(ST7735_RAMWR);
 	SPI_Write((uint8_t*)&buf, 2);
 #else
-	LCD_Command(ST7735_CASET);
-	SPI_Send(x>>8);
-	SPI_Send(x);
-	SPI_Send(x>>8);
-	SPI_Send(x);
+	LCD_Command(ST7735_CASET);	
+	LCD_Data(x);
+	LCD_Data(x);
 
-	LCD_Command(ST7735_RASET);
-	SPI_Send(y>>8);
-	SPI_Send(y);
-	SPI_Send(y>>8);
-	SPI_Send(y);
+	LCD_Command(ST7735_RASET);	
+	LCD_Data(y);
+	LCD_Data(y);
 
 	LCD_Command(ST7735_RAMWR);
-	SPI_Send(c>>8);
-	SPI_Send(c);
+	LCD_Data(color);
 #endif
 	LCD_CS1;
 }
@@ -284,26 +264,20 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 	LCD_CS0;
 
 	LCD_Command(ST7735_CASET);
-	SPI_Send(x>>8);
-	SPI_Send(x);
-	x += w - 1;
-	SPI_Send(x>>8);
-	SPI_Send(x);
+	LCD_Data(x);
+	LCD_Data(x + w - 1);
 
 	LCD_Command(ST7735_RASET);
-	SPI_Send(y>>8);
-	SPI_Send(y);
-	y += h - 1;
-	SPI_Send(y>>8);
-	SPI_Send(y);
-	LCD_Command(ST7735_RAMWR);
+	LCD_Data(y);	
+	LCD_Data(y + h - 1);
 
+	LCD_Command(ST7735_RAMWR);
 	LCD_CS1;
 }
 
 void LCD_Init(void){
 
-	LCD_PIN_INIT;
+	//LCD_PIN_INIT; made on board level
 
 	LCD_CD0;
 	LCD_CS1;

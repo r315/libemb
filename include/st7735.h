@@ -11,7 +11,6 @@
 #define _st7735_h_
 
 #include <stdint.h>
-#include <board.h>
 
 #define TFT_ST7735S
 
@@ -66,12 +65,6 @@
 #define ST7735_PWCTR6  0xFC
 
 // -----------------------------
-#define pgm_read_byte(x) *((uint8_t*)(x))
-#define writecommand(x)  LCD_Command(x)
-#define writedata(x)     SPI_Send(x)
-#define myDelay(x)        DelayMs(x)
-#define PROGMEM
-
 
 #define MADCTL_MY  (1<<7)
 #define MADCTL_MX  (1<<6)
@@ -79,22 +72,6 @@
 #define MADCTL_ML  (1<<4)
 #define MADCTL_RGB (1<<3)
 #define MADCTL_MH  (1<<2)
-
-//--------------------------------
-#ifndef TFT_OFFSET_SOURCE
-#define TFT_OFFSET_SOURCE	0
-#endif
-
-#ifndef TFT_OFFSET_GATE
-#define TFT_OFFSET_GATE		0
-#endif
-
-#ifdef TFT_BGR_FILTER
-// Applys for TFT's with BGR filter or IPS
-#define DEFAULT_MADC	0x08
-#else
-#define DEFAULT_MADC	0x00
-#endif
 
 /**
 * @brief preencimento de n pixels da mesma cor
@@ -130,12 +107,6 @@ uint16_t LCD_GetHeight(void);
  * @brief retorna o numero total de pixels do display
  */
 uint32_t LCD_GetSize(void);
-
-/**
- * @brief acesso directo ao lcd para escrita de dados
- *        Pode ser usado para escrita de bloco
- */
-void LCD_Data(uint16_t data);
 
 /**
  * @brief Not tested for this driver
