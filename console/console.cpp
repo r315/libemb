@@ -157,7 +157,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 		
 		if ((c == '\n') || (c == '\r')) {			
 			//Remove all extra text from previous commands
-			memset(dst + len, '\0', COMMAND_MAX_LEN - len);
+			memset(dst + len, '\0', maxLen - len);
 			out->xputchar(c);
 			*cur_len = 0;
 			return len + 1;
@@ -195,7 +195,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 	return 0;
 }
 
-char Console::getLine(char *dst, uint8_t max)
+char Console::getLine(char *dst, uint8_t maxLen)
 {
 	uint8_t len = 0, hasLine = 0;
 	char c;
@@ -239,7 +239,7 @@ char Console::getLine(char *dst, uint8_t max)
 			break;
 
 		default:
-			if (len < max) {
+			if (len < maxLen) {
 				out->xputchar(c);
 				dst[len] = c;
 				len++;
@@ -247,9 +247,8 @@ char Console::getLine(char *dst, uint8_t max)
 			break;
 		}
 	}
-
 	//Remove all extra text from previous commands
-	memset(dst + len, '\0', COMMAND_MAX_LEN - len);
+	memset(dst + len, '\0', maxLen - len);
 	return len;
 }
 
