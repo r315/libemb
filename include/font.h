@@ -17,22 +17,38 @@ typedef struct _font_t{
     uint8_t spacing;
 }font_t;
 
-extern font_t defaultFont;
+#if !defined(USE_MULTIPLE_FONTS)
+#define USE_DEFAULT_FONT
+#endif
 
-#if !defined(SINGLE_FONT)	
+#ifdef USE_DEFAULT_FONT
+extern font_t defaultFont;
+#endif
+
+#ifdef USE_DEFAULT_BOLD_FONT
 	extern font_t defaultBoldFont;
-	extern font_t lcdFont;
+#endif
+
+#ifdef USE_PIXELDUST_FONT
 	extern font_t pixelDustFont;
+#endif
+
+#ifdef USE_LCD_FONT
+	extern font_t lcdFont;
+#endif
+
 #ifdef USE_COURIER_FONT
 	extern font_t courierFont;
 #endif
+
 #ifdef USE_GROTESKBOLD_FONT    	
     extern font_t GroteskBold16x32;
 #endif
+
 #ifdef USE_UBUNTU_FONT
     extern font_t ubuntuFont;
 #endif
-#endif /* SINGLE_FONT */
+
 
 #ifdef __cplusplus
 }
