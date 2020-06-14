@@ -30,6 +30,9 @@ extern "C" {
 	char *strsub(char *str, const char token, uint8_t len, char **saveptr);
 	uint32_t strformater(char *dst, const char* fmt, va_list arp);
 	void *memset16(void *ptr, int value, size_t num);
+	char *skipSpaces(char *str);
+	uint32_t strToArray(char *str, char **argv);
+	void xsprintf(char *out, const char* fmt, ...);
 
 #ifdef __cplusplus
 }

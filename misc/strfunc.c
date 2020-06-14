@@ -2,7 +2,52 @@
 #include <strfunc.h>
 #include <stdarg.h>
 
+/**
+ * @brief Find next character in a string
+ * */
+char *skipSpaces(char *str){
+	while((*str == ' ' || *str == '\t') && *str != '\0') 
+		str++;
+	return str;
+}
 
+/** 
+ * @brief Replaces spaces in a string with string terminator
+ * 
+ * \param str : pointer to input string
+ * \param argv : pointer to output string array
+ * \return : number of strings
+ * */
+uint32_t strToArray(char *str, char **argv){
+uint32_t argc = 0;
+
+    if(str == NULL){
+        return 0;
+    }
+
+	str = skipSpaces(str);
+
+	if(*str == '\0')
+		return 0;
+
+	argv[argc++] = str;
+
+    while(*str != '\0'){
+        if(*str == ' '){
+			*str = '\0';
+			str = skipSpaces(str + 1);
+			if(*str != '\0')
+				argv[argc++] = str;
+        }else{
+			str++;
+		}
+    }
+
+	return argc;
+}
+/**
+ * @brief Well string length...
+ * */
 size_t strlen(const char *str) {
 	size_t count = 0;
 	//if (str == NULL) return 0;
@@ -309,7 +354,9 @@ uint8_t fatoi(char *str, double *value) {
 }
 
 /**
- * @brief sprintf
+ * @brief String formater
+ *   %nu, %nd, %nb, %c, %s, %l, %x, %.nf
+ * 
  * */
 uint32_t strformater(char *dst, const char* fmt, va_list arp){
 	
@@ -394,6 +441,17 @@ uint32_t strformater(char *dst, const char* fmt, va_list arp){
 	*dst = '\0';
 	return dst - a;
 }
+
+/**
+ * @brief
+ * */
+void xsprintf(char *out, const char* fmt, ...){
+	va_list arp;
+	va_start(arp, fmt);
+	strformater(out, fmt, arp);
+	va_end(arp);
+}
+
 
 /**
  * @brief Convert 32-bit integer number to string string
