@@ -16,7 +16,7 @@ void dummy_puts(const char *str){ }
 uint8_t dummy_nb(char *c){ return 0; }
 uint8_t dummy_kbhit(void){ return 0;}
 
-static stdout_t dummy_out = {
+stdout_t dummy_out = {
 	dummy_init,
 	dummy_getchar,
 	dummy_putchar,
@@ -24,6 +24,7 @@ static stdout_t dummy_out = {
 	dummy_nb,
 	dummy_kbhit
 };
+
 static stdout_t *sto = &dummy_out;
 
 void dbg_init(stdout_t *stdo){
