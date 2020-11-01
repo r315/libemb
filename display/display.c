@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <board.h>
+//#include <board.h> //why??
 #include <display.h>
 #include <font.h>
 
