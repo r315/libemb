@@ -86,6 +86,12 @@ typedef enum {
     SYS_WKUP = PA_0
 
 }pinName_e;
+
+#define PORTA   0x00
+#define PORTB   0x10
+#define PORTC   0x20
+#define PORTD   0x30
+
 #endif
 
 /* Default push-pull */
@@ -93,7 +99,8 @@ typedef enum {
 #define GPO_10MHZ               (1 << 0)
 #define GPO_50MHZ               (3 << 0)
 #define GPO_OD                  (1 << 2) // Open drain
-#define GPO_AF                  (2 << 2)
+#define GPO_AF                  (2 << 2) // Alternative function
+#define GPO_AF_OD               (3 << 2) // Alternative function open drain
 #define GPI_ANALOG              (0 << 0)
 #define GPI_OD                  (1 << 2) // floating
 #define GPI_PD                  (2 << 2)
@@ -105,6 +112,8 @@ typedef enum {
 void pinInit(pinName_e name, uint8_t mode);
 void pinWrite(pinName_e name, uint8_t state);
 void pinToggle(pinName_e name);
+void portWrite(pinName_e name, uint32_t value);
+uint32_t portRead(pinName_e name);
 
 #ifdef __cplusplus
 }

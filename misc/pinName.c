@@ -38,4 +38,15 @@ GPIO_TypeDef *port = pinPorts[PIN_NAME_TO_PORT(name)];
 uint8_t pin = PIN_NAME_TO_PIN(name);
     port->ODR = port->IDR ^ (1<<pin);
 }
+
+void portWrite(pinName_e name, uint32_t value){
+    GPIO_TypeDef *port = pinPorts[PIN_NAME_TO_PORT(name)];
+    port->ODR = value;
+}
+
+uint32_t portRead(pinName_e name){
+    GPIO_TypeDef *port = pinPorts[PIN_NAME_TO_PORT(name)];
+    return port->IDR;
+}
+
 #endif

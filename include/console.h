@@ -82,8 +82,6 @@ extern "C" {
 		uint8_t getCmdListSize(void) { return cmdListSize; }
 		ConsoleCommand *getCmdIndexed(uint8_t idx) { return cmdList[idx]; } // security issues??
 	};
-
-
 }
 #endif
 
