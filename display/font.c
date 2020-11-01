@@ -676,10 +676,7 @@ font_t courierFont = {
 #if defined(__AVR__)
     #include <avr/pgmspace.h>
     #define fontdatatype const uint8_t
-#elif defined(__PIC32MX__)
-    #define PROGMEM
-    #define fontdatatype const unsigned char
-#elif defined(__arm__)
+#else
     #define PROGMEM
     #define fontdatatype const unsigned char
 #endif
@@ -814,6 +811,9 @@ font_t GroteskBold16x32 = {
 #elif defined(__arm__)
 	#define PROGMEM
 	#define fontdatatype const unsigned char
+#else
+    #define PROGMEM
+    #define fontdatatype const unsigned char
 #endif
 
 fontdatatype UbuntuData[9124] PROGMEM={
