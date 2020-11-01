@@ -86,6 +86,18 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color);
 
 /**
+ * @brief Write single color data.
+ * LCD_Window should be called previously
+ * */
+void LCD_Data(uint16_t data);
+
+/**
+ * @brief Write color data buffer
+ * LCD_Window should be called previously
+ * */
+void LCD_Write(uint16_t *data, uint32_t count);
+
+/**
  @brief Draws a line
  **/
 void LCD_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t color);

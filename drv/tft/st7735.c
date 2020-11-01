@@ -152,7 +152,7 @@ static void LCD_Command(uint8_t data){
  * @brief Write single data 16bit in Big-endian
  *
  */
-static inline void LCD_Data(uint16_t data){
+inline void LCD_Data(uint16_t data){
 	SPI_Send(data>>8);
 	SPI_Send(data);
 }
