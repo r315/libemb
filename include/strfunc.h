@@ -20,7 +20,7 @@ extern "C" {
 	uint8_t isNextWord(char **str, const char *word);
 	void xstrcpy(char *dst, char *src, uint8_t maxLen);
 	char xstrcmp(char const *str1, char const *str2);
-	size_t strlen(const char *str);
+	//size_t strlen(const char *str);
 	uint8_t yatoi(char *str, int32_t *value);
 	uint8_t hatoi(char *str, uint32_t *value);
 	uint8_t fatoi(char *str, double *value);
@@ -33,7 +33,7 @@ extern "C" {
 	char *skipSpaces(char *str);
 	uint32_t strToArray(char *str, char **argv);
 	void xsprintf(char *out, const char* fmt, ...);
-
+	int32_t strFind(const char *str, char *strarr[], uint16_t arrsize);
 #ifdef __cplusplus
 }
 #endif

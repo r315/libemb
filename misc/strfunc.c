@@ -12,7 +12,7 @@ char *skipSpaces(char *str){
 }
 
 /** 
- * @brief Replaces spaces in a string with string terminator
+ * @brief Replaces spaces in a string with string terminator, aka string split
  * 
  * \param str : pointer to input string
  * \param argv : pointer to output string array
@@ -55,6 +55,22 @@ size_t strlen(const char *str) {
 		count++;
 	}
 	return count;
+}
+
+/**
+ * @brief Find a string in string array and return index
+ * 
+ * \param str : pointer to string to be found
+ * \param strarr : array of pointers to string
+ * \return : index, -1 if not found
+ * */
+int32_t strFind(const char *str, char *strarr[], uint16_t arrsize){
+    for(uint32_t i = 0; i < arrsize; i++){
+        if(xstrcmp(str, strarr[i]) == 0){
+            return i;
+        }
+    }
+    return -1;
 }
 /**
  * Searches for the first occurrence of the character c
