@@ -64,11 +64,12 @@ uint32_t cur;
         case BUTTON_HOLD:
             if(cur == BUTTON_EMPTY){
                 __button.events = BUTTON_RELEASED;
+                break;
             }
             if(cur == __button.cur)
-                break;
+                break;            
             __button.cur = cur; // another key was pressed 
-            __button.events = BUTTON_PRESSED;
+            __button.events = BUTTON_PRESSED;            
             break;
             
         case BUTTON_RELEASED:
