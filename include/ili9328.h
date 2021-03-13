@@ -4,13 +4,12 @@
  @author Hugo Reis
  @date 06-02-2017
  **/
+#ifndef _ili9328_h_
+#define _ili9328_h_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef _ili9328_h_
-#define _ili9328_h_
 
 #include <stdint.h>
 
@@ -66,7 +65,7 @@ extern "C" {
 #define LCD_PANEL_IF_CTRL4		0x95
 #define LCD_PANEL_IF_CTRL5		0x97
 #define LCD_PANEL_IF_CTRL6		0x98
-#define LCD_DELAY 0xFF
+#define LCD_DELAY               0xFF
 
 /*-------------------------------------------------------------------
  
@@ -203,7 +202,7 @@ void LCD_Rotation(uint8_t m);
 uint16_t LCD_ReadId(void);
 
 #ifdef __cplusplus
-}
+};
 #endif
 
 #endif

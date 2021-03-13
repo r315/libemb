@@ -45,9 +45,9 @@ enum Benvent{
 #define BUTTON_UP    	(1<<3)
 #define BUTTON_DOWN  	(1<<4)
 #define BUTTON_A        (1<<5)		  
-#define loop BUTTON_GetEvents() != 256 //SDL_QUIT
+#define LOOP BUTTON_GetEvents() != 256 //SDL_QUIT
 #else
-#define loop 1
+#define LOOP 1
 #endif
 
 

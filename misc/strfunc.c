@@ -170,7 +170,7 @@ char nextChar(char **line) {
  * @param str:    pointer to word pointer to be compared
  * @param word:   pointer to comparing word
  * 
- * @return      - 1 if match and move word pointer to next word,
+ * @return      - 1 if match and move str pointer to next word,
  *                0 not equal and no parameter changed
  * */
 uint8_t isNextWord(char **str, const char *word) {

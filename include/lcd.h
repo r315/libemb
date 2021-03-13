@@ -149,7 +149,7 @@ void LCD_Rotation(uint8_t m);
 
 
 #ifdef __cplusplus
-}
+};
 #endif
 
 #endif

@@ -94,7 +94,10 @@ typedef enum {
 
 #endif
 
-/* Default push-pull */
+/**
+ * Pin modes 
+ * 
+ * */
 #define GPO_2MHZ                (2 << 0) 
 #define GPO_10MHZ               (1 << 0)
 #define GPO_50MHZ               (3 << 0)

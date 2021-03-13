@@ -1,4 +1,3 @@
-//#include <clock.h>
 #include <board.h>
 #include <lcd.h>
 #include <ili9328.h>
@@ -96,7 +95,7 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
     LCD_Command(LCD_RW_GRAM);
 }
 
-void LCD_Window_N(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
+static void LCD_Window_N(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 	LCD_Command(LCD_HOR_START_AD);
 	LCD_Data(x);
 	LCD_Command(LCD_HOR_END_AD);
@@ -112,7 +111,7 @@ void LCD_Window_N(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 	LCD_Data(y);
 }
 
-void LCD_Window_L(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
+static void LCD_Window_L(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 	LCD_Command(LCD_VER_START_AD);
 	LCD_Data(x);
 	LCD_Command(LCD_VER_END_AD);
