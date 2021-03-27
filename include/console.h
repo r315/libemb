@@ -25,7 +25,9 @@ extern "C" {
 #endif
 
 #define CONSOLE_MAX_COMMANDS 	64
+#ifndef COMMAND_MAX_LEN
 #define COMMAND_MAX_LEN		 	64
+#endif
 #define HISTORY_SIZE		 	5
 
 #ifndef CONSOLE_PRINT_MAX_LEN
