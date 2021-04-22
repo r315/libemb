@@ -16,13 +16,14 @@ typedef struct{
     char *infile;
     char *outfile;
     int data_size;
+    char endian;
 }Arguments;
 
 const char *data_types[] = {"char", "uint8_t", "uint16_t", "uint32_t", "uint64_t"};
 
 void help(){
     printf("File to byte array ");
-    printf("Usage: f2ba <-if input file> <-of output file> [-ofs <offset>] [-ds <bytes>]\n");
+    printf("Usage: f2ba <if=input file> <of=output file> [ofs=<offset>] [ds=<bytes>] [endian=<little|big>]\n");
 }
 
 #ifndef _WIN32
@@ -40,7 +41,13 @@ char *strupr(char *str){
 
 #endif
 
-void savetofile(char *filename, uint8_t *buf, int len, int data_size){
+
+int strstW(const char *a, const char *b){
+   return (strncmp(a, b, strlen(b)) == 0) ? 1 : 0;
+}
+
+
+void savetofile(char *filename, uint8_t *buf, int len, int data_size, int endian){
 FILE *fp;
 char namecpy[20];
 
@@ -64,11 +71,19 @@ char namecpy[20];
             fprintf(fp,"\n");
         }
         
-        fprintf(fp,"0x%02X", buf[i++]);
+        fprintf(fp,"0x");
 
-        for(int ds = 1; ds < data_size; ds++){
-            fprintf(fp,"%02X", buf[i++]);
+        if(endian == 0){                             // default big        
+            for(int ds = 0; ds < data_size; ds++){   // data_size bytes
+                fprintf(fp,"%02X", buf[i + ds]); 
+            }
+        }else{            
+            for(int ds = data_size - 1; ds >= 0; ds--){   // data size bytes
+                fprintf(fp,"%02X", buf[ i + ds]); 
+            }
         }
+        
+        i += data_size;                        
 
         if(i < len ){
             fprintf(fp,",");
@@ -79,34 +94,37 @@ char namecpy[20];
     fclose(fp);
 }
 
-static void parseCmdl(int ac, char** av, Arguments* arg){
+static void parseCmdl(int argc, char** argv, Arguments* arg){
 
     arg->offset = 0;
     arg->infile = NULL;
     arg->outfile = NULL;
     arg->data_size = 1;
+    arg->endian = 0;
 
      /* parse options in any order */
-    for (int pos = 1; pos < ac && av[pos][0] == '-'; pos++)
+    for (int pos = 1; pos < argc; pos++)
     {
-        if (!strcmp(av[pos], "-if"))
-        {
-             arg->infile = av[++pos];
+        if (strstW(argv[pos], "if=") && arg->infile == NULL){            
+            arg->infile = argv[pos] + 3;            
         }
 
-        if (!strcmp(av[pos], "-of"))
-        {
-            arg->outfile = av[++pos];
+        if (strstW(argv[pos], "of=") && arg->outfile == NULL){
+            arg->outfile = argv[pos] + 3;
         }
 
-        if (!strcmp(av[pos], "-ofs"))
-        {
-            arg->offset = atoi(av[++pos]);
+        if (strstW(argv[pos], "ofs=")){
+            arg->offset = atoi(argv[pos] + 4);
         }
 
-        if (!strcmp(av[pos], "-ds"))
-        {
-            arg->data_size = atoi(av[++pos]);
+        if (strstW(argv[pos], "ds=")){
+            arg->data_size = atoi(argv[pos] + 3);
+        }
+        
+        if (strstW(argv[pos], "endian=")){
+          if(!strcmp(argv[pos] + 7,"little")){
+            arg->endian = 1;
+          }
         }
     }
 
@@ -157,7 +175,7 @@ Arguments args;
 
     fclose(fp);
 
-    savetofile(args.outfile, (uint8_t*)buf, size, args.data_size);
+    savetofile(args.outfile, (uint8_t*)buf, size, args.data_size, args.endian);
 
     free(buf);
 
