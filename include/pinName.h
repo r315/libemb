@@ -91,7 +91,10 @@ typedef enum {
 #define PORTB   0x10
 #define PORTC   0x20
 #define PORTD   0x30
-
+#else
+typedef enum {
+	DUMMY = 0
+}pinName_e;
 #endif
 
 /**

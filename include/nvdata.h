@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include "board.h"	
+#include "board.h"
 
 #ifndef NVDATA_SIZE
 #define NVDATA_SIZE         31 
