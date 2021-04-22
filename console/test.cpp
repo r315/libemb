@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#ifdef TEST
 char *getOptValue(char *opt, uint32_t argc, char **argv){
     for(uint32_t i = 0; i < argc; i++){
         if(strcmp(opt, argv[i]) == 0){
@@ -62,3 +63,4 @@ printf("value for %s = %s\n", array[0], getOptValue(array[0], count, array));
 
 return 0;
 }
+#endif

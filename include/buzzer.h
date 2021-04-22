@@ -13,12 +13,12 @@ typedef struct tone{
 }tone_t;
 
 //wholenote duration = (60 seconds * 1000ms * 4 beats full note) / (bpm of song)
-#define RTTL_FULL_NOTE_DURATION 	240000UL
-#define RTTL_BPM_TO_MS(_bpm)		(60000/_bpm)
-#define RTTL_BASE_OCTAVE 			4  //4th octave
+#define RTTTL_FULL_NOTE_DURATION 	240000UL
+#define RTTTL_BPM_TO_MS(_bpm)		(60000/_bpm)
+#define RTTTL_BASE_OCTAVE 			4  //4th octave
 
 #define MAX_CCP_VALUE 1024          //
-#define RTTL_PAUSE_VALUE -1
+#define RTTTL_PAUSE_VALUE -1
 
 /**
  * @brief Basic tone generation on pin PA8 using TIM1_CH1
@@ -71,7 +71,7 @@ void buzWaitEnd(void);
  * @brief
  *
  */
-void buzPlayRttl(const char *song);
+void buzPlayRtttl(const char *melody);
 
 #ifdef __cplusplus
 };

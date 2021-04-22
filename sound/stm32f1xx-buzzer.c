@@ -12,13 +12,15 @@
 #define FREQ_TO_US(_F)          (1000000/_F)
 
 #define BUZ_PLAYING             (1 << 0)
-#define BUZ_PLAYING_RTTL        (1 << 1)
+#define BUZ_PLAYING_rtttl        (1 << 1)
 
 #if defined(STM32L412xx)
 #define BZ_DMA_CH DMA1_Channel6
 #define BZ_DMA_ISR DMA_ISR_TCIF6
 #define BZ_DMA_IFCR DMA_IFCR_CGIF6
-#define DMA_HANDLER DMA1_Channel6_IRQHandler
+#define DMA_HANDLER_PROTOTYPE void DMA1_Channel6_IRQHandler(void)
+
+
 #else
 #define BZ_DMA_CH DMA1_Channel5
 #define BZ_DMA_ISR DMA_ISR_TCIF5
@@ -41,12 +43,12 @@ typedef struct{
 	uint16_t b;                // music rhythm
 	uint16_t fullnoteduration; // duration of whole note in ms
 	tone_t tone;
-}rttl_t;
+}rtttl_t;
 
 static buzzer_t hbuz;
-static rttl_t rttl;
+static rtttl_t rtttl;
 
-const uint16_t rttl_notes [] = {
+const uint16_t rtttl_notes [] = {
 		// 4th Octave
 		220,  // A
 		247,  // B
@@ -64,12 +66,12 @@ const uint16_t rttl_notes [] = {
 		415,  // G#
 };
 
-void rttlNext(void);
+void rtttlNextNote(void);
 /**
  * @brief TIM1 update event DMA request handler
  *
  * */
-void DMA_HANDLER(void){
+DMA_HANDLER_PROTOTYPE{
 
     if(DMA1->ISR & BZ_DMA_ISR){
 
@@ -77,8 +79,8 @@ void DMA_HANDLER(void){
     	DMA1->IFCR |= BZ_DMA_IFCR;          // Clear EOT flag
 
 		if(hbuz.ptone != NULL){
-			if(hbuz.flags & BUZ_PLAYING_RTTL){
-				rttlNext();       // Get next note
+			if(hbuz.flags & BUZ_PLAYING_rtttl){
+				rtttlNextNote();       // Get next note
 			}else{
 				hbuz.ptone++;     // Move to next tone
 			}
@@ -109,7 +111,7 @@ void DMA_HANDLER(void){
 		BUZ_TIM->CR1 &= ~TIM_CR1_CEN; // Stop timer
 		BUZ_TIM->CNT = BUZ_TIM->ARR;  // Force idle
 
-		hbuz.flags &= ~(BUZ_PLAYING | BUZ_PLAYING_RTTL);  // Clear playing flag
+		hbuz.flags &= ~(BUZ_PLAYING | BUZ_PLAYING_rtttl);  // Clear playing flag
 		hbuz.ptone = NULL;
     }
 }
@@ -314,115 +316,115 @@ uint16_t getInt(const char *str){
  * @brief
  *
  * */
-void buzPlayRttl(const char *song){
+void buzPlayRtttl(const char *melody){
 
 	// Name section, skip it
 	do{
-		if(!(*song)){
-			return;     //not rttl header
+		if(!(*melody)){
+			return;     //not rtttl header
 		}
-	}while( (*song++) != ':');
+	}while( (*melody++) != ':');
 
 	// Default values section
-	rttl.d = 4;
-	rttl.o = 6;
-	rttl.b = 63;
+	rtttl.d = 4;
+	rtttl.o = 6;
+	rtttl.b = 63;
 
 	do{
-		if(!(*song))
+		if(!(*melody))
 			return;
 
-		if( *song == 'd'){
-			song += 2; // skip "d="
-			rttl. d = getInt(song);
+		if( *melody == 'd'){
+			melody += 2; // skip "d="
+			rtttl. d = getInt(melody);
 		}
 
-		if(*song == 'o'){
-			song += 2; // skip "o="
-			rttl.o = *song - '0';
+		if(*melody == 'o'){
+			melody += 2; // skip "o="
+			rtttl.o = *melody - '0';
 		}
 
-		if(*song == 'b'){
-			song += 2; // skip "b="
-			rttl.b = getInt(song);
+		if(*melody == 'b'){
+			melody += 2; // skip "b="
+			rtttl.b = getInt(melody);
 		}
 
-	}while( (*song++) != ':');
+	}while( (*melody++) != ':');
 
-	rttl.codes = song;
-	rttl.fullnoteduration = RTTL_BPM_TO_MS(rttl.b) * rttl.d;
+	rtttl.codes = melody;
+	rtttl.fullnoteduration = RTTTL_BPM_TO_MS(rtttl.b) * 4;
 
-	rttlNext();     // Get initial tone
+	rtttlNextNote();     // Get first note
 
-	hbuz.flags |= BUZ_PLAYING_RTTL;	// Set rttl playing flag
-	hbuz.ptone = &rttl.tone;        // Set pointer to note
+	hbuz.flags |= BUZ_PLAYING_rtttl;	// Set rtttl playing flag
+	hbuz.ptone = &rtttl.tone;        // Set pointer to note
 
-	buzStartTone(&rttl.tone);
+	buzStartTone(&rtttl.tone);
 }
 
 
-void rttlNext(void){
+void rtttlNextNote(void){
 //static uint16_t count = 0;
 	uint16_t tmp;
 
 	// Check if song has ended
-	if(!(*rttl.codes)){
-		rttl.tone.d = 0;
+	if(!(*rtttl.codes)){
+		rtttl.tone.d = 0;
 		return;
 	}
 
 	// Get duration (1,2,4,8,16,32)
 	uint16_t duration = 0;
-	while((*rttl.codes > 0x2f) && (*rttl.codes < 0x3a)){
-		duration = (duration * 10) + (*rttl.codes++ - '0');
+	while((*rtttl.codes > 0x2f) && (*rtttl.codes < 0x3a)){
+		duration = (duration * 10) + (*rtttl.codes++ - '0');
 	}
 
 	if(!duration){
-		duration = rttl.d;
+		duration = rtttl.d;
 	}
 
-	rttl.tone.d = rttl.fullnoteduration / duration;  // Save duration in ms
+	rtttl.tone.d = rtttl.fullnoteduration / duration;  // set duration in ms
 
 	// Get pitch [a-f](#)
-	if((*rttl.codes) == 'p'){
-		rttl.codes++;
-		rttl.tone.f = 0;
+	if((*rtttl.codes) == 'p'){
+		rtttl.codes++;
+		rtttl.tone.f = 0;
 	}else{
-		tmp = *rttl.codes - 'a';
+		tmp = *rtttl.codes - 'a';
 
-		rttl.codes++;
+		rtttl.codes++;
 
-		if( (*rttl.codes) == '#'){
-			rttl.codes++;
+		if( (*rtttl.codes) == '#'){
+			rtttl.codes++;
 			tmp += 7;  // # notes are placed after normal notes in frequency table
 		}
-		rttl.tone.f = rttl_notes[tmp];  // Save base note frequency
+		rtttl.tone.f = rtttl_notes[tmp];  // set base note frequency
 	}
 
 	// Check for dotted note, can be before octave
-	if( (*rttl.codes) == '.'){
-		rttl.codes++;
-		rttl.tone.d += (rttl.tone.d >> 1);
+	if( (*rtttl.codes) == '.'){
+		rtttl.codes++;
+		rtttl.tone.d += (rtttl.tone.d >> 1);
 	}
 
 	// Get octave (4,5,6,7)
 	tmp = 0;
-	if((*rttl.codes > 0x2f) && (*rttl.codes < 0x3a)){
-		tmp = *(rttl.codes++) - '0';
+	if((*rtttl.codes > 0x2f) && (*rtttl.codes < 0x3a)){
+		tmp = *(rtttl.codes++) - '0';
 	}
 
 	if(!tmp){
-		tmp = rttl.o;
+		tmp = rtttl.o;
 	}
 
-	while(tmp > RTTL_BASE_OCTAVE){
-		rttl.tone.f <<= 1;  // Adjust note frequency
+	while(tmp > RTTTL_BASE_OCTAVE){
+		rtttl.tone.f <<= 1;  // Adjust note frequency
 		tmp--;
 	}
 
 	//skip comma
-	if(*rttl.codes == ','){
-		rttl.codes++;
+	if(*rtttl.codes == ','){
+		rtttl.codes++;
 	}
 
 	//count ++;
