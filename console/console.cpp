@@ -183,9 +183,10 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 					*cur_len = changeLine(dst, historyForward(), *cur_len);
 					break;
 			}
-		}
-		else if (c == '_') {
-			historyDump();		
+#if CONSOLE_ENABLE_HISTORY_DUMP
+		}else if (c == CONSOLE_HISTORY_LIST_KEY) {
+			historyDump();
+#endif
 		}else if (len < maxLen) {
 			out->xputchar(c);
 			*(dst + len) = c;
