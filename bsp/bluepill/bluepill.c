@@ -9,30 +9,35 @@ void BOARD_Init(void){
 #ifdef ENABLE_UART
 #include "uart.h"
 
+#define BOARD_UART &huart3
+
 void BOARD_Init_Uart(void){
-    UART_Init(&huart1);
+    uarthandler_t *huart = (uarthandler_t *)BOARD_UART;
+    huart->baudrate = 115200;
+
+    UART_Init(BOARD_UART);
 }
 
 void BOARD_Uart_putchar(char c){
-    UART_putchar(&huart1, c);
+    UART_putchar(BOARD_UART, c);
 }
 void BOARD_Uart_puts(const char* str){
-    UART_puts(&huart1, str);
+    UART_puts(BOARD_UART, str);
 }
 
 char BOARD_Uart_getchar(void){
-    return UART_getchar(&huart1);
+    return UART_getchar(BOARD_UART);
 }
 
 uint8_t BOARD_Uart_getCharNonBlocking(char *c){
-    return UART_getCharNonBlocking(&huart1, c);
+    return UART_getCharNonBlocking(BOARD_UART, c);
 }
 
 uint8_t BOARD_Uart_kbhit(void){
-    return UART_kbhit(&huart1);
+    return UART_kbhit(BOARD_UART);
 }
 
-stdout_t uart = {
+StdOut uart = {
     .init = BOARD_Init_Uart,
     .xgetchar = BOARD_Uart_getchar,
     .xputchar = BOARD_Uart_putchar,

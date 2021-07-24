@@ -9,7 +9,7 @@ typedef struct uarthandler {
     void *usart;
     fifo_t rx;
     fifo_t tx;
-    uint32_t baud;
+    uint32_t baudrate;
 }uarthandler_t;
 
 extern uarthandler_t huart1, huart2, huart3;
