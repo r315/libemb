@@ -14,8 +14,6 @@ extern "C" {
 	#define toupper(c) ( (c)-'a'+'A' )
 #endif 
 
-#define FLOAT_MAX_PRECISION 8
-
 enum Attributes{
 	FONT_NORMAL,
 	FONT_INVERTED,

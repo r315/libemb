@@ -5,6 +5,8 @@
 #include <display.h>
 #include <font.h>
 
+#define DISPLAY_FLOAT_MAX_PRECISION 		8
+
 int drawCharSimple(int x, int y, unsigned char *d_char);
 
 static Display _display = {
@@ -128,8 +130,8 @@ char prec;
   
     int_part = (long)(f);  
     
-	if(places > FLOAT_MAX_PRECISION)
-		places = FLOAT_MAX_PRECISION;
+	if(places > DISPLAY_FLOAT_MAX_PRECISION)
+		places = DISPLAY_FLOAT_MAX_PRECISION;
 		
 	frac_part = 0;
 	prec = 0;
