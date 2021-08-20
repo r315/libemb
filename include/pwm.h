@@ -1,51 +1,31 @@
 #ifndef _pwm_h_
 #define _pwm_h_
 
-#define PCONP_PCPWM1 (1<<6)
-
-#define TCR_TCEN  0
-#define TCR_PWMEN 2  // errata on UM
-
-#define PWM_1 1     // P2.0(TXD1)
-#define PWM_2 2     // P2.1(RXD1)
-#define PWM_3 3     // P2.2(PWM1.3)
-#define PWM_4 4     // P2.3(PWM1.4)
-
-#define PWMMR0I 0
-#define PWMMR0R 1
-#define PWMMR0S 2
-
-#define PWMMR1I 3
-#define PWMMR1R 4
-#define PWMMR1S 5
-
-#define PWMMR2I 6
-#define PWMMR2R 7
-#define PWMMR2S 8
-
-#define PWMMR3I 9
-#define PWMMR3R 10
-#define PWMMR3S 11
-
-#define PWMMR4I 12
-#define PWMMR4R 13
-#define PWMMR4S 14
-
-#define PWMENA1 9
-
-#define PWM_MAX_CH 4
+#include <stdint.h>
 
 /**
  * @brief initialyze PWM with given frequency
- * 		ACTIVE Outputs: P2.1, P2.2, P2.3
- * after initialization pwm channels must be enable
+ * \param tcclk [in] : PWM frequency
  * */
 void PWM_Init(uint32_t tcclk);
+
+/**
+ * @brief Changes PWM frequency, duty of enabled channels
+ * is adjusted
+ * 
+ * \param freq [in] : New pwm frequency
+ * */
+void PWM_Freq(uint32_t freq);
 
 /**
  * @brief set the duty in % for the given pwm channel
  * */
 void PWM_Set(uint8_t channel, uint8_t duty);
+
+/**
+ * @brief get the duty in % of given pwm channel
+ * */
+uint8_t PWM_Get(uint8_t channel);
 
 /**
  * @brief Enable one PWM channel range(1:4)
