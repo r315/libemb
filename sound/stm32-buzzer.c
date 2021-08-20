@@ -1,5 +1,5 @@
 
-#if defined(STM32L412xx)
+#if defined(__NUCLEO_L412KB__)
 #include "main.h"
 #else
 #include <stm32f1xx.h>
@@ -7,25 +7,25 @@
 
 #include "buzzer.h"
 
-#define BUZ_TIM                 TIM1
-#define BUZ_DEFAULT_VOLUME      1
+#define BUZ_DEFAULT_VOLUME     	1
 #define FREQ_TO_US(_F)          (1000000/_F)
 
 #define BUZ_PLAYING             (1 << 0)
-#define BUZ_PLAYING_rtttl        (1 << 1)
+#define BUZ_PLAING_RTTTL       	(1 << 1)
 
-#if defined(STM32L412xx)
-#define BZ_DMA_CH DMA1_Channel6
-#define BZ_DMA_ISR DMA_ISR_TCIF6
-#define BZ_DMA_IFCR DMA_IFCR_CGIF6
-#define DMA_HANDLER_PROTOTYPE void DMA1_Channel6_IRQHandler(void)
-
-
+#if defined(__NUCLEO_L412KB__)
+#define BUZ_TIM                 TIM16
+#define BZ_DMA_CH 				DMA1_Channel3
+#define BZ_DMA_ISR 				DMA_ISR_TCIF3
+#define BZ_DMA_IFCR 			DMA_IFCR_CGIF3
+#define BZ_DMA_IRQ				DMA1_Channel3_IRQn
+#define DMA_HANDLER_PROTOTYPE 	void DMA1_Channel3_IRQHandler(void)
 #else
-#define BZ_DMA_CH DMA1_Channel5
-#define BZ_DMA_ISR DMA_ISR_TCIF5
-#define BZ_DMA_IFCR DMA_IFCR_CGIF5
-#define DMA_HANDLER DMA1_Channel5_IRQHandler
+#define BUZ_TIM                 TIM1
+#define BZ_DMA_CH 				DMA1_Channel5
+#define BZ_DMA_ISR 				DMA_ISR_TCIF5
+#define BZ_DMA_IFCR 			DMA_IFCR_CGIF5
+#define DMA_HANDLER_PROTOTYPE 	void DMA1_Channel5_IRQHandler(void)
 #endif
 
 typedef struct {
@@ -79,7 +79,7 @@ DMA_HANDLER_PROTOTYPE{
     	DMA1->IFCR |= BZ_DMA_IFCR;          // Clear EOT flag
 
 		if(hbuz.ptone != NULL){
-			if(hbuz.flags & BUZ_PLAYING_rtttl){
+			if(hbuz.flags & BUZ_PLAING_RTTTL){
 				rtttlNextNote();       // Get next note
 			}else{
 				hbuz.ptone++;     // Move to next tone
@@ -111,7 +111,7 @@ DMA_HANDLER_PROTOTYPE{
 		BUZ_TIM->CR1 &= ~TIM_CR1_CEN; // Stop timer
 		BUZ_TIM->CNT = BUZ_TIM->ARR;  // Force idle
 
-		hbuz.flags &= ~(BUZ_PLAYING | BUZ_PLAYING_rtttl);  // Clear playing flag
+		hbuz.flags &= ~(BUZ_PLAYING | BUZ_PLAING_RTTTL);  // Clear playing flag
 		hbuz.ptone = NULL;
     }
 }
@@ -144,14 +144,22 @@ static void buzStartTone(tone_t *tone){
 }
 
 /**
- * @brief For st micros, configures PA8 as AF-PP, 2MHz
+ * @brief
+ * PA8 for TIM1
+ * PA6 for TIM16
  */
 static inline void initPwmPin(void){
-#if defined(STM32L412xx)
+#if defined(__NUCLEO_L412KB__)
 	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
-	GPIOA->MODER = (GPIOA->MODER & ~(3 << (8*2))) | (2 << (8*2));
-	GPIOA->OSPEEDR = (GPIOA->OSPEEDR & ~(3 << (8*2))) | (1 << (8*2));
-	GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(3 << (0*2))) | (GPIO_AF1_TIM1 << (0*2));
+	
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.Pin = GPIO_PIN_6,
+		.Mode = GPIO_MODE_AF_PP,
+		.Pull = GPIO_NOPULL,
+		.Speed = GPIO_SPEED_FREQ_LOW,
+		.Alternate = GPIO_AF14_TIM16
+	};
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 #else
 	//gpioInit(GPIOA, 8, GPO_AF | GPO_2MHZ);
 	GPIOA->CRH = (GPIOA->CRH & ~(0x0F)) | (2 << 2) | (2 << 0);
@@ -162,7 +170,7 @@ static inline void initPwmPin(void){
  * @brief Configure DMA
  */
 static inline void initDMA(void){
-#if defined(STM32L412xx)
+#if defined(__NUCLEO_L412KB__)
 	RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;         // Enable DMA1
 	BZ_DMA_CH->CPAR = (uint32_t)&BUZ_TIM->ARR;  // Destination peripheral
 	BZ_DMA_CH->CCR =
@@ -170,9 +178,9 @@ static inline void initDMA(void){
 		DMA_CCR_PSIZE_0 |                       // 16bit src size
 		DMA_CCR_DIR |                           // Read from memory
 		DMA_CCR_TCIE;                           // Enable end of transfer interrupt
-	// Select TIM1_UP request for channel 6
-	DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~(DMA_CSELR_C6S_Msk)) | (7 << DMA_CSELR_C6S_Pos);
-	NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+	
+	DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~(DMA_CSELR_C1S)) | (DMA_REQUEST_4 << DMA_CSELR_C3S_Pos);
+	NVIC_EnableIRQ(BZ_DMA_IRQ);
 #else
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;               // Enable DMA1
 	DMA1_Channel5->CPAR = (uint32_t)&BUZ_TIM->ARR;  // Destination peripheral
@@ -186,13 +194,13 @@ static inline void initDMA(void){
 }
 
 /**
- * @brief Configure Timer1
+ * @brief Configure Timer
  */
 static inline void initTimer(void){
-#if defined(STM32L412xx)
-	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+#if defined(__NUCLEO_L412KB__)
+	RCC->APB2ENR |= RCC_APB2ENR_TIM16EN;
 #else
-
+	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
 #endif
 
 #ifdef BUZ_IDLE_HIGH
@@ -356,7 +364,7 @@ void buzPlayRtttl(const char *melody){
 
 	rtttlNextNote();     // Get first note
 
-	hbuz.flags |= BUZ_PLAYING_rtttl;	// Set rtttl playing flag
+	hbuz.flags |= BUZ_PLAING_RTTTL;	// Set rtttl playing flag
 	hbuz.ptone = &rtttl.tone;        // Set pointer to note
 
 	buzStartTone(&rtttl.tone);
