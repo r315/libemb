@@ -15,39 +15,54 @@ _ram1  = ORIGIN(ram1);
 _stack = ORIGIN(ram0) + LENGTH(ram0);	
 
 SECTIONS {
-	.text : {
+	.text : 
+	{
 		KEEP(*(.startup .startup.*))
 		*(.text)
-		*(.rodata .rodata.*)		
+		*(.text*)		
 		. = ALIGN(4);
 		_etext = .;
 		_stext = LOADADDR(.text);
 		_estartup = _stext;
-	} > flash	
+	} > flash
+
+	.rodata :
+  	{
+		. = ALIGN(4);
+		*(.rodata)         /* .rodata sections (constants, strings, etc.) */
+		*(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
+		. = ALIGN(4);
+	} > flash
 	
-	.ram_code : {			/* functions that will run on ram */
+	.ram_code : 			/* functions that will run on ram */
+	{
 		. = ALIGN(4);
 		_siramcode = LOADADDR(.ram_code);
 		_sramcode = .;
 		*(.ram_code)
+		*(.ramcode.*)
 		. = ALIGN(4);
 		_eramcode = .;
 	} > ram0 AT > flash
 	
-	.data : {
+	.data : 
+	{
 		. = ALIGN(4);
 		_sidata = LOADADDR (.data); /* get the address where data content is stored on flash*/
 		_sdata = .;			        /* get the actual data address on ram */
-		*(.data)		
+		*(.data)
+		*(.data.*)				
 		. = ALIGN(4);
 		_edata = .;
 	} > ram0 AT > flash  /* instructs that the content of data section is stored no flash */
     
-	.bss : {
+	.bss : 
+	{
 		. = ALIGN(4);		
 		_sbss = .;
 		__bss_start__ = .;
-		*(.bss)		
+		*(.bss)
+		*(.bss.*)		
 		. = ALIGN(4);
 		_ebss = .;
 		__bss_end__ = .;
