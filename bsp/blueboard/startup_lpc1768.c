@@ -1,5 +1,5 @@
 /*
-	Standard startup code
+    Basic startup code
 */	
 #define WEAK __attribute__ ((weak))
 #define VTOR *((unsigned int*) 0xE000ED08)
@@ -10,7 +10,7 @@ extern int main(void);
 //*****************************************************************************
 /* System exception vector handler */
 void WEAK 		NMI_Handler(void);               /* NMI Handler */
-void WEAK 		HardFault_Handler(void);         /* Hard Fault Handler */
+//void WEAK 		HardFault_Handler(void);         /* Hard Fault Handler */
 void WEAK 		MemManage_Handler(void);         /* MPU Fault Handler */
 void WEAK 		BusFault_Handler(void);          /* Bus Fault Handler */
 void WEAK 		UsageFault_Handler(void);        /* Usage Fault Handler */
@@ -59,7 +59,7 @@ void WEAK      	PLL1_IRQHandler(void);           /* PLL1 (USB PLL) */
 // As they are weak aliases, any function with the same name will override
 // this definition.
 //*****************************************************************************
-#pragma weak HardFault_Handler = Default_Handler          /* MPU Fault Handler */
+//#pragma weak HardFault_Handler = Default_Handler          /* MPU Fault Handler */
 #pragma weak MemManage_Handler = Default_Handler          /* MPU Fault Handler */
 #pragma weak BusFault_Handler = Default_Handler           /* Bus Fault Handler */
 #pragma weak UsageFault_Handler = Default_Handler         /* Usage Fault Handler */
@@ -130,32 +130,34 @@ void Reset_Handler(void)
     unsigned int *pulSrc; 
 
     /* clear uninitialized data (bss segment) */
-    for(pulDest = &_sbss; pulDest < &_ebss; pulDest++) 
-		*pulDest = 0;	
-	
+    for(pulDest = &_sbss; pulDest < &_ebss; pulDest++){
+        *pulDest = 0;
+    }
+
     // initialize data (data segment)
     if (&_sidata != &_sdata) {	// only if needed
-		pulSrc = &_sidata;
-		for(pulDest = &_sdata; pulDest < &_edata; ) {
-			*(pulDest++) = *(pulSrc++);
-		}
+        pulSrc = &_sidata;
+    
+        for(pulDest = &_sdata; pulDest < &_edata; ) {
+            *(pulDest++) = *(pulSrc++);
+        }
     }
-	
-	// copy ram functions with __attribute__ ((section(".ram_code"))
-    if (&_siramcode != &_sramcode) {	// only if needed
-		pulSrc = &_siramcode;
-		for(pulDest = &_sramcode; pulDest < &_eramcode; ) {
-			*(pulDest++) = *(pulSrc++);
-		}
-    }
-	
-	VTOR = (unsigned int)&_estartup; // if running on ram remap vector table
 
-	SystemCoreClock = 4000000;  // after reset system start with internal osc
+    // copy ram functions with __attribute__ ((section(".ram_code"))
+    if (&_siramcode != &_sramcode) {	// only if needed
+        pulSrc = &_siramcode;
+        for(pulDest = &_sramcode; pulDest < &_eramcode; ) {
+            *(pulDest++) = *(pulSrc++);
+        }
+    }
+    
+    VTOR = (unsigned int)&_estartup; // if running on ram remap vector table
+
+    SystemCoreClock = 4000000;  // after reset system start with internal osc
 
     main();
-    while(1){
-	}
+    while(1){      
+    }
 }
 //*****************************************************************************
 //
@@ -164,67 +166,86 @@ void Reset_Handler(void)
 // for examination by a debugger.
 //
 //*****************************************************************************
-void Default_Handler(void) {
-	//__asm("ldr r13,=_stack_top");
-	//__asm("ldr r0,=Exception_Handler");
-	//__asm("bx r0");	
-	while (1) {
-	}
+void Default_Handler(void) {	
+    while (1) {
+    }
 }
 
+/*
+__attribute__ ((naked)) 
+void StackTrace(unsigned int *stack){
+    unsigned int r0 = stack[0];
+    unsigned int r1 = stack[1];
+    unsigned int r2 = stack[2];
+    unsigned int r3 = stack[3];
+    unsigned int r12 = stack[4];
+    unsigned int lr = stack[5];
+    unsigned int pc = stack[6];
+    unsigned int psr = stack[7];
+}
+*/
+
+WEAK void HardFault_Handler(void){   
+    asm volatile ("TST LR, #4");
+    asm volatile ("ITE EQ");
+    asm volatile ("MRSEQ R0, MSP");
+    asm volatile ("MRSNE R0, PSP");
+    //asm volatile ("B StackTrace");
+    asm volatile ("B .");
+}
 //*****************************************************************************
 // vectors table
 //*****************************************************************************
 __attribute__ ((section(".startup"))) void *vecTable[] = {
-		&_stack,                   /* The initial stack pointer */		
-        Reset_Handler,             /* Reset Handler */   
-		NMI_Handler,               /* NMI Handler */
-        HardFault_Handler,         /* Hard Fault Handler */
-        MemManage_Handler,         /* MPU Fault Handler */
-        BusFault_Handler,          /* Bus Fault Handler */
-        UsageFault_Handler,        /* Usage Fault Handler */
-        0,                         /* Checksum word */
-        0,                         /* Reserved */
-        0,                         /* Reserved */
-        0,                         /* Reserved */
-        SVC_Handler,               /* SVCall Handler */
-        DebugMon_Handler,          /* Debug Monitor Handler */
-        0,                         /* Reserved */
-        PendSV_Handler,            /* PendSV Handler */
-        SysTick_Handler,           /* SysTick Handler */
+    &_stack,                   /* The initial stack pointer */		
+    Reset_Handler,             /* Reset Handler */   
+    NMI_Handler,               /* NMI Handler */
+    HardFault_Handler,         /* Hard Fault Handler */
+    MemManage_Handler,         /* MPU Fault Handler */
+    BusFault_Handler,          /* Bus Fault Handler */
+    UsageFault_Handler,        /* Usage Fault Handler */
+    0,                         /* Checksum word */
+    0,                         /* Reserved */
+    0,                         /* Reserved */
+    0,                         /* Reserved */
+    SVC_Handler,               /* SVCall Handler */
+    DebugMon_Handler,          /* Debug Monitor Handler */
+    0,                         /* Reserved */
+    PendSV_Handler,            /* PendSV Handler */
+    SysTick_Handler,           /* SysTick Handler */
 
-		// External Interrupts
-        WDT_IRQHandler,            /* Watchdog Timer */
-        TIMER0_IRQHandler,         /* Timer0 */
-        TIMER1_IRQHandler,         /* Timer1 */
-        TIMER2_IRQHandler,         /* Timer2 */
-        TIMER3_IRQHandler,         /* Timer3 */
-        UART0_IRQHandler,          /* UART0 */
-        UART1_IRQHandler,          /* UART1 */
-        UART2_IRQHandler,          /* UART2 */
-        UART3_IRQHandler,          /* UART3 */
-        PWM1_IRQHandler,           /* PWM1 */
-        I2C0_IRQHandler,           /* I2C0 */
-        I2C1_IRQHandler,           /* I2C1 */
-        I2C2_IRQHandler,           /* I2C2 */
-        SPI_IRQHandler,            /* SPI */
-        SSP0_IRQHandler,           /* SSP0 */
-        SSP1_IRQHandler,           /* SSP1 */
-        PLL0_IRQHandler,           /* PLL0 (Main PLL) */
-        RTC_IRQHandler,            /* Real Time Clock */
-        EINT0_IRQHandler,          /* External Interrupt 0 */
-        EINT1_IRQHandler,          /* External Interrupt 1 */
-        EINT2_IRQHandler,          /* External Interrupt 2 */
-        EINT3_IRQHandler,          /* External Interrupt 3 */
-        ADC_IRQHandler,            /* A/D Converter */
-        BOD_IRQHandler,            /* Brown Out Detect */
-        USB_IRQHandler,            /* USB */
-        CAN_IRQHandler,            /* CAN */
-        DMA_IRQHandler,            /* GP DMA */
-        I2S_IRQHandler,            /* I2S */
-        ENET_IRQHandler,           /* Ethernet */
-        RIT_IRQHandler,            /* Repetitive Interrupt Timer */
-        MCPWM_IRQHandler,          /* Motor Control PWM */
-        QEI_IRQHandler,            /* Quadrature Encoder Interface */
-        PLL1_IRQHandler,           /* PLL1 (USB PLL) */    
+    // External Interrupts
+    WDT_IRQHandler,            /* Watchdog Timer */
+    TIMER0_IRQHandler,         /* Timer0 */
+    TIMER1_IRQHandler,         /* Timer1 */
+    TIMER2_IRQHandler,         /* Timer2 */
+    TIMER3_IRQHandler,         /* Timer3 */
+    UART0_IRQHandler,          /* UART0 */
+    UART1_IRQHandler,          /* UART1 */
+    UART2_IRQHandler,          /* UART2 */
+    UART3_IRQHandler,          /* UART3 */
+    PWM1_IRQHandler,           /* PWM1 */
+    I2C0_IRQHandler,           /* I2C0 */
+    I2C1_IRQHandler,           /* I2C1 */
+    I2C2_IRQHandler,           /* I2C2 */
+    SPI_IRQHandler,            /* SPI */
+    SSP0_IRQHandler,           /* SSP0 */
+    SSP1_IRQHandler,           /* SSP1 */
+    PLL0_IRQHandler,           /* PLL0 (Main PLL) */
+    RTC_IRQHandler,            /* Real Time Clock */
+    EINT0_IRQHandler,          /* External Interrupt 0 */
+    EINT1_IRQHandler,          /* External Interrupt 1 */
+    EINT2_IRQHandler,          /* External Interrupt 2 */
+    EINT3_IRQHandler,          /* External Interrupt 3 */
+    ADC_IRQHandler,            /* A/D Converter */
+    BOD_IRQHandler,            /* Brown Out Detect */
+    USB_IRQHandler,            /* USB */
+    CAN_IRQHandler,            /* CAN */
+    DMA_IRQHandler,            /* GP DMA */
+    I2S_IRQHandler,            /* I2S */
+    ENET_IRQHandler,           /* Ethernet */
+    RIT_IRQHandler,            /* Repetitive Interrupt Timer */
+    MCPWM_IRQHandler,          /* Motor Control PWM */
+    QEI_IRQHandler,            /* Quadrature Encoder Interface */
+    PLL1_IRQHandler,           /* PLL1 (USB PLL) */    
 };
