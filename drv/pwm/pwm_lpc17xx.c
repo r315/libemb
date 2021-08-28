@@ -141,3 +141,13 @@ void PWM_Disable(uint8_t ch){
 
     LPC_PWM1->PCR &= ~(1 << (PWM1_PCR_ENA1_POS + ch));
 }
+
+
+/**
+* @brief Set channel polarity
+* 
+* \param ch    : PWM channel 1 - 4
+* \param pol   : Polarity 0 - 1
+**/
+void PWM_Polarity(uint8_t ch, uint8_t pol){
+}
