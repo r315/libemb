@@ -77,7 +77,7 @@ static void scapInitGpio(void){
 }
 
 /**
- * @brief Initialise signal capture engine
+ * @brief Initialize signal capture engine
  * 
  * Timer 1 is configured to operate in capture mode, counter value is captured 
  * to CCR1 upon edge change on PA8 and transferred to memory by DMA. The captured values 

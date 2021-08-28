@@ -8,7 +8,7 @@ extern "C" {
 #include <stdint.h>
 
 /**
- * @brief Initialises capture block
+ * @brief Initializes capture block
  * 
  *  */
 void SCAP_Init(void);

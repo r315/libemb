@@ -11,10 +11,10 @@
 #define PWM_6       6
 
 /**
- * @brief initialyze PWM with given frequency
- * \param tcclk [in] : PWM frequency
+ * @brief initialize PWM with given frequency period
+ * \param period [in] : PWM signal period
  * */
-void PWM_Init(uint32_t tcclk);
+void PWM_Init(uint32_t period);
 
 /**
  * @brief Changes PWM frequency, duty of enabled channels
@@ -27,12 +27,12 @@ void PWM_Freq(uint32_t freq);
 /**
  * @brief set the duty in % for the given pwm channel
  * */
-void PWM_Set(uint8_t channel, uint8_t duty);
+void PWM_Set(uint8_t ch, uint8_t duty);
 
 /**
  * @brief get the duty in % of given pwm channel
  * */
-uint8_t PWM_Get(uint8_t channel);
+uint8_t PWM_Get(uint8_t ch);
 
 /**
  * @brief Enable one PWM channel range(1:4)
@@ -43,5 +43,13 @@ uint8_t PWM_Get(uint8_t channel);
  * @brief Disable one PWM channel range(1:4)
  **/
  void PWM_Disable(uint8_t ch);
+ 
+ /**
+ * @brief Set channel polarity
+ * 
+ * \param ch    : PWM channel 1 - 4
+ * \param pol   : Polarity 0 - 1
+ **/
+ void PWM_Polarity(uint8_t ch, uint8_t pol);
  
 #endif

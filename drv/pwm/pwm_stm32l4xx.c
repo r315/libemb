@@ -146,3 +146,17 @@ void PWM_Disable(uint8_t channel){
     PWM_TIM->CCER &= ~(TIM_CCER_CC1E << shift);
     PWM_CfgGpio(7 + channel, DISABLE);
 }
+
+/**
+ * @brief Set channel polarity
+ * 
+ * \param ch    : PWM channel 1 - 4
+ * \param pol   : Polarity 0 - 1
+ **/
+void PWM_Polarity(uint8_t ch, uint8_t pol){
+    if(ch > PWM_MAX_CH)
+        return;
+
+    uint8_t shift = (ch - 1) << 2;
+    PWM_TIM->CCER = (pol != 0) ? PWM_TIM->CCER | (TIM_CCER_CC1P << shift) : PWM_TIM->CCER & ~(TIM_CCER_CC1P << shift);
+}
