@@ -270,6 +270,10 @@ uint8_t yatoi(char *str, int32_t *value) {
 	char c = *str;
 	uint8_t s = 0;
 
+	if(str == NULL){
+		return 0;
+	}
+
 	if (c == '-') {
 		s = (1 << 7); // Set signal flag
 		str++;
@@ -303,6 +307,11 @@ uint8_t yatoi(char *str, int32_t *value) {
 uint8_t hatoi(char *str, uint32_t *value) {
 	uint32_t val = 0;
 	char c = *str;
+
+	if(str == NULL){
+		return 0;
+	}
+
 	do {
 		val <<= 4;
 		if (c > '`' && c < 'g') {
@@ -339,6 +348,10 @@ uint8_t fatoi(char *str, double *value) {
 	double val = 0;
 	char c = *str;
 	int decimal = 1;
+
+	if(str == NULL){
+		return 0;
+	}
 
 	if (c == '-') {
 		s = (1 << 7); // Set signal flag
