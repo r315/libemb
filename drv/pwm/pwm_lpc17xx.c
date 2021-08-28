@@ -7,12 +7,12 @@
 #define TCR_TCEN    0
 #define TCR_PWMEN   2  // errata on UM
 
-#define PWM_1       1     // P2.0(TXD1)
-#define PWM_2       2     // P2.1(RXD1)
-#define PWM_3       3     // P2.2(PWM1.3)
-#define PWM_4       4     // P2.3(PWM1.4)
-#define PWM_5       5     // P2.4(PWM1.5)
-#define PWM_6       6     // P2.5(PWM1.6)
+//#define PWM_1       1     // P2.0(TXD1)
+//#define PWM_2       2     // P2.1(RXD1)
+//#define PWM_3       3     // P2.2(PWM1.3)
+//#define PWM_4       4     // P2.3(PWM1.4)
+//#define PWM_5       5     // P2.4(PWM1.5)
+//#define PWM_6       6     // P2.5(PWM1.6)
 
 #define PWMMR0I 0
 #define PWMMR0R 1

@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+#define PWM_1       1
+#define PWM_2       2
+#define PWM_3       3
+#define PWM_4       4
+#define PWM_5       5
+#define PWM_6       6
+
 /**
  * @brief initialyze PWM with given frequency
  * \param tcclk [in] : PWM frequency
