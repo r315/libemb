@@ -13,7 +13,7 @@ void SSP_SetPCLK(uint8_t psel, uint8_t ck){
 	}
 }
 
-void SPI_Init(Spi_Type *spi){
+void SPI_Init(spidev_t *spi){
 uint32_t cpsr;
 uint8_t ck, psel;
 LPC_SSP_TypeDef *sspx;
@@ -72,12 +72,12 @@ LPC_SSP_TypeDef *sspx;
 
 	sspx->CR1 = SSP_SSE;       // Enable ssp
 	
-	spi->dev = sspx;
+	spi->ctrl = sspx;
 }
 
-void SPI_Transfer(Spi_Type *spi, void *buffer, uint16_t lenght){
+void SPI_Write(spidev_t *spi, uint8_t *buffer, uint32_t lenght){
 
-LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->dev;
+LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 
 	while(sspx->SR & SSP_SR_RNE){ // empty fifo
 	    LPC_RTC->GPREG0 = sspx->DR;
@@ -88,14 +88,14 @@ LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->dev;
 			sspx->DR = *((uint8_t*)buffer);
 			while(sspx->SR & SSP_SR_BSY);
 			*((uint8_t*)buffer) = sspx->DR;
-			buffer = (uint8_t*)buffer + 1;
+			buffer = buffer + 1;
 		}
 	}else{
 		while(lenght--){
 			sspx->DR = *((uint16_t*)buffer);
 			while(sspx->SR & SSP_SR_BSY);
 			*((uint16_t*)buffer) = sspx->DR;
-			buffer = (uint16_t*)buffer + 1;
+			buffer = buffer + 2;
 		}
 	}
 }
@@ -116,8 +116,8 @@ void SPI_Transfer(unsigned short *txBuffer, unsigned short *rxBuffer, int lenght
 	}
 }
 */
-uint16_t SPI_Send(Spi_Type *spi, uint16_t data){
-LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->dev;
+uint16_t SPI_Send(spidev_t *spi, uint16_t data){
+LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 	sspx->DR = data;
 		while((sspx->SR & SSP_SR_BSY));
 	return sspx->DR;

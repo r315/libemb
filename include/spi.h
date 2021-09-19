@@ -14,15 +14,7 @@
 extern "C" {
 #endif
 
-
 #include <stdint.h>
-
-enum{
-	SPI_MODE0 = 0x00,
-	SPI_MODE1 = 0x10,
-	SPI_MODE2 = 0x20,
-	SPI_MODE3 = 0x30,
-};
 
 
 /*
@@ -38,49 +30,42 @@ CPHA = 1  ____X___X___X___X___X___X___         X         X
 
 */
 
-
-#define SPI_8BIT  8
-#define SPI_16BIT 16
-
 #define SPI_BUS0	0
 #define SPI_BUS1	1
 #define SPI_BUS2	2
 
-typedef struct{
-	void *dev;
-	uint32_t freq;
-	uint8_t  cfg;  // MSB: Mode, LSB: databits
-	uint8_t  bus;
-}Spi_Type;
+enum spimode_e{
+	SPI_MODE0 = 0x00,
+	SPI_MODE1 = 0x10,
+	SPI_MODE2 = 0x20,
+	SPI_MODE3 = 0x30,
+};
 
+enum spiflags_e{
+	SPI_IDLE = 0,
+	SPI_DMA_NO_MINC = (1 << 0),
+	SPI_16BIT = (1 << 1),
+	SPI_BUSY = (1 << 2),
+    SPI_SW_CS = (1 << 3)
+};
 
-/**
-* @brief Faz a iniciação do controlador, configurando os pinos, o ritmo de envio e o
-*        numero de bits de dados.
-*/
-void SPI_Init(Spi_Type *spi);
+typedef struct spidev{
+	void *ctrl;		// CMSIS compliant controller
+	void *dma;      // DMA channel/controller
+	uint8_t  bus;   // bus number 0,1...
+	uint32_t freq;  // Clock frequency in khz
+	uint8_t  cfg;   // MSB: Mode, LSB: databits
+	uint32_t trf_counter;
+	void (*eot_cb)(void);
+}spidev_t;
 
-/**
-* @brief Coloca ativo o chip select do dispositivo slave
-*/
-void SPI_BeginTransfer(int csBitId);
-
-/**
-* @brief Coloca desativo o chip select do dispositivo slave
-**/
-void SPI_EndTransfer(int csBitId);
-
-/**
-* @brief Realiza uma transferencia. 
-**/
-//void SPI_Transfer(unsigned short *txBuffer, unsigned short *rxBuffer, int lenght);
-void SPI_Transfer(Spi_Type *spi, void *buffer, uint16_t lenght);
-
-/**
-* @brief initiates and 8bit data transfer
-*		 rev 00 only suports 8bit
-**/
-uint16_t SPI_Send(Spi_Type *spi, uint16_t data);
+void SPI_Init(spidev_t *spidev);
+void SPI_BeginTransfer(spidev_t *spidev, int csBitId);
+void SPI_EndTransfer(spidev_t *spidev, int csBitId);
+void SPI_Write(spidev_t *spidev, uint8_t *src, uint32_t count);
+void SPI_WriteDMA(spidev_t *spidev, uint16_t *data, uint32_t count);
+void SPI_WriteIntDMA(spidev_t *spidev, uint16_t data, uint32_t count);
+void SPI_WaitEOT(spidev_t *spidev);
 
 #ifdef __cplusplus
 }
