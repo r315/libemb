@@ -1,8 +1,10 @@
-#include <st7735.h>
 #include <board.h>
+#include <st7735.h>
 #include <lcd.h>
+#include <spi.h>
 
 //--------------------------------
+// Offset may be related with GM configuration
 #ifndef TFT_OFFSET_SOURCE
 #define TFT_OFFSET_SOURCE	0
 #endif
@@ -18,22 +20,26 @@
 #define DEFAULT_MADC		0x00
 #endif
 
-#define STATE_LANDSCAPE		(1<<0)
-#define STATE_INITIALYZED	(1<<1)
 #define pgm_read_byte(x) 	*((uint8_t*)(x))
-
 #define DELAY 				0x80
+#define STATE_INITIALYZED	(1<<0)
+#define STATE_LANDSCAPE		(1<<1)
 
-static uint16_t _width, _height, _color;
+static uint16_t _width, _height;
 static uint8_t madd, start_x, start_y, state;
+static uint8_t scratch[4];
+static spidev_t *spidev;
+
+static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+
 
 #if TFT_W == 128
 // Can't remember where I got this ...
 // Init for 7735R, part 1 (red or green tab)
 const uint8_t InitCmd[] = {
-		17,                       //  17 commands in list:
-		ST7735_SWRESET,   DELAY,  //  1: Software reset, 0 args, w/delay
-		150,                      //     150 ms delay
+		16,                       //  17 commands in list:
+		//ST7735_SWRESET,   DELAY,  //  1: Software reset, 0 args, w/delay
+		//150,                      //     150 ms delay
 		ST7735_SLPOUT ,   DELAY,  //  2: Out of sleep mode, 0 args, w/delay
 		255,                      //     500 ms delay
 		ST7735_FRMCTR1, 3      ,  //  3: Frame rate ctrl - normal mode, 3 args:
@@ -139,40 +145,171 @@ const uint8_t InitCmd [] = {
 };
 #endif
 
+#ifdef SPI_DMA_ENABLE
+
+
+}
+#endif
+
 /**
  * @brief Writes command to display
  */
 static void LCD_Command(uint8_t data){
 	LCD_CD0; 
-	SPI_Send(data);
+	SPI_Write(spidev, &data, 1);
 	LCD_CD1;
 }
 
 /**
- * @brief Write single data 16bit in Big-endian
- *
- */
-inline void LCD_Data(uint16_t data){
-	SPI_Send(data>>8);
-	SPI_Send(data);
+ * @brief End of transfer handler for DMA use
+ * */
+void LCD_EOTHandler(void){
+	LCD_CS1;
 }
 
-/*
+/**
+ * @brief Write 16bit data with big-endian (msb first)
+ */
+void LCD_Data(uint16_t data){
+	scratch[0] = data >> 8;
+	scratch[1] = data;
+	SPI_Write(spidev, scratch, 2);
+}
+
+/**
+ * @brief Write a block of data
+ * 
+ */
+void LCD_Write(uint16_t *data, uint32_t count){
+	if(!count){
+		return;
+	}
+
+	LCD_CS0;
+	SPI_WriteDMA(spidev, data, count);
+}
+
+/**
+ * @brief Sends same data multiple times
+ *
+ * \param data : Value to be sent to lcd
+ * \param count : Number of transfers
+ */
+void LCD_Fill(uint16_t data, uint32_t count){
+	if(!count){
+		return;
+	}
+
+	LCD_CS0;
+	SPI_WriteIntDMA(spidev, data, count);
+}
+
+/**
+ * @brief Fill's area with same color
+ * 
+ * \param x :
+ * \param y :
+ * \param w :
+ * \param h :
+ * \param color :
+ */
+void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color){
+	LCD_CasRasSet(x, y, x + w - 1, y + h -1);
+	LCD_Fill(color, (w * h));
+}
+
+/**
+ * @brief Write data block to defined area
+ *  
+ * \param x :
+ * \param y :
+ * \param w :
+ * \param h :
+ * \param data : Pointer to data
+ */
+void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data){
+	LCD_CasRasSet(x, y, x + w - 1, y + h -1);
+    LCD_Write(data, (w * h));
+}
+
+/**
+ * @brief Define area to be writtem
+ * 
+ * \param x1 :  Start x
+ * \param y1 :  Start y
+ * \param x2 :  End x
+ * \param y2 :  End y
+ * \param color :
+ */
+static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
+	LCD_Command(ST7735_CASET);
+	scratch[0] = x1 >> 8;
+	scratch[1] = x1;
+	scratch[2] = x2 >> 8;
+	scratch[3] = x2;
+	SPI_Write(spidev, scratch, 4);	
+
+	LCD_Command(ST7735_RASET);
+	scratch[0] = y1 >> 8;
+	scratch[1] = y1;
+	scratch[2] = y2 >> 8;
+	scratch[3] = y2;
+	SPI_Write(spidev, scratch, 4);
+
+	LCD_Command(ST7735_RAMWR);
+}
+
+/**
+ * @brief Draw a single pixel
+ *
+ */
+void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
+
+	x += start_x;
+	y += start_y;
+
+	LCD_CS0;
+	LCD_CasRasSet(x, y, x, y);
+	LCD_Data(color);
+	LCD_CS1;
+}
+
+/**
+ * @brief Setup draw area
+ *
+ * \param x : X position
+ * \param y : Y position
+ * \param w : Width
+ * \param h : Height
+ */
+void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
+
+	x += start_x;
+	y += start_y;
+	uint16_t x1 = x + (w - 1);
+	uint16_t y1 = y + (h - 1);
+
+	LCD_CS0;
+	LCD_CasRasSet(x, y, x1, y1);
+	LCD_CS1;
+}
+
+/**
  * @brief Companion code to the above tables.  Reads and issues
  * a series of LCD commands stored as byte array.
  * */
-void LCD_CommandList(const uint8_t *addr) {
+static void LCD_CommandList(const uint8_t *addr) {
 	uint8_t  numCommands, numArgs;
 	uint16_t ms;
 
 	numCommands = pgm_read_byte(addr++);       // Number of commands to follow
 	while(numCommands--) {                     // For each command...
-		LCD_Command(pgm_read_byte(addr++));   //   Read, issue command
+		LCD_Command(pgm_read_byte(addr++));    //   Read, issue command
 		numArgs  = pgm_read_byte(addr++);      //   Number of args to follow
 		ms       = numArgs & DELAY;            //   If hibit set, delay follows args
 		numArgs &= ~DELAY;                     //   Mask out delay bit
 		while(numArgs--) {                     //   For each argument...
-			SPI_Send(pgm_read_byte(addr++));  //   Read, issue argument
+			SPI_Write(spidev, (uint8_t*)addr++, 1);  	   //   Read, issue argument
 		}
 
 		if(ms) {
@@ -183,101 +320,16 @@ void LCD_CommandList(const uint8_t *addr) {
 	}
 }
 
-void LCD_Scroll(uint16_t sc){
-	LCD_CS0;
-	LCD_Command(ST7735_VSCSAD);
-	LCD_Data(sc);
-	LCD_CS1;
-}
-
-void LCD_Fill(uint32_t count, uint16_t color){
-	if(!count) return;
-	LCD_CS0;
-#ifdef SPI_BLOCK_DMA
-	_color = color;
-	SPI_WriteDMA(&_color, count | 0x80000000);
-#else
-	while(count--){
-		LCD_Data(color);
-	}
-#endif
-	LCD_CS1;
-}
-
 /**
- * @brief Write a block of data
- * TODO: test block transfer on endian
- */
-void LCD_Write(uint16_t *data, uint32_t count){
-	if(count == 0) return;
-	LCD_CS0;
-#ifdef SPI_BLOCK_DMA
-	SPI_WriteDMA(data, count);
-#else
-	while(count--){
-		LCD_Data(*(data++));
-	}
-#endif
-	LCD_CS1;
-}
-
-void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
-
-	x += start_x;
-	y += start_y;
-
-	LCD_CS0;
-
-#ifdef _SPI_BLOCK_DMA
-	uint32_t buf;
-	buf = (x << 24) | (x << 8) | (x >> 8);
-	LCD_Command(ST7735_CASET);
-	SPI_Write((uint8_t*)&buf, 4);
-
-	buf = (y << 24) | (y << 8) | (y >> 8);
-	LCD_Command(ST7735_RASET);
-	SPI_Write((uint8_t*)&buf, 4);
-
-	buf = (color >> 8) | (color << 8);
-	LCD_Command(ST7735_RAMWR);
-	SPI_Write((uint8_t*)&buf, 2);
-#else
-	LCD_Command(ST7735_CASET);	
-	LCD_Data(x);
-	LCD_Data(x);
-
-	LCD_Command(ST7735_RASET);	
-	LCD_Data(y);
-	LCD_Data(y);
-
-	LCD_Command(ST7735_RAMWR);
-	LCD_Data(color);
-#endif
-	LCD_CS1;
-}
-
-void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
-
-	x += start_x;
-	y += start_y;
-
-	LCD_CS0;
-
-	LCD_Command(ST7735_CASET);
-	LCD_Data(x);
-	LCD_Data(x + w - 1);
-
-	LCD_Command(ST7735_RASET);
-	LCD_Data(y);	
-	LCD_Data(y + h - 1);
-
-	LCD_Command(ST7735_RAMWR);
-	LCD_CS1;
-}
-
-void LCD_Init(void){
+ * @brief Display initialisation
+ * */
+void LCD_Init(void *spi){
 
 	//LCD_PIN_INIT; made on board level
+
+	spidev = (spidev_t*)spi;
+	// This driver assumes there is a callback call
+	spidev->eot_cb = LCD_EOTHandler;
 
 	LCD_CD0;
 	LCD_CS1;
@@ -285,17 +337,22 @@ void LCD_Init(void){
 	LCD_RST1;
 	DelayMs(10);
 
-	LCD_RST0;
-	DelayMs(2);
-	LCD_RST1;
-	DelayMs(5);
+	//LCD_RST0;
+	//DelayMs(2);
+	//LCD_RST1;
+	//DelayMs(5);
+	LCD_CS0;
+	LCD_Command(ST7735_SWRESET);
+	LCD_CS1;
+
+	DelayMs(150);
 
 	madd = DEFAULT_MADC;
 
 	LCD_CS0;
 	LCD_CommandList(InitCmd);
 	LCD_Command(ST7735_MADCTL);   // row addr/col addr, bottom to top refresh
-	SPI_Send(madd);
+	SPI_Write(spidev, &madd, 1);
 	LCD_CS1;
 
 	// Set offset
@@ -307,17 +364,19 @@ void LCD_Init(void){
 }
 
 /**
- * Not tested DO pin is not available
+ * @brief Screen scroll
+ *
  */
-uint32_t LCD_GetId(void){
-	uint32_t id;
+void LCD_Scroll(uint16_t sc){
 	LCD_CS0;
-	LCD_Command(0x04);
-	SPI_Read((uint8_t*)&id, 4);
+	LCD_Command(ST7735_VSCSAD);
+	LCD_Data(sc);
 	LCD_CS1;
-	return id;
 }
 
+/**
+ * @brief
+ * */
 void LCD_Rotation(uint8_t m) {
 
 	madd &= ~(MADCTL_MY | MADCTL_MX | MADCTL_MV);
@@ -358,7 +417,7 @@ void LCD_Rotation(uint8_t m) {
 
 	LCD_CS0;
 	LCD_Command(ST7735_MADCTL);
-	SPI_Send(madd);
+	SPI_Write(spidev, &madd, 1);
 	LCD_CS1;
 }
 
@@ -375,6 +434,9 @@ uint32_t LCD_GetSize(void){
 }
 
 void LCD_Bkl(uint8_t state){
-	if(state != 0) {LCD_BKL1;}
-	else {LCD_BKL0;}
+	if(state != 0) {
+		LCD_BKL1;
+	}else {
+		LCD_BKL0;
+	}
 }

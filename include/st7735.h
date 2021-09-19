@@ -73,46 +73,28 @@
 #define MADCTL_RGB (1<<3)
 #define MADCTL_MH  (1<<2)
 
-/**
-* @brief preencimento de n pixels da mesma cor
-*   Nota: LCD_Window deve de ser chamado previamente
-*         para definir uma zona para escrita
-**/
-void LCD_Fill(uint32_t n, uint16_t color);
+// Display Memory settings
+// For JD-T1800 GM is 0
+#define ST7753_GM       0 // 0: 132 x 18-bits x 162, 3: 128 x 18-bits x 160
 
-/**
-* @brief Efectua a copia de uma zona de memoria para o
-*  	display
-*   Nota: LCD_Window deve de ser chamado previamente
-*         para definir uma zona para escrita
-**/
+void LCD_Init();
+void LCD_Fill(uint16_t color, uint32_t count);
 void LCD_Write(uint16_t *data, uint32_t count);
-
-/**
- * @brief efectua deslocamento vertical
- */
 void LCD_Scroll(uint16_t sc);
-
-/**
- * @brief retorna a largura currente em pixels
- */
+void LCD_Data(uint16_t data);
+void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color);
+void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+void LCD_Rotation(uint8_t m);
+void LCD_Bkl(uint8_t state);
 uint16_t LCD_GetWidth(void);
-
-/**
- * @brief retorna a altura currente em pixels
- */
 uint16_t LCD_GetHeight(void);
-
-/**
- * @brief retorna o numero total de pixels do display
- */
 uint32_t LCD_GetSize(void);
+void LCD_EOTHandler(void);
 
 /**
  * @brief Not tested for this driver
  *
  */
-uint32_t LCD_GetId(void);
 
 #endif
 
