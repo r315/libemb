@@ -19,7 +19,7 @@ int err = -1;
 		return err;
 	}
 
-	fp = fopen(filename, "rwb");
+	fp = fopen(filename, "r+b");
 
 	if(fp == NULL){
 		printf("Error opening file: %s\n", filename);
