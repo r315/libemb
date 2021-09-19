@@ -89,12 +89,20 @@ DMA_HANDLER_PROTOTYPE{
 				// Load tone
 				if(hbuz.ptone->f != 0){
 					hbuz.period = FREQ_TO_US(hbuz.ptone->f) - 1; // Set PWM freq
-					BUZ_TIM->CCER |= TIM_CCER_CC1E;              // Enable channel
+					#if defined(__NUCLEO_L412KB__)
+    				BUZ_TIM->CCER |= TIM_CCER_CC1NE;
+					#else
+					BUZ_TIM->CCER |= TIM_CCER_CC1E;              // Enable channel	
+					#endif
 				}else{
 					// TODO: FIX when frequency = 0
 					// for now uses the previous played frequency
 					// to calculate the muted duration
+					#if defined(__NUCLEO_L412KB__)
+    				BUZ_TIM->CCER &= ~TIM_CCER_CC1NE;
+					#else					
 					BUZ_TIM->CCER &= ~TIM_CCER_CC1E;             // Disable channel (mute)
+					#endif
 				}
 
 				hbuz.duration = (hbuz.ptone->d * 1000UL) / hbuz.period;
@@ -137,7 +145,11 @@ static void buzStartTone(tone_t *tone){
 
 	BUZ_TIM->ARR = hbuz.period;			// Set PWM frequency
 	BUZ_TIM->CNT = BUZ_TIM->ARR;		// Force inactive state
-	BUZ_TIM->CCER |= TIM_CCER_CC1E;     // Enable channel
+	#if defined(__NUCLEO_L412KB__)
+	BUZ_TIM->CCER |= TIM_CCER_CC1NE; 	// Enable channel
+	#else
+	BUZ_TIM->CCER |= TIM_CCER_CC1E;     // Enable channel	
+	#endif
 	BUZ_TIM->CCR1 = (hbuz.period * hbuz.level) / 100; // Set duty
     BUZ_TIM->CR1 |= TIM_CR1_CEN;        // Start Timer
     hbuz.flags |= BUZ_PLAYING;
@@ -145,8 +157,8 @@ static void buzStartTone(tone_t *tone){
 
 /**
  * @brief
- * PA8 for TIM1
- * PA6 for TIM16
+ * PA8 for TIM1_CH1
+ * PB6 for TIM16_CH1N
  */
 static inline void initPwmPin(void){
 #if defined(__NUCLEO_L412KB__)
@@ -159,7 +171,7 @@ static inline void initPwmPin(void){
 		.Speed = GPIO_SPEED_FREQ_LOW,
 		.Alternate = GPIO_AF14_TIM16
 	};
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 #else
 	//gpioInit(GPIOA, 8, GPO_AF | GPO_2MHZ);
 	GPIOA->CRH = (GPIOA->CRH & ~(0x0F)) | (2 << 2) | (2 << 0);
@@ -211,7 +223,11 @@ static inline void initTimer(void){
     BUZ_TIM->CCMR1 = (6 << 4);                      // PWM mode 1
 #endif
     BUZ_TIM->PSC = (SystemCoreClock/1000000) - 1;	// 1us clock
-    BUZ_TIM->CCER = TIM_CCER_CC1E;                  // Enable channel
+#if defined(__NUCLEO_L412KB__)
+    BUZ_TIM->CCER = TIM_CCER_CC1NE;                 // Enable channel inverted
+#else
+	BUZ_TIM->CCER = TIM_CCER_CC1E;                  // Enable channel
+#endif
     BUZ_TIM->BDTR |= TIM_BDTR_MOE;                  // Enable OC and OCN
     // Force idle state
     BUZ_TIM->ARR = 0xFFF;
