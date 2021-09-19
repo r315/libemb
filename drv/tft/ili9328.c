@@ -76,7 +76,7 @@ void LCD_Command(uint8_t ins)
 //--------------------------------------------------------
 //
 //--------------------------------------------------------
-void LCD_Fill(uint32_t count, uint16_t color){
+void LCD_Fill(uint16_t color, uint32_t count){
 	LCDRS1;
 	while(count--){
 		LCD_DATAPORT = color>>8;
@@ -86,6 +86,10 @@ void LCD_Fill(uint32_t count, uint16_t color){
 	}
 }
 
+void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color){
+	LCD_Window(x, y, w, h);
+	LCD_Fill(color, w * h);
+}
 //-------------------------------------------------------------------
 //	 Creates a write window inside GRAM
 //-------------------------------------------------------------------
@@ -148,7 +152,7 @@ void LCD_Scroll(uint16_t y)
 //--------------------------------------------------------
 // initialize lcd
 //--------------------------------------------------------
-void LCD_Init(void){
+void LCD_Init(void *param){
 	
 	LCD_IO_INIT;
 	

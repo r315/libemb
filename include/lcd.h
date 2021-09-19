@@ -51,37 +51,37 @@ extern "C" {
 
 
 /**
- @brief 
+ * @brief 
  **/
-void LCD_Init(void);
+void LCD_Init(void *param);
 
 /**
- @brief writes n data of same color
+ * @brief writes n data of same color
  **/
-void LCD_Fill( uint32_t n, uint16_t color);
+void LCD_Fill(uint16_t color, uint32_t n);
 
 /**
- @brief Draws a filled rectangle
+ * @brief Draws a filled rectangle
  **/
 void LCD_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
 
 /**
- @brief Draws a filled rectangle with round corners
+ * @brief Draws a filled rectangle with round corners
  **/
 void LCD_FillRoundRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
 
 /**
- @brief Draws a rectangle
+ * @brief Draws a rectangle
  **/
 void LCD_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
 
 /**
- @brief Opens a window for writing data
+ * @brief Opens a window for writing data
  **/
 void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
 /**
- @brief Open a 1x1 px window, addresses the pixel location and write data
+ * @brief Open a 1x1 px window, addresses the pixel location and write data
  **/
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color);
 
@@ -96,35 +96,36 @@ void LCD_Data(uint16_t data);
  * LCD_Window should be called previously
  * */
 void LCD_Write(uint16_t *data, uint32_t count);
+void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data);
 
 /**
- @brief Draws a line
+ * @brief Draws a line
  **/
 void LCD_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t color);
 
 /**
- @brief Draws a Horizontal line
+ * @brief Draws a Horizontal line
  **/
 void LCD_Line_H(uint16_t x, uint16_t y, uint16_t width, uint16_t color);
 
 /**
- @brief Draws a Vertical line
+ * @brief Draws a Vertical line
  **/
 void LCD_Line_V(uint16_t x, uint16_t y, uint16_t height, uint16_t color);
 
 /**
- @brief 
+ * @brief 
  **/
 void LCD_Clear(uint16_t color);
 
 /**
- @brief 
+ * @brief 
  **/
 void LCD_Bkl(uint8_t state);
 
 /**
-* @brief
-**/
+ * @brief
+ **/
 void LCD_Scroll(uint16_t sc);
 
 /**
@@ -142,7 +143,7 @@ uint16_t LCD_GetHeight(void);
  **/
 uint32_t LCD_GetSize(void);
 
-/*
+/**
  * @brief Change display orientation
  */
 void LCD_Rotation(uint8_t m);

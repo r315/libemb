@@ -346,7 +346,7 @@ void DISPLAY_Init(uint8_t initlcd){
 	LCD_Scroll(_display.cy);
 
 	if(initlcd){
-		LCD_Init();
+		LCD_Init(NULL);
 		LCD_Clear(_display.backcolor);
 		LCD_Bkl(1);
 	}

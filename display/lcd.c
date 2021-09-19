@@ -1,14 +1,8 @@
 #include <lcd.h>
 
 
-void LCD_Clear(uint16_t color){
-	LCD_Window(0,0, LCD_GetWidth(), LCD_GetHeight());
-	LCD_Fill(LCD_GetWidth() * LCD_GetHeight(), color);
-}
-
-void LCD_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){
-    LCD_Window(x, y, w, h);    
-    LCD_Fill(w * h, color);
+void LCD_Clear(uint16_t color){	
+	LCD_FillRect(0, 0, LCD_GetWidth(), LCD_GetHeight(), color);
 }
 
 void LCD_FillRoundRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){
@@ -17,24 +11,24 @@ void LCD_FillRoundRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t
 
     h -= 2;
     LCD_Window(x, y+1, 1, h);
-    LCD_Fill(h, color);
+    LCD_Fill(color, h);
 
     LCD_Window(x+w-1, y+1, 1, h);
-    LCD_Fill(h, color);
+    LCD_Fill(color, h);
 }
 
 void LCD_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){
     LCD_Window(x, y, w, 1);
-    LCD_Fill(w, color);
+    LCD_Fill(color, w);
 	
 	LCD_Window(x + w , y, 1, h+1);
-    LCD_Fill(h+1, color);
+    LCD_Fill(color, h+1);
 	
 	LCD_Window(x, y + h , w, 1);
-    LCD_Fill(w, color);
+    LCD_Fill(color, w);
 	
 	LCD_Window(x ,y ,1, h);
-    LCD_Fill(h, color);
+    LCD_Fill(color, h);
 }
 
 /**
@@ -42,8 +36,7 @@ void LCD_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){
  **/ 
 void LCD_Line_H(uint16_t x, uint16_t y, uint16_t width, uint16_t color){
 	LCD_Window(x, y, width, 1 );
-	LCD_Fill(width, color);
-
+	LCD_Fill(color, width);
 }
 
 /**
