@@ -36,20 +36,20 @@ uint8_t PWM_Get(uint8_t ch);
 
 /**
  * @brief Enable one PWM channel range(1:4)
- **/
- void PWM_Enable(uint8_t ch);
+ * */
+void PWM_Enable(uint8_t ch);
  
- /**
+/**
  * @brief Disable one PWM channel range(1:4)
- **/
- void PWM_Disable(uint8_t ch);
+ * */
+void PWM_Disable(uint8_t ch);
  
- /**
+/**
  * @brief Set channel polarity
  * 
  * \param ch    : PWM channel 1 - 4
  * \param pol   : Polarity 0 - 1
- **/
- void PWM_Polarity(uint8_t ch, uint8_t pol);
+ * */
+void PWM_Polarity(uint8_t ch, uint8_t pol);
  
 #endif

@@ -10,7 +10,7 @@ extern "C" {
 #ifdef BGR_MODE
     #define RGB565(r,g,b)  (uint16_t)((b<<11) | (g<<5) | r)
 #else
-    #define RGB565(r,g,b)  (uint16_t)((r<<11) | (g<<5) | b)
+    #define RGB565(r,g,b)  (uint16_t)(((r>>3)<<11) | ((g>>2)<<5) | (b>>3))
 #endif
 
 //-------------------------------------------------------------------
@@ -22,17 +22,17 @@ extern "C" {
 // color names
 // http://www.w3schools.com/html/html_colornames.asp
 *****************************************************/
-#define RED         RGB565(31,0,0)
-#define GREEN       RGB565(0,63,0)
-#define BLUE        RGB565(0,0,31)
+#define RED         RGB565(255,0,0)
+#define GREEN       RGB565(0,255,0)
+#define BLUE        RGB565(0,0,255)
 #define BLACK       RGB565(0,0,0)
-#define WHITE       RGB565(31,63,31)
-#define GRAY        RGB565(16,32,16)
-#define YELLOW      RGB565(31,63,0)
-#define ORANGE      RGB565(31,32,0)
-#define CYAN        RGB565(0,63,31)
-#define PINK        RGB565(31,0,31)
-#define FBBLUE      RGB565(7,22,19)
+#define WHITE       RGB565(255,255,255)
+#define GRAY        RGB565(128,128,128)
+#define YELLOW      RGB565(255,255,0)
+#define ORANGE      RGB565(255,128,0)
+#define CYAN        RGB565(0,255,255)
+#define PINK        RGB565(255,0,255)
+#define FBBLUE      RGB565(56,88,152)
 #define SILVER      0xC618
 #define SKYBLUE     0x867D
 #define ROYALBLUE   0x435C
@@ -54,11 +54,6 @@ extern "C" {
  * @brief 
  **/
 void LCD_Init(void *param);
-
-/**
- * @brief writes n data of same color
- **/
-void LCD_Fill(uint16_t color, uint32_t n);
 
 /**
  * @brief Draws a filled rectangle

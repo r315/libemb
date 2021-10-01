@@ -10,48 +10,36 @@ void LCD_FillRoundRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t
     LCD_FillRect(x + 1, y, w-2, h, color);
 
     h -= 2;
-    LCD_Window(x, y+1, 1, h);
-    LCD_Fill(color, h);
+    LCD_FillRect(x, y+1, 1, h, color);
 
-    LCD_Window(x+w-1, y+1, 1, h);
-    LCD_Fill(color, h);
+    LCD_FillRect(x+w-1, y+1, 1, h, color);
 }
 
 void LCD_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){
-    LCD_Window(x, y, w, 1);
-    LCD_Fill(color, w);
-	
-	LCD_Window(x + w , y, 1, h+1);
-    LCD_Fill(color, h+1);
-	
-	LCD_Window(x, y + h , w, 1);
-    LCD_Fill(color, w);
-	
-	LCD_Window(x ,y ,1, h);
-    LCD_Fill(color, h);
+    LCD_FillRect(x, y, w, 1, color);	
+	LCD_FillRect(x + w , y, 1, h+1, color);	
+	LCD_FillRect(x, y + h , w, 1, color);	
+	LCD_FillRect(x ,y ,1, h, color);    
 }
 
 /**
  * 
  **/ 
 void LCD_Line_H(uint16_t x, uint16_t y, uint16_t width, uint16_t color){
-	LCD_Window(x, y, width, 1 );
-	LCD_Fill(color, width);
+    LCD_FillRect(x, y, width, 1, color);
 }
 
 /**
  *
  **/
 void LCD_Line_V(uint16_t x, uint16_t y, uint16_t height, uint16_t color){
-	LCD_Window(x, y, 1, height);
-	LCD_Fill(height, color);
+	LCD_FillRect(x, y, 1, height, color);
 }
 
 /**
  *
  **/
 void LCD_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t color){
-{
     signed int dy = y2 - y1;
     signed int dx = x2 - x1;
     signed int stepx, stepy;
@@ -101,11 +89,9 @@ void LCD_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t colo
             }
             y1 += stepy;
             fraction += dx;
-            LCD_Pixel(x1, y1,color);
-            
+            LCD_Pixel(x1, y1,color);            
         }
-    }
-}    
+    }  
 }
 
 
