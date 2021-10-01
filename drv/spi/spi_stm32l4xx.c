@@ -15,6 +15,7 @@
 #define PCLK_CLK_DIV256         (7 << 3)
 #define SPIDEV_SET_FLAG(_D, _F) _D->cfg |= _F
 #define SPIDEV_CLR_FLAG(_D, _F) _D->cfg &= ~(_F)
+#define SPIDEV_GET_FLAG(_D, _F) !!(_D->cfg & _F)
 
 /**
  * @brief DMA Interrupt handler
@@ -25,8 +26,8 @@ void SPI_DMA_IRQHandler(void){
     
     SPI_DMA_CH->CCR &= ~(DMA_CCR_EN);
         
-    if(spidev->trf_counter > 0x10000){
-        spidev->trf_counter -= 0x10000;
+    if(spidev->trf_counter > 0x10000UL){
+        spidev->trf_counter -= 0x10000UL;
         SPI_DMA_CH->CNDTR = (spidev->trf_counter > 0x10000UL) ? 0xFFFFUL : spidev->trf_counter;
         SPI_DMA_CH->CCR |= DMA_CCR_EN;
     }else{
@@ -44,10 +45,40 @@ void SPI_DMA_IRQHandler(void){
         if(spidev->eot_cb){
             spidev->eot_cb();
         }
-        SPIDEV_CLR_FLAG(spidev, SPI_IDLE);
+        SPIDEV_CLR_FLAG(spidev, SPI_BUSY | SPI_DMA_NO_MINC);
     }
 }
 
+/**
+ * @brief Configures baud rate by dividing Fpckl
+ * by 2, 4, 8, 16, 32, 64, 128 or 256.
+ * 
+ * spi peripheral must be enabled afterwards 
+ * 
+ * */
+static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
+
+    uint32_t div = (SystemCoreClock/1000)/freq;
+    uint32_t br = 8;
+
+    if(div > 256){
+        div = 256;
+    }
+
+    if(div < 2){
+        div = 2;
+    }
+
+    while(br){
+        if((div & (1 << br)) != 0){
+            break;
+        }
+        br--;
+    }    
+
+    spi->CR1 &= ~(SPI_CR1_SPE | PCLK_CLK_DIV256);
+    spi->CR1 |= (br << SPI_CR1_BR_Pos);
+}
 /**
  * Public API
  * */
@@ -74,13 +105,16 @@ void SPI_Init(spidev_t *spidev){
     
     spi = (SPI_TypeDef*)spidev->ctrl;
 
-    spi->CR1 = SPI_CR1_MSTR | PCLK_CLK_DIV4;
-    spi->CR2 = (7 << 8);                        // Transfer 8-bit
-#ifdef SPI_SW_CS
-    spi->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;                            
-#else
-    spi->CR2 |= SPI_CR2_NSSP | SPI_CR2_SSOE;
-#endif                
+    spi->CR1 = SPI_CR1_MSTR;
+    spi->CR2 = (7 << SPI_CR2_DS_Pos);        // Transfer 8-bit
+
+    SPI_SetFreq(spi, spidev->freq);
+
+    if(spidev->cfg & SPI_SW_CS){
+        spi->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;                            
+    }else{
+        spi->CR2 |= SPI_CR2_NSSP | SPI_CR2_SSOE;
+    }            
 
     spi->CR1 |= SPI_CR1_SPE;
     spi->CR2 |= SPI_CR2_TXDMAEN;
@@ -104,6 +138,7 @@ void SPI_Init(spidev_t *spidev){
  * */
 void SPI_Write(spidev_t *spidev, uint8_t *src, uint32_t count){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
+    
     while(count--){
         *((__IO uint8_t *)&spi->DR) = *src++;
         while((spi->SR & SPI_SR_BSY) != 0);
@@ -153,9 +188,13 @@ void SPI_WriteIntDMA(spidev_t *spidev, uint16_t data, uint32_t count){
 /**
  * @brief Wait for end of DMA transfer
  * */
-void SPI_WaitEOT(spidev_t *spidev){
+void SPI_WaitEOT(spidev_t *spidev){    
+    #if 0
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     while(spi->SR & SPI_SR_BSY){
+    #else
+    while(SPIDEV_GET_FLAG(spidev, SPI_BUSY)){
+    #endif
         LED_TOGGLE;
     }
 }

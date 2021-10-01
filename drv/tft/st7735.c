@@ -163,7 +163,7 @@ static void LCD_Command(uint8_t data){
 /**
  * @brief End of transfer handler for DMA use
  * */
-void LCD_EOTHandler(void){
+static void LCD_EOTHandler(void){
 	LCD_CS1;
 }
 
@@ -186,7 +186,14 @@ void LCD_Write(uint16_t *data, uint32_t count){
 	}
 
 	LCD_CS0;
+	#if 1
 	SPI_WriteDMA(spidev, data, count);
+	//LCD_CS1; // SET by DMA handler
+	#else
+	while(count--)
+		LCD_Data(*data++);
+	LCD_CS1;
+	#endif
 }
 
 /**
@@ -195,13 +202,20 @@ void LCD_Write(uint16_t *data, uint32_t count){
  * \param data : Value to be sent to lcd
  * \param count : Number of transfers
  */
-void LCD_Fill(uint16_t data, uint32_t count){
+static void LCD_Fill(uint16_t data, uint32_t count){
 	if(!count){
 		return;
 	}
 
 	LCD_CS0;
+	#if 1
 	SPI_WriteIntDMA(spidev, data, count);
+	//LCD_CS1; // SET by DMA handler	
+	#else
+	while(count--)
+		LCD_Data(data);
+	LCD_CS1;
+	#endif
 }
 
 /**
@@ -214,7 +228,7 @@ void LCD_Fill(uint16_t data, uint32_t count){
  * \param color :
  */
 void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color){
-	LCD_CasRasSet(x, y, x + w - 1, y + h -1);
+	LCD_Window(x, y, w, h);
 	LCD_Fill(color, (w * h));
 }
 
@@ -228,7 +242,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
  * \param data : Pointer to data
  */
 void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data){
-	LCD_CasRasSet(x, y, x + w - 1, y + h -1);
+	LCD_Window(x, y, w, h);
     LCD_Write(data, (w * h));
 }
 
@@ -260,21 +274,6 @@ static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
 }
 
 /**
- * @brief Draw a single pixel
- *
- */
-void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
-
-	x += start_x;
-	y += start_y;
-
-	LCD_CS0;
-	LCD_CasRasSet(x, y, x, y);
-	LCD_Data(color);
-	LCD_CS1;
-}
-
-/**
  * @brief Setup draw area
  *
  * \param x : X position
@@ -286,11 +285,27 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 
 	x += start_x;
 	y += start_y;
-	uint16_t x1 = x + (w - 1);
-	uint16_t y1 = y + (h - 1);
+
+	SPI_WaitEOT(spidev);
 
 	LCD_CS0;
-	LCD_CasRasSet(x, y, x1, y1);
+	LCD_CasRasSet(x, y, x + (w - 1), y + (h - 1));
+	LCD_CS1;
+}
+
+/**
+ * @brief Draw a single pixel
+ *
+ */
+void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
+	x += start_x;
+	y += start_y;
+
+	SPI_WaitEOT(spidev);
+	
+	LCD_CS0;
+	LCD_CasRasSet(x, y, x, y);
+	LCD_Data(color);
 	LCD_CS1;
 }
 
