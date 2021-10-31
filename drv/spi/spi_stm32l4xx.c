@@ -195,6 +195,6 @@ void SPI_WaitEOT(spidev_t *spidev){
     #else
     while(SPIDEV_GET_FLAG(spidev, SPI_BUSY)){
     #endif
-        LED_TOGGLE;
+        //LED_TOGGLE;
     }
 }

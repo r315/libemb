@@ -68,7 +68,7 @@ void LCD_FillRoundRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t
 /**
  * @brief Draws a rectangle
  **/
-void LCD_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
+void LCD_DrawRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
 
 /**
  * @brief Opens a window for writing data
@@ -96,17 +96,17 @@ void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *dat
 /**
  * @brief Draws a line
  **/
-void LCD_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t color);
+void LCD_DrawLine(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t color);
 
 /**
  * @brief Draws a Horizontal line
  **/
-void LCD_Line_H(uint16_t x, uint16_t y, uint16_t width, uint16_t color);
+void LCD_DrawHLine(uint16_t x, uint16_t y, uint16_t width, uint16_t color);
 
 /**
  * @brief Draws a Vertical line
  **/
-void LCD_Line_V(uint16_t x, uint16_t y, uint16_t height, uint16_t color);
+void LCD_DrawVLine(uint16_t x, uint16_t y, uint16_t height, uint16_t color);
 
 /**
  * @brief 

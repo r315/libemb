@@ -15,7 +15,7 @@ void LCD_FillRoundRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t
     LCD_FillRect(x+w-1, y+1, 1, h, color);
 }
 
-void LCD_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){
+void LCD_DrawRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){
     LCD_FillRect(x, y, w, 1, color);	
 	LCD_FillRect(x + w , y, 1, h+1, color);	
 	LCD_FillRect(x, y + h , w, 1, color);	
@@ -25,38 +25,39 @@ void LCD_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color){
 /**
  * 
  **/ 
-void LCD_Line_H(uint16_t x, uint16_t y, uint16_t width, uint16_t color){
+void LCD_DrawHLine(uint16_t x, uint16_t y, uint16_t width, uint16_t color){
     LCD_FillRect(x, y, width, 1, color);
 }
 
 /**
  *
  **/
-void LCD_Line_V(uint16_t x, uint16_t y, uint16_t height, uint16_t color){
+void LCD_DrawVLine(uint16_t x, uint16_t y, uint16_t height, uint16_t color){
 	LCD_FillRect(x, y, 1, height, color);
 }
 
 /**
  *
  **/
-void LCD_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t color){
+void LCD_DrawLine(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t color){
     signed int dy = y2 - y1;
     signed int dx = x2 - x1;
     signed int stepx, stepy;
-    signed int fraction;
+    signed int fraction;   
+
+    if (dy < 0) { dy = -dy;  stepy = -1; } else { stepy = 1; }
+    if (dx < 0) { dx = -dx;  stepx = -1; } else { stepx = 1; }
 
     if ( x1 == x2 ){
-    	LCD_Line_V(x1,y1, y2, color);
+    	LCD_DrawVLine(x1, y1, dy, color);
     	return;
     }
 
     if ( y1 == y2 ){
-		LCD_Line_H(x1, x2, y1, color);
+		LCD_DrawHLine(x1, x2, dx, color);
 		return;
     }
 
-    if (dy < 0) { dy = -dy;  stepy = -1; } else { stepy = 1; }
-    if (dx < 0) { dx = -dx;  stepx = -1; } else { stepx = 1; }
     dy <<= 1;
     dx <<= 1;
     
