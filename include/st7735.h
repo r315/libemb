@@ -77,7 +77,7 @@
 // For JD-T1800 GM is 0
 #define ST7753_GM       0 // 0: 132 x 18-bits x 162, 3: 128 x 18-bits x 160
 
-void LCD_Init();
+void LCD_Init(void *ptr);
 void LCD_Write(uint16_t *data, uint32_t count);
 void LCD_Scroll(uint16_t sc);
 void LCD_Data(uint16_t data);
