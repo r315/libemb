@@ -346,7 +346,7 @@ void LCD_Init(void *spi){
 	// This driver assumes there is a callback call
 	spidev->eot_cb = LCD_EOTHandler;
 
-	LCD_CD0;
+	LCD_CD1;
 	LCD_CS1;
 	LCD_BKL0;
 	LCD_RST1;
