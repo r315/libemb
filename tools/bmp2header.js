@@ -46,7 +46,7 @@ function convertBmp(bmpArray, outbpp) {
     console.log(`Size: ${width}x${height}, bpp: ${bpp}`)
 
     if(bpp != 24){
-        console.log('Unsupported pixel format')
+        console.log('Input pixel format unsupported')
         return {
             "width": 0,
             "height": 0,
@@ -100,6 +100,35 @@ function convertBmp(bmpArray, outbpp) {
             }
             bpl = Math.floor(width * 2 / 8) + ((width * 2 % 8) != 0 ? 1 : 0) 
             break;
+
+        case BPP.BPP16:
+		    for (let i = pixelDataOffset, pixelcount = 0; i < bmpArray.length; i += Bpp) {
+
+	            let b = bmpArray[i + 0] >> 3
+                let g = bmpArray[i + 1] >> 2
+                let r = bmpArray[i + 2] >> 3
+
+                let d = (r << 11) | (g << 5) | b // RGB565
+
+                pixelByteArray.push(d)
+
+                if(++pixelcount == width){
+                    i += padding
+                    pixelcount = 0;
+                }
+            }
+
+            bpl = width * 2
+            break;
+
+        default:
+	        console.log('Output pixel format unsupported')
+		return {
+		    "width": 0,
+		    "height": 0,
+		    "data": pixelByteArray
+		}
+
     }
     return {
         "width": width,
