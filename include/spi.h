@@ -35,28 +35,28 @@ CPHA = 1  ____X___X___X___X___X___X___         X         X
 #define SPI_BUS2	2
 
 enum spimode_e{
-	SPI_MODE0 = 0x00,
-	SPI_MODE1 = 0x10,
-	SPI_MODE2 = 0x20,
-	SPI_MODE3 = 0x30,
+    SPI_MODE0 = 0x00,
+    SPI_MODE1 = 0x10,
+    SPI_MODE2 = 0x20,
+    SPI_MODE3 = 0x30,
 };
 
 enum spiflags_e{
-	SPI_IDLE = 0,
-	SPI_DMA_NO_MINC = (1 << 0),
-	SPI_16BIT = (1 << 1),
-	SPI_BUSY = (1 << 2),
+    SPI_IDLE = 0,
+    SPI_DMA_NO_MINC = (1 << 0),
+    SPI_16BIT = (1 << 1),
+    SPI_BUSY = (1 << 2),
     SPI_SW_CS = (1 << 3)
 };
 
 typedef struct spidev{
-	void *ctrl;		// CMSIS compliant controller
-	void *dma;      // DMA channel/controller
-	uint8_t  bus;   // bus number 0,1...
-	uint32_t freq;  // Clock frequency in khz
-	uint8_t  cfg;   // MSB: Mode, LSB: databits
-	uint32_t trf_counter;
-	void (*eot_cb)(void);
+    void *ctrl;             // CMSIS compliant controller
+    void *dma;      		// DMA channel/controller
+    uint8_t  bus;   		// bus number 0,1...
+    uint32_t freq;  		// Clock frequency in khz
+    uint8_t  cfg;   		// MSB: Mode, LSB: databits
+    uint32_t trf_counter;	// Transfer counter, used when data so be transferred is greater than 65535
+    void (*eot_cb)(void);   // User end of transfer call back
 }spidev_t;
 
 void SPI_Init(spidev_t *spidev);
@@ -66,6 +66,7 @@ void SPI_Write(spidev_t *spidev, uint8_t *src, uint32_t count);
 void SPI_WriteDMA(spidev_t *spidev, uint16_t *data, uint32_t count);
 void SPI_WriteIntDMA(spidev_t *spidev, uint16_t data, uint32_t count);
 void SPI_WaitEOT(spidev_t *spidev);
+uint16_t SPI_Single_Transfer(spidev_t *spidev, uint16_t data);
 
 #ifdef __cplusplus
 }

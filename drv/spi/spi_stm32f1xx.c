@@ -161,9 +161,27 @@ void SPI_Init(spidev_t *spidev){
 }
 
 /**
+ * @brief Make single data extange on spi bus
+ *
+ * \param spidev : Pointer to spi device to be used
+ * \param data  : Data to be transmitted
+ *
+ * \return Received data
+ * */
+uint16_t SPI_Single_Transfer(spidev_t *spidev, uint16_t data){
+    SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
+
+    *((__IO uint8_t *)&spi->DR) = data;
+    while((spi->SR & SPI_SR_TXE) == 0);
+    while((spi->SR & SPI_SR_BSY) != 0);
+
+    return spi->DR;
+}
+
+/**
  * @brief Write data to SPI, blocking
  * 
- * \param data  : Pointer to data
+ * \param src   : Pointer to source data
  * \param count : total number of bytes to transfer
  * */
 void SPI_Write(spidev_t *spidev, uint8_t *src, uint32_t count){
@@ -173,8 +191,7 @@ void SPI_Write(spidev_t *spidev, uint8_t *src, uint32_t count){
         *((__IO uint8_t *)&spi->DR) = *src++;
         while((spi->SR & SPI_SR_TXE) == 0);
         while((spi->SR & SPI_SR_BSY) != 0);
-    }    
-    uint16_t data = spi->DR;
+    }
 }
 
 /**
@@ -235,3 +252,4 @@ void SPI_WaitEOT(spidev_t *spidev){
         //LED_TOGGLE;
     }
 }
+
