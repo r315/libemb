@@ -18,7 +18,7 @@ extern "C" {
 
 
 void RNG_Init(void);
-uint32_t RNG_Get();
+uint32_t RNG_Get(void);
 
 #ifdef __cplusplus
 }

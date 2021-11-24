@@ -386,6 +386,7 @@ uint8_t fatoi(char *str, double *value) {
  * @brief String formater
  *   %nu, %nd, %nb, %c, %s, %l, %x, %.nf
  * 
+ * TODO: fix print percent sign (%)
  * */
 uint32_t strformater(char *dst, const char* fmt, va_list arp){
 	

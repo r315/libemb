@@ -91,35 +91,41 @@ typedef enum {
 #define PORTB   0x10
 #define PORTC   0x20
 #define PORTD   0x30
-#else
-typedef enum {
-	DUMMY = 0
-}pinName_e;
-#endif
+
 
 /**
  * Pin modes 
  * 
  * */
-#define GPO_2MHZ                (2 << 0) 
-#define GPO_10MHZ               (1 << 0)
-#define GPO_50MHZ               (3 << 0)
-#define GPO_OD                  (1 << 2) // Open drain
-#define GPO_AF                  (2 << 2) // Alternative function
-#define GPO_AF_OD               (3 << 2) // Alternative function open drain
-#define GPI_ANALOG              (0 << 0)
-#define GPI_OD                  (1 << 2) // floating
-#define GPI_PD                  (2 << 2)
-#define GPI_PU                  (6 << 2) // 2 | 4           
+#define PIN_OUT_2MHZ                (2 << 0) 
+#define PIN_OUT_10MHZ               (1 << 0)
+#define PIN_OUT_50MHZ               (3 << 0)
+#define PIN_OUT_OD                  (1 << 2) // Open drain
+#define PIN_OUT_AF                  (2 << 2) // Alternative function
+#define PIN_OUT_AF_OD               (3 << 2) // Alternative function open drain
 
-#define PIN_NAME_TO_PORT(name)          (name >> 4)
-#define PIN_NAME_TO_PIN(name)           (name&0x0f)
+#define PIN_IN_ANALOG               (0 << 0)
+#define PIN_IN_FLOAT                (1 << 2)
+#define PIN_IN_PD                   (2 << 2)
+#define PIN_IN_PU                   (6 << 2) // 2 | 4   
 
-void pinInit(pinName_e name, uint8_t mode);
-void pinWrite(pinName_e name, uint8_t state);
-void pinToggle(pinName_e name);
-void portWrite(pinName_e name, uint32_t value);
-uint32_t portRead(pinName_e name);
+#define PIN_RESET(_port, _pin) _port->BRR = (1 << _pin)
+#define PIN_SET(_port, _pin) _port->BSRR = (1 << _pin)
+#else
+typedef enum {
+	DUMMY = 0
+}pinName_e;
+#endif
+        
+
+#define PIN_GET_PORT(name)          (name >> 4)
+#define PIN_GET_NUM(name)           (name & 0x0f)
+
+void PIN_Init(pinName_e name, uint8_t mode);
+void PIN_Write(pinName_e name, uint8_t state);
+void PIN_Toggle(pinName_e name);
+void PIN_PORT_Write(pinName_e name, uint32_t value);
+uint32_t PIN_Read(pinName_e name);
 
 #ifdef __cplusplus
 }
