@@ -232,7 +232,6 @@ extern "C" {
 #define PINDIR_P2_0(x) { LPC_GPIO2->FIODIR = (LPC_GPIO2->FIODIR & ~(1 << 0)) | (x << 0); }
 
 
-
 //-----------------------------------------------------
 void BB_Init(void);
 void BB_SW_Reset(void);
