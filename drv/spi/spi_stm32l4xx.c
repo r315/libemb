@@ -20,8 +20,7 @@
 /**
  * @brief DMA Interrupt handler
  * */
-void SPI_DMA_IRQHandler(void){
-    spidev_t *spidev = &spi1;
+void SPI_DMA_IRQHandler(spidev_t *spidev){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     
     SPI_DMA_CH->CCR &= ~(DMA_CCR_EN);

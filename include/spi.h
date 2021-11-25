@@ -67,6 +67,7 @@ void SPI_WriteDMA(spidev_t *spidev, uint16_t *data, uint32_t count);
 void SPI_WriteIntDMA(spidev_t *spidev, uint16_t data, uint32_t count);
 void SPI_WaitEOT(spidev_t *spidev);
 uint16_t SPI_Single_Transfer(spidev_t *spidev, uint16_t data);
+void SPI_DMA_IRQHandler(spidev_t *spidev);
 
 #ifdef __cplusplus
 }

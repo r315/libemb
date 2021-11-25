@@ -66,7 +66,7 @@ void LCD_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t colo
 void LCD_FillRoundRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
 
 /**
- * @brief Draws a rectangle
+ * @brief Draws single line rectangle
  **/
 void LCD_DrawRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
 

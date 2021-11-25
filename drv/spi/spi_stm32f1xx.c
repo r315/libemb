@@ -13,12 +13,10 @@
 #define SPIDEV_CLR_FLAG(_D, _F) _D->cfg &= ~(_F)
 #define SPIDEV_GET_FLAG(_D, _F) !!(_D->cfg & _F)
 
-spidev_t spi1, spi2;
-
 /**
  * @brief DMA Interrupt handler
  * */
-static void SPI_DMA_IRQHandler(spidev_t *spidev){
+void SPI_DMA_IRQHandler(spidev_t *spidev){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma;
     
@@ -49,20 +47,6 @@ static void SPI_DMA_IRQHandler(spidev_t *spidev){
 
         SPIDEV_CLR_FLAG(spidev, SPI_BUSY | SPI_DMA_NO_MINC);
     }
-}
-
-void DMA1_Channel5_IRQHandler(void){
-    if(DMA1->ISR & DMA_ISR_TCIF5){
-        SPI_DMA_IRQHandler(&spi2);
-    }
-    DMA1->IFCR = DMA_IFCR_CGIF5;
-}
-
-void DMA1_Channel3_IRQHandler(void){
-    if(DMA1->ISR & DMA_ISR_TCIF3){
-        SPI_DMA_IRQHandler(&spi1);
-    }
-    DMA1->IFCR = DMA_IFCR_CGIF3;
 }
 
 /**
