@@ -28,7 +28,7 @@
 static uint16_t _width, _height;
 static uint8_t madd, start_x, start_y, state;
 static uint8_t scratch[4];
-static spidev_t *spidev;
+static spibus_t *spidev;
 
 static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 
@@ -143,12 +143,6 @@ const uint8_t InitCmd [] = {
 	ST7735_DISPON ,    DELAY, // 18: Main screen turn on, no args w/delay
 	100						  //     100 ms delay
 };
-#endif
-
-#ifdef SPI_DMA_ENABLE
-
-
-}
 #endif
 
 /**
@@ -342,7 +336,7 @@ void LCD_Init(void *spi){
 
 	//LCD_PIN_INIT; made on board level
 
-	spidev = (spidev_t*)spi;
+	spidev = (spibus_t*)spi;
 	// This driver assumes there is a callback call
 	spidev->eot_cb = LCD_EOTHandler;
 

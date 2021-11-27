@@ -49,7 +49,7 @@ enum spiflags_e{
     SPI_SW_CS = (1 << 3)
 };
 
-typedef struct spidev{
+typedef struct spibus{
     void *ctrl;             // CMSIS compliant controller
     void *dma;      		// DMA channel/controller
     uint8_t  bus;   		// bus number 0,1...
@@ -57,17 +57,17 @@ typedef struct spidev{
     uint8_t  cfg;   		// MSB: Mode, LSB: databits
     uint32_t trf_counter;	// Transfer counter, used when data so be transferred is greater than 65535
     void (*eot_cb)(void);   // User end of transfer call back
-}spidev_t;
+}spibus_t;
 
-void SPI_Init(spidev_t *spidev);
-void SPI_BeginTransfer(spidev_t *spidev, int csBitId);
-void SPI_EndTransfer(spidev_t *spidev, int csBitId);
-void SPI_Write(spidev_t *spidev, uint8_t *src, uint32_t count);
-void SPI_WriteDMA(spidev_t *spidev, uint16_t *data, uint32_t count);
-void SPI_WriteIntDMA(spidev_t *spidev, uint16_t data, uint32_t count);
-void SPI_WaitEOT(spidev_t *spidev);
-uint16_t SPI_Single_Transfer(spidev_t *spidev, uint16_t data);
-void SPI_DMA_IRQHandler(spidev_t *spidev);
+void SPI_Init(spibus_t *spidev);
+void SPI_BeginTransfer(spibus_t *spidev, int csBitId);
+void SPI_EndTransfer(spibus_t *spidev, int csBitId);
+void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count);
+void SPI_WriteDMA(spibus_t *spidev, uint16_t *data, uint32_t count);
+void SPI_WriteIntDMA(spibus_t *spidev, uint16_t data, uint32_t count);
+void SPI_WaitEOT(spibus_t *spidev);
+uint16_t SPI_Single_Transfer(spibus_t *spidev, uint16_t data);
+void SPI_DMA_IRQHandler(spibus_t *spidev);
 
 #ifdef __cplusplus
 }

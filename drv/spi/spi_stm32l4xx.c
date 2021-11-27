@@ -20,7 +20,7 @@
 /**
  * @brief DMA Interrupt handler
  * */
-void SPI_DMA_IRQHandler(spidev_t *spidev){
+void SPI_DMA_IRQHandler(spibus_t *spidev){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     
     SPI_DMA_CH->CCR &= ~(DMA_CCR_EN);
@@ -85,7 +85,7 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
 /**
  * @brief Init
  * */
-void SPI_Init(spidev_t *spidev){
+void SPI_Init(spibus_t *spidev){
     SPI_TypeDef *spi;
 
     switch(spidev->bus){
@@ -135,7 +135,7 @@ void SPI_Init(spidev_t *spidev){
  * \param data  : Pointer to data
  * \param count : total number of bytes to transfer
  * */
-void SPI_Write(spidev_t *spidev, uint8_t *src, uint32_t count){
+void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     
     while(count--){
@@ -150,7 +150,7 @@ void SPI_Write(spidev_t *spidev, uint8_t *src, uint32_t count){
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
-void SPI_WriteDMA(spidev_t *spidev, uint16_t *src, uint32_t count){
+void SPI_WriteDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
 
     spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
@@ -177,7 +177,7 @@ void SPI_WriteDMA(spidev_t *spidev, uint16_t *src, uint32_t count){
  * \param data  : data
  * \param count : total number of transfers
  * */
-void SPI_WriteIntDMA(spidev_t *spidev, uint16_t data, uint32_t count){
+void SPI_WriteIntDMA(spibus_t *spidev, uint16_t data, uint32_t count){
     static uint16_t _data = 0;
     _data = data;
     SPIDEV_SET_FLAG(spidev, SPI_DMA_NO_MINC);
@@ -187,7 +187,7 @@ void SPI_WriteIntDMA(spidev_t *spidev, uint16_t data, uint32_t count){
 /**
  * @brief Wait for end of DMA transfer
  * */
-void SPI_WaitEOT(spidev_t *spidev){    
+void SPI_WaitEOT(spibus_t *spidev){    
     #if 0
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     while(spi->SR & SPI_SR_BSY){
