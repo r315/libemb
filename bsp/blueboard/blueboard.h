@@ -17,18 +17,17 @@ extern "C" {
 #define __BB__
 #endif
 
-#include <LPC17xx.h>
-#include <clock_lpc17xx.h>
-#include <system_LPC17xx.h>
+#include "LPC17xx.h"
+#include "clock_lpc17xx.h"
+#include "system_LPC17xx.h"
 //#include <pwm.h>
 //#include <i2c.h>
 //#include <dac.h>
 //#include <spi.h>
 //#include <lcd.h>
-#include <button.h>
-#include <ili9328.h>
-#include <display.h>
-#include <uart_lpc17xx.h>
+#include "button.h"
+#include "display.h"
+//#include "uart_lpc17xx.h"
 //#include <timer.h>
 
 
@@ -230,6 +229,70 @@ extern "C" {
 #define PINDIR_P0_24(x) { LPC_GPIO0->FIODIR = (LPC_GPIO0->FIODIR & ~(1<<24)) | (x<<23); }
 
 #define PINDIR_P2_0(x) { LPC_GPIO2->FIODIR = (LPC_GPIO2->FIODIR & ~(1 << 0)) | (x << 0); }
+
+/**
+ * Register bit definitions
+ * */
+#define SET_BIT(REG, BIT)     ((REG) |= (BIT))
+#define CLEAR_BIT(REG, BIT)   ((REG) &= ~(BIT))
+
+// PCONP
+#define SC_PCONP_PCUART0        (1 << 3)
+#define SC_PCONP_PCUART1        (1 << 4)
+#define SC_PCONP_PCSPI			(1 << 8)
+#define SC_PCONP_PCSSP1			(1 << 10)
+#define SC_PCONP_PCSSP0			(1 << 21)
+#define SC_PCONP_PCUART2        (1 << 24)
+#define SC_PCONP_PCUART3        (1 << 25)
+
+#define PCONP_SPI_ENABLE()		SET_BIT(LPC_SC->PCONP, SC_PCONP_PCSPI)
+#define PCONP_SSP0_ENABLE()		SET_BIT(LPC_SC->PCONP, SC_PCONP_PCSSP0)
+#define PCONP_SSP1_ENABLE()		SET_BIT(LPC_SC->PCONP, SC_PCONP_PCSSP1)
+#define PCONP_UART0_ENABLE()    SET_BIT(LPC_SC->PCONP, SC_PCONP_PCUART0)
+#define PCONP_UART1_ENABLE()    SET_BIT(LPC_SC->PCONP, SC_PCONP_PCUART1)
+#define PCONP_UART2_ENABLE()    SET_BIT(LPC_SC->PCONP, SC_PCONP_PCUART2)
+#define PCONP_UART3_ENABLE()    SET_BIT(LPC_SC->PCONP, SC_PCONP_PCUART3)
+
+// SSPx
+#define SSP_CR0_CPOL (1<<6)  // idle level
+#define SSP_CR0_CPHA (1<<7)  // data valid
+#define SSP_CR1_SSE  (1<<1)  // ssp enable
+#define SSP_MS   (1<<2)  // master mode
+#define SSP_SOD  (1<<3)  // slave output disable
+#define SSP_TFE  (1<<0)
+#define SSP_TNF  (1<<1)
+
+#define SSP_SR_TFE (1<<0)
+#define SSP_SR_TNF (1<<1)
+#define SSP_SR_RNE (1<<2)
+#define SSP_SR_RFF (1<<3)
+#define SSP_SR_BSY (1<<4)
+
+/* SPI */
+#define SPI_SPCR_EN       (1 << 2)	//transfered bits selected by bits 11:8
+#define SPI_SPCR_CPHA     (1 << 3)
+#define SPI_SPCR_CPOL     (1 << 4)
+#define SPI_SPCR_MSTR     (1 << 5)	//Master mode
+#define SPI_SPCR_LSBF     (1 << 6)
+#define SPI_SPCR_SPIE     (1 << 7)
+
+#define SPI_SPSR_ABRT     (1 << 3)
+#define SPI_SPSR_MODF     (1 << 4)
+#define SPI_SPSR_ROVR     (1 << 5)
+#define SPI_SPSR_WCOL     (1 << 6)
+#define SPI_SPSR_SPIF     (1 << 7)
+
+/* UART0 */
+#define UART_LSR_RDR        (1 << 0)
+#define UART_LSR_OE         (1 << 1)
+#define UART_LSR_PE         (1 << 2)
+#define UART_LSR_FE         (1 << 3)
+#define UART_LSR_BI         (1 << 4)
+#define UART_LSR_THRE       (1 << 5)
+#define UART_LSR_TEMT       (1 << 6)
+#define UART_LSR_RXFE       (1 << 7)
+
+#define UART_IIR_STATUS     (1 << 0)
 
 
 //-----------------------------------------------------

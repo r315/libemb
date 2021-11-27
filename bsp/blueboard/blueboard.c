@@ -6,7 +6,7 @@
 TODO: inicializar clock usb
 */
 
-#include <blueboard.h>
+#include "blueboard.h"
 
 #ifdef __cplusplus
 extern "C" {

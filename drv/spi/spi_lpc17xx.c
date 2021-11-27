@@ -1,7 +1,46 @@
 
-#include <board.h>
-#include <spi.h>
-#include "spi_lpc17xx.h"
+#include "board.h"
+#include "spi.h"
+
+#include <LPC17xx.h>
+
+
+#define SSP0_ConfigPins()                             \
+	    LPC_PINCON->PINSEL0 &= ~(SSP0_CLK_PIN_MASK);  \
+	    LPC_PINCON->PINSEL1 &= ~(SSP0_PINS_MASK);     \
+	    LPC_PINCON->PINSEL0 |= SSP0_CLK_PIN;          \
+	    LPC_PINCON->PINSEL1 |= SSP0_PINS;
+
+#define SSP1_ConfigPins()                         \
+		LPC_PINCON->PINSEL0 &= ~(SSP1_PINS_MASK); \
+		LPC_PINCON->PINSEL0 |= SSP1_PINS;
+
+#define SPI_ConfigPins() PINCON->PINSEL0 = SPI0_PINS;
+
+
+/* SSPx pins */
+#define SSP0_CLK_PIN_MASK (3<<30)
+#define SSP0_CLK_PIN      (2<<30)
+#define SSP0_PINS_MASK    (0x0F<<2)
+#define SSP0_PINS         (0x0A<<2)
+#define SSP1_PINS_MASK    (0xFF<<12)
+#define SSP1_PINS         (0x2A<<14)
+#define SSP1_SSEL         (2<<12)
+
+
+#define SSP_MAX_CLK 10
+#define SSP_MIN_CLK 254
+
+
+/* pincon function select */
+/*Remark: LPC2104/05/06 and LPC2104/05/06/00 configured to operate as a SPI master MUST
+select SSEL functionality on P0.7 and have HIGH level on this pin in order to act as a master.*/
+#define SPI0_PINS     (0x55<<8)
+
+#define SPI_MAX_CLK   8		//min pckl divider
+#define SPI_MAX_FREQ  0
+
+#define SPI_NUM_BUS 2
 
 void SSP_SetPCLK(uint8_t psel, uint8_t ck){	
 	switch(ck){
@@ -13,10 +52,10 @@ void SSP_SetPCLK(uint8_t psel, uint8_t ck){
 	}
 }
 
-void SPI_Init(spidev_t *spi){
-uint32_t cpsr;
-uint8_t ck, psel;
-LPC_SSP_TypeDef *sspx;
+void SPI_Init(spibus_t *spi){
+	uint32_t cpsr;
+	uint8_t ck, psel;
+	LPC_SSP_TypeDef *sspx;
 
 	if(spi->bus >= SPI_NUM_BUS)
 		return;
@@ -33,13 +72,13 @@ LPC_SSP_TypeDef *sspx;
 	sspx->CR1 = 0;	
 
 	if(sspx == LPC_SSP0){
-		LPC_SC->PCONP |= SSP0_ON;						// power up module
+		PCONP_SSP0_ENABLE();
 		LPC_PINCON->PINSEL0 &= ~(SSP0_CLK_PIN_MASK);	// configure pins
 	    LPC_PINCON->PINSEL1 &= ~(SSP0_PINS_MASK);
 	    LPC_PINCON->PINSEL0 |= SSP0_CLK_PIN;
 	    LPC_PINCON->PINSEL1 |= SSP0_PINS;
 	}else{
-		LPC_SC->PCONP |= SSP1_ON;
+		PCONP_SSP1_ENABLE();
 		LPC_PINCON->PINSEL0 &= ~(SSP1_PINS_MASK);
 		LPC_PINCON->PINSEL0 |= SSP1_PINS;
 	}
@@ -64,18 +103,18 @@ LPC_SSP_TypeDef *sspx;
 
 	switch(spi->cfg & 0xF0){
 		case SPI_MODE0: break;
-		case SPI_MODE1: sspx->CR0 |= SSP_CPHA; break;
-		case SPI_MODE2: sspx->CR0 |= SSP_CPOL; break;
-		case SPI_MODE3: sspx->CR0 |= SSP_CPHA | SSP_CPHA; break;
+		case SPI_MODE1: sspx->CR0 |= SSP_CR0_CPHA; break;
+		case SPI_MODE2: sspx->CR0 |= SSP_CR0_CPOL; break;
+		case SPI_MODE3: sspx->CR0 |= SSP_CR0_CPHA | SSP_CR0_CPHA; break;
 		default: break;
 	}
 
-	sspx->CR1 = SSP_SSE;       // Enable ssp
+	sspx->CR1 = SSP_CR1_SSE;       // Enable ssp
 	
 	spi->ctrl = sspx;
 }
 
-void SPI_Write(spidev_t *spi, uint8_t *buffer, uint32_t lenght){
+void SPI_Write(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
 
 LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 
@@ -116,7 +155,7 @@ void SPI_Transfer(unsigned short *txBuffer, unsigned short *rxBuffer, int lenght
 	}
 }
 */
-uint16_t SPI_Send(spidev_t *spi, uint16_t data){
+uint16_t SPI_Send(spibus_t *spi, uint16_t data){
 LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 	sspx->DR = data;
 		while((sspx->SR & SSP_SR_BSY));

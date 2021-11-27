@@ -1,14 +1,12 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <LPC17xx.h>
-#include <clock_lpc17xx.h>
-#include <uart_lpc17xx.h>
+#include "board.h"
+#include "uart.h"
 
-static uart_t *uart0;
-static uart_t *uart1;
-static uart_t *uart2;
-static uart_t *uart3;
-
+struct FdrPair{
+	unsigned short fr;
+	unsigned char FdrVal; //(MulVal<<4) | MulVal	
+};
 
 //Fractional Divider setting look-up table
 static const struct FdrPair _frdivTab[]={
@@ -103,61 +101,16 @@ struct FdrPair *pfrdvtab = (struct FdrPair *)_frdivTab;
 return DLest & 255;
 }
 
-void UART_Cfg(unsigned char number, unsigned int baudrate, uint64_t pclk){
-struct FdrPair frdiv;	
-unsigned char DLest;
-	
-	// Turn on power to UART0
-	LPC_SC->PCONP |=  PCONP_UART0;
-		
-	// Turn on UART0 peripheral clock
-	CLOCK_SetPCLK(PCLK_UART0, PCLK_4);
-	//SC->PCLKSEL0 |=  (0 << PCLK_UART0);	
-	
-	// Set PINSEL0 so that P0.2 = TXD0, P0.3 = RXD0
-	LPC_PINCON->PINSEL0 &= ~0xf0;
-	LPC_PINCON->PINSEL0 |= ((1 << 4) | (1 << 6));
-	
-	LPC_UART0->LCR = 0x83;		// 8 bits, no Parity, 1 Stop bit, DLAB=1
-    
-	#ifndef DEBUG
-	DLest = frdivLookup(&frdiv, baudrate, pclk);	
-    LPC_UART0->DLM = DLest >> 8;
-    LPC_UART0->DLL = DLest & 0xFF;
-	LPC_UART0->FDR = frdiv.FdrVal;
-	#else	
-    LPC_UART0->DLM = 0; //config for CCLK=4Mhz, 9600bps
-    LPC_UART0->DLL = 6;
-	LPC_UART0->FDR = 0xC1;
-	#endif
-	
-    LPC_UART0->LCR = 0x03;		// 8 bits, no Parity, 1 Stop bit DLAB = 0
-    LPC_UART0->FCR = 0x07;		// Enable and reset TX and RX FIFO
-}
-
-char UART_GetChar(void){
-char c;
-	while( (LPC_UART0->LSR & LSR_RDR) == 0 );  // Nothing received so just block 	
-	c = LPC_UART0->RBR; // Read Receiver buffer register
-	return c;
-}
-
-void UART_SendChar(char c){	
-	while( (LPC_UART0->LSR & LSR_THRE) == 0 );	// Block until tx empty	
-	LPC_UART0->THR = c;	
-}
-
-
-void UART_Init(Uart *uart, uint8_t number){
+void UART_Init(serialbus_t *serialbus){
 LPC_UART0_TypeDef *puart;
 struct FdrPair frdiv;	
 unsigned char DLest;
 
-    switch(number){
-        case 0: 
+    switch(serialbus->bus){
+        case UART0: 
             puart = LPC_UART0;
             // Turn on power to UART0
-	        LPC_SC->PCONP |=  PCONP_UART0;
+	        PCONP_UART0_ENABLE();
             // Turn on UART0 peripheral clock
 	        CLOCK_SetPCLK(PCLK_UART0, PCLK_4);
 	        //SC->PCLKSEL0 |=  (0 << PCLK_UART0);	
@@ -167,14 +120,14 @@ unsigned char DLest;
 	        LPC_PINCON->PINSEL0 |= ((1 << 4) | (1 << 6));            
             break;
 
-        //case 1: puart = LPC_UART1;
-        //case 2: puart = LPC_UART2;
-        //case 3: puart = LPC_UART3;
+        //case UART1: puart = LPC_UART1;
+        //case UART2: puart = LPC_UART2;
+        //case UART3: puart = LPC_UART3;
         default: return;
     }
 
     puart->LCR = 0x83;		// 8 bits, 1 Parity, 2 Stop bit, DLAB=1
-    DLest = frdivLookup(&frdiv, uart->baudrate, CLOCK_GetPCLK(PCLK_UART0));	
+    DLest = frdivLookup(&frdiv, serialbus->speed, CLOCK_GetPCLK(PCLK_UART0));	
     puart->DLM = DLest >> 8;
     puart->DLL = DLest & 0xFF;
 	puart->FDR = frdiv.FdrVal;
@@ -183,9 +136,34 @@ unsigned char DLest;
     puart->LCR = 0x1F;		// 8 bits, no Parity, 1 Stop bit DLAB = 0
     puart->FCR = 0x07;		// Enable and reset TX and RX FIFO
 
-    uart->dev = puart;
+    serialbus->ctrl = puart;
 }
 
+char UART_GetChar(serialbus_t *huart){
+	LPC_UART0_TypeDef *uart = (LPC_UART0_TypeDef*)huart->ctrl;
+	while((uart->LSR & UART_LSR_RDR) == 0);	// Nothing received so just block 	
+	return uart->RBR; 					// Read Receiver buffer register
+}
+
+void UART_PutChar(serialbus_t *huart, char c){
+	LPC_UART0_TypeDef *uart = (LPC_UART0_TypeDef*)huart->ctrl;
+	while((uart->LSR & UART_LSR_THRE) == 0);	// Block until tx empty	
+	uart->THR = c;	
+}
+
+void UART_Puts(serialbus_t *huart, const char *str){
+
+}
+
+uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c){
+	return 0;
+}
+
+uint8_t UART_Kbhit(serialbus_t *huart){
+	return 0;
+}
+
+/*
 void UART_Send(Uart *uart, uint8_t *data, uint32_t len){
 LPC_UART0_TypeDef *puart = (LPC_UART0_TypeDef*)(uart->dev);
     while(len--){
@@ -237,12 +215,15 @@ void UART_ReceiveIT(Uart *uart, uint8_t *data, uint32_t len){
 		
 
 }
+*/
+void UARTx_IRQHandler(void *ptr){
+	serialbus_t *serialbus = (serialbus_t*)ptr;
+	LPC_UART0_TypeDef *uart = (LPC_UART0_TypeDef*)serialbus->ctrl;
+	uint32_t int_status = uart->IIR;
 
-void UARTx_IRQHandler(uart_t *uart){
-uint32_t int_status = ((LPC_UART_TypeDef*)uart->dev)->IIR;
-	if(!(int_status & IIR_PEND)){
+	if(int_status & UART_IIR_STATUS){
 		// Check intid
-		switch((int_status>>1) & 7){
+		switch((int_status >> 1) & 7){
 			case 0: // Modem interrupt
 				break;
 			case 1: // THRE Interrupt
@@ -251,10 +232,10 @@ uint32_t int_status = ((LPC_UART_TypeDef*)uart->dev)->IIR;
 				//if(uart->rxcb != NULL)
 				{					
 					uint32_t status;
-					while((status = ((LPC_UART_TypeDef*)uart->dev)->LSR) & LSR_RDR){
-						uint32_t data = ((LPC_UART_TypeDef*)uart->dev)->RBR;					
-						data = ((status & LSR_OE) == 0)? data : data | (LSR_OE << 16); // Put flag on upper 16bits
-						uart->rxcb(data);
+					while((status = uart->LSR) & UART_LSR_RDR){
+						uint32_t data = uart->RBR;					
+						data = ((status & UART_LSR_OE) == 0)? data : data | (UART_LSR_OE << 16); // Put flag on upper 16bits
+						//uart->rxcb(data);
 					}
 				}
 				break;
@@ -265,7 +246,7 @@ uint32_t int_status = ((LPC_UART_TypeDef*)uart->dev)->IIR;
 		}
 	}
 }
-
+/*
 void UART0_IRQHandler(void){
 	UARTx_IRQHandler(uart0);
 }
@@ -282,5 +263,5 @@ void UART3_IRQHandler(void){
 	UARTx_IRQHandler(uart3);
 }
 
-
+*/
 
