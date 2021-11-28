@@ -29,7 +29,7 @@ void Console::init(StdOut *sp, const char *prompt) {
 void Console::addCommand(ConsoleCommand *cmd) {
 	if (cmd == NULL || cmdListSize == CONSOLE_MAX_COMMANDS)
 	{
-		xputs("Invalid command or command list full!");
+		putString("Invalid command or command list full!");
 		return;
 	}
 
@@ -65,11 +65,11 @@ char Console::parseCommand(char *line) {
 	memset(line, '\0', COMMAND_MAX_LEN);
 
 	if (res == CMD_NOT_FOUND) {
-		xputs("Command not found\r");
+		putString("Command not found\r");
 	}else if (res == CMD_BAD_PARAM) {
-		xputs("Bad parameter ");
+		putString("Bad parameter ");
 	}else if(res == CMD_OK_LF){
-		xputchar('\n');
+		putChar('\n');
 	}
 
 	return res;
@@ -108,14 +108,14 @@ void Console::setOutput(StdOut *sp){
 /**
  * libc compatible functions *
  * */
-int Console::xputs(const char* str)
+int Console::putString(const char* str)
 {
 	out->xputs(str);
 	out->xputchar('\n');
 	return 1;
 }
 
-char *Console::xgets(char* str)
+char *Console::getString(char* str)
 {
 	uint8_t i = 0;
 	char c;
@@ -132,16 +132,21 @@ char *Console::xgets(char* str)
 	return str;
 }
 
-int Console::xputchar(int c) {
+int Console::putChar(int c) {
 	out->xputchar(c);
 	return (int)c;
 }
 
-int Console::xgetchar(void)
+int Console::getChar(void)
 {
 	char c = out->xgetchar();
 	out->xputchar(c);
 	return (int)c;
+}
+
+uint8_t Console::getCharNonBlocking(char *c)
+{
+	return out->getCharNonBlocking(c);
 }
 
 /**

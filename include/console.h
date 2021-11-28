@@ -73,11 +73,11 @@ extern "C" {
 		void registerCommandList(ConsoleCommand **list);
 		char parseCommand(char *line);
 		char executeCommand(void *ptr);
-		int xputchar(int c);
-		int xputs(const char* str);
-		int xgetchar(void);
-		char *xgets(char* str);
-		char getline(char *line, uint8_t max);
+		int putChar(int c);
+		int putString(const char* str);
+		int getChar(void);
+		uint8_t getCharNonBlocking(char *c);
+		char *getString(char* str);
 		void print(const char* str, ...);
 		uint8_t kbhit(void);
 
