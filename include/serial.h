@@ -9,6 +9,20 @@ extern "C" {
 #include "uart.h"
 #include "stdout.h"
 
+#define SERIAL_DATA_8B      (8 << 24)
+#define SERIAL_PARITY_NONE  (0 << 28)
+#define SERIAL_PARITY_EVEN  (1 << 28)
+#define SERIAL_PARITY_ODD   (2 << 28)
+#define SERIAL_STOP_1B      (1 << 30)
+#define SERIAL_STOP_2B      (2 << 30)
+#define SERIAL_SPEED_115200 (115200 << 4)
+
+#define SERIAL_CONFIG_GET_SPEED(cfg)    ((cfg >> 4) & 0xFFFFF)     // 20bit
+#define SERIAL_CONFIG_GET_NUM(cfg)      ((cfg >> 0) & 15)  // 4bit
+#define SERIAL_CONFIG_GET_DATA(cfg)     ((cfg >> 24) & 15)  // 4 bit
+#define SERIAL_CONFIG_GET_PARITY(cfg)   ((cfg >> 28) & 3)   // 2 bit
+#define SERIAL_CONFIG_GET_STOP(cfg)     ((cfg >> 30) & 3)   // 2 bit
+
 typedef enum serialx{
     SERIAL0 = 0,
     SERIAL1,
@@ -18,11 +32,11 @@ typedef enum serialx{
 }serial_e;
 
 typedef struct serialhandler {
-    stdout_t out;
     serialbus_t port;
+    stdout_t out;
 }serialhandler_t;
 
-void SERIAL_Config(serialhandler_t *hserial);
+void SERIAL_Config(serialhandler_t *hserial, uint32_t config);
 
 #ifdef __cplusplus
 }

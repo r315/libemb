@@ -15,7 +15,7 @@
 #define PCLK_CLK_DIV256         (7 << 3)
 #define SPIDEV_SET_FLAG(_D, _F) _D->cfg |= _F
 #define SPIDEV_CLR_FLAG(_D, _F) _D->cfg &= ~(_F)
-#define SPIDEV_GET_FLAG(_D, _F) !!(_D->cfg & _F)
+#define SPIDEV_GET_FLAG(_D, _F) !! (_D->cfg & _F)
 
 /**
  * @brief DMA Interrupt handler

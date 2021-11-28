@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#if defined(__BB__)
+#if defined(BOARD_BLUEBOARD)
 #include "clock_lpc17xx.h"
 
 #define PCTIM0 1
