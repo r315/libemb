@@ -1,6 +1,6 @@
 #include <board.h>
-#include <lcd.h>
 #include <ili9328.h>
+#include <lcd.h>
 
 static uint16_t _width, _height;
 void (*LCD_WindowRotation)(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
@@ -77,7 +77,6 @@ void LCD_Command(uint8_t ins)
 //
 //--------------------------------------------------------
 void LCD_Fill(uint16_t color, uint32_t count){
-	LCDRS1;
 	while(count--){
 		LCD_DATAPORT = color>>8;
 		LCDWR0;LCDWR0;LCDWR1;
@@ -89,6 +88,23 @@ void LCD_Fill(uint16_t color, uint32_t count){
 void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color){
 	LCD_Window(x, y, w, h);
 	LCD_Fill(color, w * h);
+}
+
+
+void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data){
+	uint32_t count = w * h;
+	uint8_t *pcolor;
+
+	LCD_Window(x, y, w, h);
+
+	while(count--){
+		pcolor = (uint8_t*)data;
+		LCD_DATAPORT = pcolor[1];
+		LCDWR0;LCDWR0;LCDWR1;
+		LCD_DATAPORT = pcolor[0];
+		LCDWR0;LCDWR0;LCDWR1;
+		data++;
+	}
 }
 //-------------------------------------------------------------------
 //	 Creates a write window inside GRAM
@@ -142,10 +158,10 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t c){
 //-------------------------------------------------------------------
 void LCD_Scroll(uint16_t y)
 {
-	while ((int16_t)y < 0)
- 		y += 320;
-	while (y >= 320)
- 		y -= 320;
+	//while ((int16_t)y < 0)
+ 	//	y += 320;
+	//while (y >= 320)
+ 	//	y -= 320;
 	LCD_Command(LCD_GATE_SCAN_CTRL3);
  	LCD_Data(y);
 }

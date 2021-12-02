@@ -37,6 +37,10 @@ extern "C" {
 #define PLL80   2
 #define PLL100  3
 
+#define GetTick         CLOCK_GetTicks
+#define DelayMs         CLOCK_DelayMs
+#define ElapsedTicks    CLOCK_ElapsedTicks
+
 /* Watchdog */
 #define WDMOD_WDEN    (1 << 0)
 #define WDMOD_WDRESET (1 << 1)
