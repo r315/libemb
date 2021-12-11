@@ -78,10 +78,10 @@ void TIMER_CAP_Init(LPC_TIM_TypeDef *tim, char ch, char edge, CallBack cb){
         CLOCK_SetPCLK(PCLK_TIMER3, PCLK_1); 
 
         if(ch == 0){
-            PINSEL_P0_23(P0_23_CAP3_0);
+            GPIO_Function(P0_23, P0_23_CAP3_0);
         }
         else{
-            PINSEL_P0_24(P0_24_CAP3_1);
+            GPIO_Function(P0_24, P0_24_CAP3_1);
         }
         NVIC_EnableIRQ(TIMER3_IRQn);
     }else{

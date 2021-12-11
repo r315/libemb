@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "stdint.h"
+#include <stdint.h>
 
 #ifdef STM32F103xB
 
@@ -111,10 +111,6 @@ typedef enum {
 
 #define PIN_RESET(_port, _pin) _port->BRR = (1 << _pin)
 #define PIN_SET(_port, _pin) _port->BSRR = (1 << _pin)
-#else
-typedef enum {
-	DUMMY = 0
-}pinName_e;
 #endif
         
 
@@ -126,6 +122,7 @@ void PIN_Write(pinName_e name, uint8_t state);
 void PIN_Toggle(pinName_e name);
 void PIN_PORT_Write(pinName_e name, uint32_t value);
 uint32_t PIN_Read(pinName_e name);
+void PIN_Function(pinName_e pin, uint8_t func);
 
 #ifdef __cplusplus
 }
