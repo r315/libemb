@@ -176,10 +176,10 @@ uint32_t calcPclk(uint8_t div){
     }
 }
 
-uint32_t CLOCK_GetPCLK(uint8_t peripheral){
+uint32_t CLOCK_GetPCLK(pclknum_e peripheral){
 uint8_t cclkdiv;
 
-    if(peripheral < 16){
+    if(peripheral < PCLK_QEI){
         cclkdiv = (LPC_SC->PCLKSEL0 >> (peripheral << 1)) & 3;
     }else{
         cclkdiv = (LPC_SC->PCLKSEL1 >> ((peripheral & 0xF) << 1)) & 3;
@@ -187,16 +187,11 @@ uint8_t cclkdiv;
     return calcPclk(cclkdiv);
 }
 
-void CLOCK_SetPCLK(uint8_t peripheral, uint8_t div){
+void CLOCK_SetPCLK(pclknum_e peripheral, uint8_t div){
+	uint32_t pclk_pos = ((peripheral & 0xF) << 1);    
+    __IO uint32_t *pclk = (peripheral < PCLK_QEI) ? &LPC_SC->PCLKSEL0 : &LPC_SC->PCLKSEL1;
 
-uint32_t pclk_pos = ((peripheral & 0xF) << 1);
-    
-    if(peripheral < 16){
-        LPC_SC->PCLKSEL0 &= ~(3 << pclk_pos);
-        LPC_SC->PCLKSEL0 |= (div << pclk_pos);
-    }else{
-        LPC_SC->PCLKSEL1 &= ~(3 << pclk_pos);
-        LPC_SC->PCLKSEL1 |= (div << pclk_pos);
-    }
+	*pclk &= ~(3 << pclk_pos);
+	*pclk |= (div << pclk_pos);
 }
 
