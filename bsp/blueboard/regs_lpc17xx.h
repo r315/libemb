@@ -158,6 +158,10 @@ extern "C" {
 #define I2S_DAI_STOP                (1 << 3)
 #define I2S_DAI_RESET               (1 << 4)
 #define I2S_DAI_WS_SEL              (1 << 5)
+// STATE
+#define I2S_STATE_IRQ               (1 << 0)
+#define I2S_STATE_DMAREQ1           (1 << 1)
+#define I2S_STATE_DMAREQ2           (1 << 2)
 // IRQ
 #define I2S_IRQ_RX_EN               (1 << 0)
 #define I2S_IRQ_TX_EN               (1 << 1)

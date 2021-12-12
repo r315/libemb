@@ -59,33 +59,164 @@
 #define RXFIFO_EMPTY		0
 #define TXFIFO_FULL			8
 
-volatile uint8_t *I2STXBuffer = (uint8_t *)(DMA_SRC); 
-volatile uint8_t *I2SRXBuffer = (uint8_t *)(DMA_DST);
-volatile uint32_t I2SReadLength = 0;
-volatile uint32_t I2SWriteLength = 0;
-volatile uint32_t I2SRXDone = 0, I2STXDone = 0;
-
+/**
+ * @brief Configure MCLK according bit rate.
+ * Bit rate is given by sample rate * number of bits of one sample * number of channels.
+ * MCLK is given by multiplying TX_CLK with N (1 to 64).
+ * 
+ * Find an MCLK value in such way that is integer divisible to obtain TX_CLK and
+ * a result of PCLK by fraction.
+ * 
+ *                                        +--------------> TX_MCLK
+ *                                        |
+ * PCLK --->[Frac divider (X/Y)]--->[/2]--+->[/N 1-64]---> TX_CLK (Bit clock)
+ * 
+ * @param   i2s:    Configuration structure
+ * */
 static void clock_config(i2sbus_t *i2s){
-    CLOCK_SetPCLK(PCLK_I2S, PCLK_4);
-    //Y divider
-    //X divider
-    //bitrate MCLK divider
+    uint32_t x, y, N;
+    uint16_t err, ErrorOptimal = 0xFFFF;
+    uint16_t x_divide, y_divide, dif;
+    uint32_t pclk = CLOCK_GetPCLK(PCLK_I2S);
+    LPC_I2S_TypeDef *i2sx = (LPC_I2S_TypeDef*)i2s->regs;
 
-    LPC_I2S->I2STXRATE = 0x241;
-    LPC_I2S->I2SRXRATE = 0x241;
+    /**
+     * Source: Marlin 3D Printer Firmware
+     *  
+     * Calculate X and Y divider
+	 * The MCLK rate for the I2S transmitter is determined by the value
+	 * in the I2STXRATE/I2SRXRATE register. The required I2STXRATE/I2SRXRATE
+	 * setting depends on the desired audio sample rate desired, the format
+	 * (stereo/mono) used, and the data size.
+	 * The formula is:
+	 * 		I2S_MCLK = PCLK_I2S * (X/Y) / 2
+     * In that, Y must be greater than or equal to X. X should divides evenly
+     * into Y.
+	 * We have:
+	 * 		I2S_MCLK = Freq * channel*wordwidth * (I2STXBITRATE+1);
+	 * So: (X/Y) = (Freq * channel*wordwidth * (I2STXBITRATE+1))*2/PCLK_I2S
+	 * We use a loop function to chose the most suitable X,Y value
+	 */
+
+	/* divider is a fixed point number with 16 fractional bits */
+    uint64_t divider = (((uint64_t)i2s->sample_rate * i2s->channels * i2s->data_size * 2) << 16) / pclk;
+
+	/* find N that make x/y <= 1 -> divider <= 2^16 */
+	for(N = 64; N > 0; N--){
+		if((divider * N) < ( 1 << 16)) 
+            break;
+	}
+
+	if(N == 0) 
+        return; /* Error */
+
+	divider = divider * N;
+
+	for (y = 255; y > 0; y--) {
+		x = y * divider;
+		
+        if(x & (0xFF000000)){
+            continue;
+        }
+		
+        dif = x & 0xFFFF;
+		
+        if(dif>0x8000){
+            err = 0x10000-dif;
+        }else{
+            err = dif;
+        }
+
+		if (err == 0){
+			y_divide = y;
+			break;
+		}else if (err < ErrorOptimal){
+			ErrorOptimal = err;
+			y_divide = y;
+		}
+	}
+
+	x_divide = ((uint64_t)y_divide * i2s->sample_rate *(i2s->channels * i2s->data_size)* N * 2) / pclk;
+
+	if(x_divide >= 256) x_divide = 0xFF;
+	if(x_divide == 0) x_divide = 1;
+
+    i2sx->I2STXBITRATE = N-1;
+    i2sx->I2SRXBITRATE = N-1;
+    i2sx->I2STXRATE = y_divide | (x_divide << 8);
 
 }
 
 /**
- * @brief I2S initialization, bus member selects pins to be used
+ * @brief I2S Configuration
+ * 
+ * @param   i2s:    Configuration structure
+ * */
+void I2S_Config(i2sbus_t *i2s){
+    uint32_t value = I2S_DAO_STOP | I2S_DAO_RESET;
+    
+    SET_BIT(LPC_I2S->I2SDAO, I2S_DAO_RESET | I2S_DAO_STOP);
+    SET_BIT(LPC_I2S->I2SDAI, I2S_DAI_RESET | I2S_DAI_STOP);
+    
+    clock_config(i2s);
+
+    switch(i2s->data_size){
+        case 8:
+            value |= I2S_DAO_WIDTH_8B |
+                    (7 << 6);  /* Bits per slot 1 to 64*/
+            break;
+
+        default:
+        case 16:
+            value |= I2S_DAO_WIDTH_16B | (15 << 6);
+            break;
+
+        case 32:
+            value |= I2S_DAO_WIDTH_32B | (31 << 6);
+            break;
+    }
+
+    if(i2s->channels == 1){
+        value |= I2S_DAO_MONO;
+    }  
+
+    /* Configure transmitter */
+    if(!(i2s->mode & I2S_TX_MASTER)){
+        LPC_I2S->I2SDAO = value | I2S_DAO_WS_SEL; /* Slave */
+    }else{
+        LPC_I2S->I2SDAO = value;
+    }
+
+    if(i2s->mute){
+        SET_BIT(LPC_I2S->I2SDAO, I2S_DAO_MUTE);
+    }
+
+    /* Configure same parameters for receiver */
+    if(!(i2s->mode & I2S_TX_MASTER)){
+        LPC_I2S->I2SDAI = value | I2S_DAI_WS_SEL;
+    }else{
+        LPC_I2S->I2SDAI = value;
+    }
+}
+
+/**
+ * @brief I2S initialization and configuration.
+ *      PINS are configured according bus number
  * 
  * @param   i2s:    i2sbus structure for initialization
  * */
 void I2S_Init(i2sbus_t *i2s){
-
     PCONP_I2S_ENABLE();
 
-    clock_config(i2s);
+    i2s->regs = LPC_I2S;
+        
+    I2S_Config(i2s);
+
+    i2s->txbuffer = (uint32_t *)(DMA_SRC); 
+    i2s->rxbuffer = (uint32_t *)(DMA_DST);
+
+    i2s->wridx = 0;
+    i2s->rdidx = 0;
 
     switch(i2s->bus){
         case I2S_BUS0:
@@ -112,19 +243,18 @@ void I2S_Init(i2sbus_t *i2s){
             return;
     }
 
-    //GPIO_Function(P4_28, P4_28_RX_MCLK);
-    //GPIO_Function(P4_29, P4_29_TX_MCLK);
+    GPIO_Function(P4_28, P4_28_RX_MCLK);
+    GPIO_Function(P4_29, P4_29_TX_MCLK);
 
-    //LPC_I2S->I2STXMODE = I2S_TXMODE_TXMCENA;
-    //LPC_I2S->I2SRXMODE = I2S_RXMODE_RXMCENA;
+    LPC_I2S->I2STXMODE = I2S_TXMODE_TXMCENA; /* Enable MCLK output */
+    LPC_I2S->I2SRXMODE = I2S_RXMODE_RXMCENA;
+
+
+    //LPC_I2S->I2STXRATE = 0x241;
+    //LPC_I2S->I2SRXRATE = 0x241;
+    I2S_Stop();
 
     NVIC_EnableIRQ(I2S_IRQn);
-// DMA
-    //PCONP_GPDMA_ENABLE();
-    //LPC_GPDMA->DMACIntTCClear = 0x03;
-    //LPC_GPDMA->DMACIntErrClr = 0x03;
-
-    I2S_Stop();
 }
 
 void I2S_Start( void ){
@@ -145,30 +275,18 @@ void I2S_Stop(void){
     SET_BIT(LPC_I2S->I2SDAI, I2S_DAI_RESET | I2S_DAI_STOP);     /* Slave */
 }
 
-void I2S_DMA_IRQHandler(i2sbus_t *spidev){
-uint32_t RxCount = 0;
-
-  if ( LPC_I2S->I2SSTATE & 0x01 )
-  {
-	RxCount = (LPC_I2S->I2SSTATE >> 8) & 0xFF;
-	if ( (RxCount != RXFIFO_EMPTY) && !I2SRXDone )
-	{
-	  while ( RxCount > 0 )
-	  {
-		if ( I2SReadLength == BUFSIZE )
-		{
-		  LPC_I2S->I2SDAI |= ((0x01 << 3) | (0x01 << 4));
-		  LPC_I2S->I2SIRQ &= ~(0x01 << 0);	/* Disable RX */	
-		  I2SRXDone = 1;
-		  break;
-		}
-		else
-		{
-		  I2SRXBuffer[I2SReadLength++] = LPC_I2S->I2SRXFIFO;
-		}
-		RxCount--;
-	  }
-	}
-  }
-  return;
+void I2S_DMA_IRQHandler(i2sbus_t *i2s){
+    uint32_t RxCount, WrIndex;
+    if ( LPC_I2S->I2SSTATE & I2S_STATE_IRQ ){
+        RxCount = (LPC_I2S->I2SSTATE >> 8) & 0x0F;
+        WrIndex = i2s->wridx;
+        while ( RxCount > 0 ){
+            i2s->rxbuffer[WrIndex++] = LPC_I2S->I2SRXFIFO;            
+            if ( WrIndex == BUFSIZE ){
+               WrIndex = 0;
+            }
+            RxCount--;
+        }
+        i2s->wridx = WrIndex;
+    }
 }
