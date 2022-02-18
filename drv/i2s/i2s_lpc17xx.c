@@ -60,12 +60,7 @@
 #define TXFIFO_FULL			8
 
 /**
- * @brief Configure MCLK according bit rate.
- * Bit rate is given by sample rate * number of bits of one sample * number of channels.
- * MCLK is given by multiplying TX_CLK with N (1 to 64).
- * 
- * Find an MCLK value in such way that is integer divisible to obtain TX_CLK and
- * a result of PCLK by fraction.
+ * @brief Configure MCLK according configuration.
  * 
  *                                        +--------------> TX_MCLK
  *                                        |
@@ -93,8 +88,8 @@ static void clock_config(i2sbus_t *i2s){
      * In that, Y must be greater than or equal to X. X should divides evenly
      * into Y.
 	 * We have:
-	 * 		I2S_MCLK = Freq * channel*wordwidth * (I2STXBITRATE+1);
-	 * So: (X/Y) = (Freq * channel*wordwidth * (I2STXBITRATE+1))*2/PCLK_I2S
+	 * 		I2S_MCLK = Freq * channel * wordwidth * (I2STXBITRATE+1);
+	 * So: (X/Y) = I2S_MCLK * 2 / PCLK_I2S
 	 * We use a loop function to chose the most suitable X,Y value
 	 */
 
@@ -121,8 +116,8 @@ static void clock_config(i2sbus_t *i2s){
 		
         dif = x & 0xFFFF;
 		
-        if(dif>0x8000){
-            err = 0x10000-dif;
+        if(dif > 0x8000){
+            err = 0x10000 - dif;
         }else{
             err = dif;
         }
@@ -144,7 +139,6 @@ static void clock_config(i2sbus_t *i2s){
     i2sx->I2STXBITRATE = N-1;
     i2sx->I2SRXBITRATE = N-1;
     i2sx->I2STXRATE = y_divide | (x_divide << 8);
-
 }
 
 /**
@@ -209,7 +203,7 @@ void I2S_Init(i2sbus_t *i2s){
     PCONP_I2S_ENABLE();
 
     i2s->regs = LPC_I2S;
-        
+
     I2S_Config(i2s);
 
     i2s->txbuffer = (uint32_t *)(DMA_SRC); 
