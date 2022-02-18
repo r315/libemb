@@ -127,6 +127,8 @@ void SPI_Init(spibus_t *spidev){
     SPI_DMA_CH->CCR |= DMA_CCR_MINC;                    // Enable memory increment
     SPI_DMA_CSELR_SPI_TX;
     HAL_NVIC_EnableIRQ(SPI_DMA_IRQn);
+
+    spidev->cfg |= SPI_ENABLED;
 }
 
 /**

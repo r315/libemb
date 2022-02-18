@@ -142,6 +142,7 @@ void SPI_Init(spibus_t *spidev){
 			DMA_CCR_TCIE;               // Enable Transfer Complete interrupt
 
     NVIC_EnableIRQ(irq);
+    spidev->cfg |= SPI_ENABLED;
 }
 
 /**

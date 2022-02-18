@@ -112,6 +112,7 @@ void SPI_Init(spibus_t *spi){
 	sspx->CR1 = SSP_CR1_SSE;       // Enable ssp
 	
 	spi->ctrl = sspx;
+	spi->cfg |= SPI_ENABLED;
 }
 
 void SPI_Write(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
