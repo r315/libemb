@@ -1,10 +1,7 @@
-#include "board.h"
+#include "stm32l4xx.h"
 #include "spi.h"
+#include "dma.h"
 
-#define SPI_DMA                 DMA2
-#define SPI_DMA_CH              DMA2_Channel4
-#define SPI_DMA_CSELR_SPI_TX    DMA2_CSELR->CSELR = (DMA2_CSELR->CSELR & ~DMA_CSELR_C4S_Msk) | (4U << DMA_CSELR_C4S_Pos)
-#define SPI_DMA_IRQn            DMA2_Channel4_IRQn
 #define PCLK_CLK_DIV2           (0)
 #define PCLK_CLK_DIV4           (1 << 3)
 #define PCLK_CLK_DIV8           (2 << 3)
@@ -13,22 +10,23 @@
 #define PCLK_CLK_DIV64          (5 << 3)
 #define PCLK_CLK_DIV128         (6 << 3)
 #define PCLK_CLK_DIV256         (7 << 3)
-#define SPIDEV_SET_FLAG(_D, _F) _D->cfg |= _F
-#define SPIDEV_CLR_FLAG(_D, _F) _D->cfg &= ~(_F)
-#define SPIDEV_GET_FLAG(_D, _F) !! (_D->cfg & _F)
+#define SPIDEV_SET_FLAG(_D, _F) _D->flags |= _F
+#define SPIDEV_CLR_FLAG(_D, _F) _D->flags &= ~(_F)
+#define SPIDEV_GET_FLAG(_D, _F) !! (_D->flags & _F)
 
 /**
  * @brief DMA Interrupt handler
  * */
 void SPI_DMA_IRQHandler(spibus_t *spidev){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
+    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.channel;
     
-    SPI_DMA_CH->CCR &= ~(DMA_CCR_EN);
+    dma_channel->CCR &= ~(DMA_CCR_EN);
         
     if(spidev->trf_counter > 0x10000UL){
         spidev->trf_counter -= 0x10000UL;
-        SPI_DMA_CH->CNDTR = (spidev->trf_counter > 0x10000UL) ? 0xFFFFUL : spidev->trf_counter;
-        SPI_DMA_CH->CCR |= DMA_CCR_EN;
+        dma_channel->CNDTR = (spidev->trf_counter > 0x10000UL) ? 0xFFFFUL : spidev->trf_counter;
+        dma_channel->CCR |= DMA_CCR_EN;
     }else{
         // wait for the last byte to be transmitted
         while(spi->SR & SPI_SR_BSY){
@@ -39,7 +37,6 @@ void SPI_DMA_IRQHandler(spibus_t *spidev){
         }
         /* Restore 8bit Spi */        
         spi->CR2 &= ~(SPI_CR2_DS_3);       // 8-bit
-        //spi->CR2 &= ~(SPI_CR2_TXDMAEN);
         spidev->trf_counter = 0;
         if(spidev->eot_cb){
             spidev->eot_cb();
@@ -87,48 +84,54 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
  * */
 void SPI_Init(spibus_t *spidev){
     SPI_TypeDef *spi;
+    DMA_Channel_TypeDef *dma_channel;
 
     switch(spidev->bus){
         case SPI_BUS0:
             __HAL_RCC_SPI1_CLK_ENABLE();
-            spidev->ctrl = SPI1;
+            spi = SPI1;
             break;
 
         case SPI_BUS1:
             __HAL_RCC_SPI2_CLK_ENABLE();
-            spidev->ctrl = SPI2;
+            spi = SPI2;
             break;
 
-        default : return;
+        default : 
+            return;
     }
-    
-    spi = (SPI_TypeDef*)spidev->ctrl;
 
     spi->CR1 = SPI_CR1_MSTR;
     spi->CR2 = (7 << SPI_CR2_DS_Pos);        // Transfer 8-bit
 
     SPI_SetFreq(spi, spidev->freq);
 
-    if(spidev->cfg & SPI_SW_CS){
+    if(spidev->flags & SPI_SW_CS){
         spi->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;                            
     }else{
         spi->CR2 |= SPI_CR2_NSSP | SPI_CR2_SSOE;
     }            
 
     spi->CR1 |= SPI_CR1_SPE;
-    spi->CR2 |= SPI_CR2_TXDMAEN;
+
+    if(spidev->dma.ctrl != NULL){
+        dma_channel = (DMA_Channel_TypeDef*)spidev->dma.channel;
+
+        spi->CR2 |= SPI_CR2_TXDMAEN;
     
-    SPI_DMA_CH->CCR =
+        dma_channel->CCR =
             DMA_CCR_MSIZE_0 |                           // 16bit Dst size
 			DMA_CCR_PSIZE_0 |                           // 16bit src size
             DMA_CCR_DIR |                               // Write to peripheral
 			DMA_CCR_TCIE;                               // Enable Transfer Complete interrupt
-    SPI_DMA_CH->CPAR = (uint32_t)&spi->DR;      // Peripheral source
-    SPI_DMA_CH->CCR |= DMA_CCR_MINC;                    // Enable memory increment
-    SPI_DMA_CSELR_SPI_TX;
-    HAL_NVIC_EnableIRQ(SPI_DMA_IRQn);
+        dma_channel->CPAR = (uint32_t)&spi->DR;         // Peripheral source
+        dma_channel->CCR |= DMA_CCR_MINC;               // Enable memory increment
 
-    spidev->cfg |= SPI_ENABLED;
+        HAL_NVIC_EnableIRQ(spidev->dma.irq);
+    }
+
+    spidev->flags |= SPI_ENABLED;
+    spidev->ctrl = spi;
 }
 
 /**
@@ -139,7 +142,7 @@ void SPI_Init(spibus_t *spidev){
  * */
 void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    
+
     while(count--){
         *((__IO uint8_t *)&spi->DR) = *src++;
         while((spi->SR & SPI_SR_BSY) != 0);
@@ -153,44 +156,33 @@ void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
  * \param count : total number of transfers
  * */
 void SPI_WriteDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
+    static uint16_t _data;
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
+    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.channel;
 
     spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
 
-    if(spidev->cfg & SPI_DMA_NO_MINC){
-        SPI_DMA_CH->CCR &= ~(DMA_CCR_MINC);
+    if(spidev->flags & SPI_DMA_NO_MINC){
+        _data = src[0];
+        src = &_data;
+        dma_channel->CCR &= ~(DMA_CCR_MINC);
     }else{
-        SPI_DMA_CH->CCR |= DMA_CCR_MINC;
+        dma_channel->CCR |= DMA_CCR_MINC;
     }
 
-    //spi->CR2 |= SPI_CR2_TXDMAEN;
-
     spidev->trf_counter = count;    
-    SPI_DMA_CH->CMAR = (uint32_t)src;
-    SPI_DMA_CH->CNDTR = (spidev->trf_counter > 0x10000) ? 0xFFFF : spidev->trf_counter;
+    dma_channel->CMAR = (uint32_t)src;
+    dma_channel->CNDTR = (spidev->trf_counter > 0x10000) ? 0xFFFF : spidev->trf_counter;
     
-    SPI_DMA_CH->CCR |= DMA_CCR_EN;
+    dma_channel->CCR |= DMA_CCR_EN;
     SPIDEV_SET_FLAG(spidev, SPI_BUSY);
-}
-
-/**
- * @brief Write constant data to SPI using DMA controller
- * 
- * \param data  : data
- * \param count : total number of transfers
- * */
-void SPI_WriteIntDMA(spibus_t *spidev, uint16_t data, uint32_t count){
-    static uint16_t _data = 0;
-    _data = data;
-    SPIDEV_SET_FLAG(spidev, SPI_DMA_NO_MINC);
-    SPI_WriteDMA(spidev, &_data, count);
 }
 
 /**
  * @brief Wait for end of DMA transfer
  * */
 void SPI_WaitEOT(spibus_t *spidev){    
-    #if 0
+    #if 1
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     while(spi->SR & SPI_SR_BSY){
     #else

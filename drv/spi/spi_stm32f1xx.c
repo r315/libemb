@@ -9,16 +9,16 @@
 #define PCLK_CLK_DIV64          (5 << 3)
 #define PCLK_CLK_DIV128         (6 << 3)
 #define PCLK_CLK_DIV256         (7 << 3)
-#define SPIDEV_SET_FLAG(_D, _F) _D->cfg |= _F
-#define SPIDEV_CLR_FLAG(_D, _F) _D->cfg &= ~(_F)
-#define SPIDEV_GET_FLAG(_D, _F) !!(_D->cfg & _F)
+#define SPIDEV_SET_FLAG(_D, _F) _D->flags |= _F
+#define SPIDEV_CLR_FLAG(_D, _F) _D->flags &= ~(_F)
+#define SPIDEV_GET_FLAG(_D, _F) !!(_D->flags & _F)
 
 /**
  * @brief DMA Interrupt handler
  * */
 void SPI_DMA_IRQHandler(spibus_t *spidev){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma;
+    DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma.channel;
     
     dma->CCR &= ~(DMA_CCR_EN);
         
@@ -88,26 +88,27 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
  * */
 void SPI_Init(spibus_t *spidev){
     SPI_TypeDef *spi;
-    DMA_Channel_TypeDef *dma;
-    IRQn_Type irq;
+    DMA_Channel_TypeDef *dma_channel;    
 
     switch(spidev->bus){
         case SPI_BUS0:
             __HAL_RCC_SPI1_CLK_ENABLE();
             __HAL_RCC_SPI1_FORCE_RESET();
             __HAL_RCC_SPI1_RELEASE_RESET();
-            spidev->ctrl = SPI1;
-            spidev->dma = DMA1_Channel3;
-            irq = DMA1_Channel3_IRQn;
+            spi = SPI1;
+            spidev->dma.ctrl = DMA1;
+            dma_channel = DMA1_Channel3;
+            spidev->dma.irq = DMA1_Channel3_IRQn;
             break;
 
         case SPI_BUS1:
             __HAL_RCC_SPI2_CLK_ENABLE();
             __HAL_RCC_SPI2_FORCE_RESET();
             __HAL_RCC_SPI2_RELEASE_RESET();
-            spidev->ctrl = SPI2;
-            spidev->dma = DMA1_Channel5;
-            irq = DMA1_Channel5_IRQn;
+            spi = SPI2;
+            spidev->dma.ctrl = DMA1;
+            dma_channel = DMA1_Channel5;
+            spidev->dma.irq = DMA1_Channel5_IRQn;
             break;
 
         default : return;
@@ -115,13 +116,11 @@ void SPI_Init(spibus_t *spidev){
     
     __HAL_RCC_DMA1_CLK_ENABLE();
 
-    spi = (SPI_TypeDef*)spidev->ctrl;
-
     spi->CR1 = SPI_CR1_MSTR;
     
     SPI_SetFreq(spi, spidev->freq);
 
-    if((spidev->cfg & SPI_SW_CS) != 0){
+    if((spidev->flags & SPI_SW_CS) != 0){
         spi->CR2 |=  SPI_CR2_SSOE;
     }            
 
@@ -129,11 +128,9 @@ void SPI_Init(spibus_t *spidev){
     
     spidev->trf_counter = 0;
 
-    dma = (DMA_Channel_TypeDef*)spidev->dma;
+    dma_channel->CPAR = (uint32_t)&spi->DR;     // Peripheral source
 
-    dma->CPAR = (uint32_t)&spi->DR;     // Peripheral source
-
-    dma->CCR =
+    dma_channel->CCR =
             DMA_CCR_PL_0 |              // Medium priority
             DMA_CCR_MSIZE_0 |           // 16bit Dst size
 			DMA_CCR_PSIZE_0 |           // 16bit src size
@@ -141,8 +138,11 @@ void SPI_Init(spibus_t *spidev){
             DMA_CCR_DIR |               // Write to peripheral
 			DMA_CCR_TCIE;               // Enable Transfer Complete interrupt
 
-    NVIC_EnableIRQ(irq);
-    spidev->cfg |= SPI_ENABLED;
+    NVIC_EnableIRQ(spidev->dma.irq);
+
+    spidev->ctrl = spi;
+    spidev->dma.channel = dma_channel;
+    spidev->flags |= SPI_ENABLED;
 }
 
 /**
@@ -186,14 +186,17 @@ void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
  * \param count : total number of transfers
  * */
 void SPI_WriteDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
+    static uint16_t _data;
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma;
+    DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma.channel;
 
     // Configure Spi for 16bit DMA
     spi->CR1 &= ~SPI_CR1_SPE;
     spi->CR1 |= SPI_CR1_DFF | SPI_CR1_SPE;
 
-    if(spidev->cfg & SPI_DMA_NO_MINC){
+    if(spidev->flags & SPI_DMA_NO_MINC){
+        _data = src[0];
+        src = &_data;
         dma->CCR &= ~(DMA_CCR_MINC);
     }else{
         dma->CCR |= DMA_CCR_MINC;
@@ -209,19 +212,6 @@ void SPI_WriteDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
     dma->CCR |= DMA_CCR_EN;
 
     SPIDEV_SET_FLAG(spidev, SPI_BUSY);
-}
-
-/**
- * @brief Write repeated integer data to SPI using DMA
- * 
- * \param data  : data
- * \param count : total number of transfers
- * */
-void SPI_WriteIntDMA(spibus_t *spidev, uint16_t data, uint32_t count){
-    static uint16_t _data = 0;
-    _data = data;
-    SPIDEV_SET_FLAG(spidev, SPI_DMA_NO_MINC);
-    SPI_WriteDMA(spidev, &_data, count);
 }
 
 /**

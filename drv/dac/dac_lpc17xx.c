@@ -11,15 +11,12 @@
 #define DACCTRL_DMA_ENA     (1 << 3)
 
 
-Dmachannel dacdma;
-
-
 void DAC_Init(){
 
     CLOCK_SetPCLK(PCLK_DAC, PCLK_8);
     DAC_CFG_PIN;
-    memset(&dacdma, 0, sizeof(Dmachannel));
-    DMA_Init();
+    //memset(&dacdma, 0, sizeof(Dmachannel));
+    //DMA_Init();
    
 }
 
@@ -34,7 +31,7 @@ void DAC_Write(uint16_t value){
 void DAC_WriteBufer(uint16_t *buf, uint32_t len, uint16_t rate){
     LPC_DAC->DACCNTVAL = rate;
     LPC_DAC->DACCTRL = 0;
-
+/*
     dacdma.src = (uint32_t)buf;
     dacdma.dst = (uint32_t)&LPC_DAC->DACR;
     dacdma.len = len;
@@ -45,11 +42,11 @@ void DAC_WriteBufer(uint16_t *buf, uint32_t len, uint16_t rate){
     DMA_Start(&dacdma);   
 
     LPC_DAC->DACCTRL = DACCTRL_DMA_ENA | DACCTRL_CNT_ENA;
-
+*/
     //DAC_Stop();
 }
 
 void DAC_Stop(void){
     LPC_DAC->DACCTRL = 0;
-    DMA_Stop(&dacdma);
+    //DMA_Stop(&dacdma);
 }

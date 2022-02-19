@@ -179,15 +179,17 @@ void LCD_Write(uint16_t *data, uint32_t count){
 		return;
 	}
 
+	SPI_WaitEOT(spidev);
+
 	LCD_CS0;
-	#if 1
-	SPI_WriteDMA(spidev, data, count);
-	//LCD_CS1; // SET by DMA handler
-	#else
-	while(count--)
-		LCD_Data(*data++);
-	LCD_CS1;
-	#endif
+	if(spidev->dma.ctrl != NULL){
+		SPI_WriteDMA(spidev, data, count);
+		//LCD_CS1; // SET by DMA handler
+	}else{
+		while(count--)
+			LCD_Data(*data++);
+		LCD_CS1;
+	}	
 }
 
 /**
@@ -201,15 +203,18 @@ static void LCD_Fill(uint16_t data, uint32_t count){
 		return;
 	}
 
+	SPI_WaitEOT(spidev);
+
 	LCD_CS0;
-	#if 1
-	SPI_WriteIntDMA(spidev, data, count);
-	//LCD_CS1; // SET by DMA handler	
-	#else
-	while(count--)
-		LCD_Data(data);
-	LCD_CS1;
-	#endif
+	if(spidev->dma.ctrl != NULL){
+		spidev->flags |= SPI_DMA_NO_MINC;
+		SPI_WriteDMA(spidev, &data, count);
+		//LCD_CS1; // SET by DMA handler	
+	}else{
+		while(count--)
+			LCD_Data(data);
+		LCD_CS1;
+	}
 }
 
 /**
@@ -294,9 +299,9 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
 	x += start_x;
 	y += start_y;
-
-	SPI_WaitEOT(spidev);
 	
+	SPI_WaitEOT(spidev);
+
 	LCD_CS0;
 	LCD_CasRasSet(x, y, x, y);
 	LCD_Data(color);
@@ -337,8 +342,9 @@ void LCD_Init(void *spi){
 	//LCD_PIN_INIT; made on board level
 
 	spidev = (spibus_t*)spi;
-	// This driver assumes there is a callback call
-	spidev->eot_cb = LCD_EOTHandler;
+	if(spidev->dma.ctrl != NULL){
+		spidev->eot_cb = LCD_EOTHandler;
+	}
 
 	LCD_CD1;
 	LCD_CS1;
@@ -377,6 +383,9 @@ void LCD_Init(void *spi){
  *
  */
 void LCD_Scroll(uint16_t sc){
+
+	SPI_WaitEOT(spidev);
+
 	LCD_CS0;
 	LCD_Command(ST7735_VSCSAD);
 	LCD_Data(sc);

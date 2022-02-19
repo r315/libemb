@@ -99,9 +99,9 @@ void SPI_Init(spibus_t *spi){
 
 	sspx->CPSR = cpsr & 0xFE;	// must be an even number
 
-	sspx->CR0 = (spi->cfg & 0x0F) - 1; // data size
+	sspx->CR0 = (spi->flags & 0x0F) - 1; // data size
 
-	switch(spi->cfg & 0xF0){
+	switch(spi->flags & 0xF0){
 		case SPI_MODE0: break;
 		case SPI_MODE1: sspx->CR0 |= SSP_CR0_CPHA; break;
 		case SPI_MODE2: sspx->CR0 |= SSP_CR0_CPOL; break;
@@ -112,7 +112,7 @@ void SPI_Init(spibus_t *spi){
 	sspx->CR1 = SSP_CR1_SSE;       // Enable ssp
 	
 	spi->ctrl = sspx;
-	spi->cfg |= SPI_ENABLED;
+	spi->flags |= SPI_ENABLED;
 }
 
 void SPI_Write(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
