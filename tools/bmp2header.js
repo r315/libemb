@@ -31,8 +31,10 @@ function int16FromArr(a, o) { return a[o] | a[o + 1] << 8 }
     
 */
 function convertBmp(bmpArray, outbpp) {
-    if (bmpArray[0] != 66 || bmpArray[1] != 77) //BM
-        return
+    if (bmpArray[0] != 66 || bmpArray[1] != 77){ //BM
+        console.log("Error: image is not bmp")
+        return null
+    }
 
     let pixelByteArray = [];
     let pixelDataOffset = int32FromArr(bmpArray, 10)
@@ -47,11 +49,7 @@ function convertBmp(bmpArray, outbpp) {
 
     if(bpp != 24){
         console.log('Input pixel format unsupported')
-        return {
-            "width": 0,
-            "height": 0,
-            "data": pixelByteArray
-        }
+        return null
     }
 
     let pixelbyte = 0;
@@ -123,68 +121,60 @@ function convertBmp(bmpArray, outbpp) {
 
         default:
 	        console.log('Output pixel format unsupported')
-		return {
-		    "width": 0,
-		    "height": 0,
-		    "data": pixelByteArray
-		}
+		return null
 
     }
+
     return {
         "width": width,
         "height": height,
-        "data": pixelByteArray,
+        "pixels": pixelByteArray,
         "bpl": bpl
     }
 }
 
-function invertBmp(bmpdata){
-    let inverted = []
-    for (let line = (bmpdata.height * bmpdata.bpl) - bmpdata.bpl; line >= 0; line -= bmpdata.bpl) {        
-        inverted = inverted.concat(bmpdata.data.slice(line, line + bmpdata.bpl))
+function flipBmp(bmpdata){
+    let pixels = []
+
+    for (let offset = (bmpdata.height * bmpdata.width) - bmpdata.width; offset >= 0; offset -= bmpdata.width) {        
+        pixels = pixels.concat(bmpdata.pixels.slice(offset, offset + bmpdata.width))
     }
-    bmpdata.data = inverted
+    
+    bmpdata.pixels = pixels
     return bmpdata
 }
 
-function getLine(data, offset, len, suffix){
-    let linedata = []
-    data.slice(offset, offset + len).forEach(e => {
-        if(e < 16)
-            linedata.push(`0x0${e.toString(16)}`)
-        else
-            linedata.push(`0x${e.toString(16)}`)
-    })
-    if(suffix)
-        linedata.push('\n')
-    return linedata
+function getLine(data, offset, len, suffix = ","){
+    return data.slice(offset, offset + len).map((e) => {
+        return (e < 16) ? "0x0" : "0x" + e.toString(16)
+    }) + suffix
 }
 
 function saveToFile(bmpdata, filename, cols){
     let linecount = 0
 
-    cols = (cols > 0) ? cols : bmpdata.bpl
+    cols = (cols > 0) ? cols : bmpdata.width
 
     function nextBlock(err){
         if(err){
             console.log(err)
             return
         }
-        if( (linecount += cols) < (cols*bmpdata.height))
-            fs.appendFile(filename, getLine(bmpdata.data,linecount, cols, '\n'), nextBlock)
+        if( (linecount += cols) < (cols * bmpdata.height))
+            fs.appendFile(filename, getLine(bmpdata.pixels, linecount, cols, ',\n'), nextBlock)
     }   
-    fs.writeFile(filename, getLine(bmpdata.data,linecount, cols, '\n'), nextBlock)
+    fs.writeFile(filename, getLine(bmpdata.pixels, linecount, cols, ',\n'), nextBlock)
 }
 
-function printMatriz(bmpdata, cols) {
+function printBmpData(bmpdata, cols) {
     
     if(bmpdata.width <= 0 || bmpdata.height <= 0)
         return
 
-    cols = (cols > 0) ? cols : bmpdata.bpl   
+    cols = (cols > 0) ? cols : bmpdata.width
       
-    for (let i = 0; i < (bmpdata.height * bmpdata.bpl); i += cols) {
-        console.log(`${getLine(bmpdata.data, i, cols)}`)
+    for (let i = 0; i < bmpdata.pixels.length; i += cols) {
+        console.log(`${getLine(bmpdata.pixels, i, cols)}`)
     }    
 }
 
@@ -212,12 +202,17 @@ function start() {
             console.log(err)
             return;
         }
-        let bmpdata = invertBmp(convertBmp(data, opts.b))
+        let bmpdata = convertBmp(data, opts.b)
+
+        if(bmpdata == null)
+            process.exit(-1)
+
+        bmpdata = flipBmp(bmpdata);
 
         if(opts.o)
             saveToFile(bmpdata, opts.o.trim(), opts.c)
         else
-            printMatriz(bmpdata, opts.c)
+            printBmpData(bmpdata, opts.c)
     })
 
 }
