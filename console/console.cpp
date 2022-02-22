@@ -163,7 +163,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 		if ((c == '\n') || (c == '\r')) {			
 			//Remove all extra text from previous commands
 			memset(dst + len, '\0', maxLen - len);
-			out->xputchar(c);
+			out->xputchar('\n');
 			*cur_len = 0;
 			return len + 1;
 		}
