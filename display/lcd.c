@@ -49,12 +49,12 @@ void LCD_DrawLine(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2, uint16_t 
     if (dx < 0) { dx = -dx;  stepx = -1; } else { stepx = 1; }
 
     if ( x1 == x2 ){
-    	LCD_DrawVLine(x1, y1, dy, color);
+    	LCD_DrawVLine(x1, (y1 < y2)? y1 : y2, dy, color);
     	return;
     }
 
     if ( y1 == y2 ){
-		LCD_DrawHLine(x1, x2, dx, color);
+		LCD_DrawHLine((x1 < x2)? x1 : x2, y1, dx, color);
 		return;
     }
 

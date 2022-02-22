@@ -26,6 +26,9 @@ void UART_Init(serialbus_t *serialbus){
 	uart->CR1 |= USART_CR1_RXNEIE;
 	serialbus->ctrl = uart;
 	
+	fifo_init(&serialbus->txfifo);
+	fifo_init(&serialbus->rxfifo);
+
 	HAL_NVIC_EnableIRQ(irq);
 }   
 
