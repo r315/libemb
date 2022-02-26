@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "stm32l4xx.h"
+#include "dma_stm32l4xx.h"
 #include "dma.h"
 
 
@@ -17,11 +18,13 @@ void DMA_Request(dmactrl_t *ctrl, uint32_t request){
     uint8_t source = (request & DMA_SOURCE_MASK) >> DMA_SOURCE_POS;    
     
     if(request & DMA_NUMBER_MASK){
+        __HAL_RCC_DMA2_CLK_ENABLE();
         ctrl->ctrl = DMA2;
         ctrl->channel = (void*)((uint32_t)DMA2_Channel1 + (ch * 0x14));
         ctrl->irq = (ch < 5) ? DMA2_Channel1_IRQn + ch : DMA2_Channel6_IRQn + ch;
         DMA2_CSELR->CSELR = (DMA2_CSELR->CSELR & ~(15 << (ch << 2))) | (source << (ch << 2));
     }else{
+        __HAL_RCC_DMA1_CLK_ENABLE();
         ctrl->ctrl = DMA1;
         ctrl->channel = (void*)((uint32_t)DMA1_Channel1 + (ch * 0x14));
         ctrl->irq = DMA1_Channel1_IRQn + ch;
