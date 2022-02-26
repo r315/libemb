@@ -41,6 +41,7 @@ extern "C" {
 		uint8_t cmdListSize;
 		uint8_t processing;
 		char line[COMMAND_MAX_LEN];
+		char m_buf[CONSOLE_PRINT_MAX_LEN];
 		uint8_t line_len;
 		const char *prt;
 		StdOut *out;

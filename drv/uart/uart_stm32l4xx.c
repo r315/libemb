@@ -34,6 +34,10 @@ void UART_Init(serialbus_t *serialbus){
 
 void UART_PutChar(serialbus_t *huart, char c){
 	USART_TypeDef *uart = (USART_TypeDef*)huart->ctrl;
+	if(fifo_free(&huart->txfifo) == 0){
+		SET_BIT(uart->CR1, USART_CR1_TXEIE);
+		while(fifo_free(&huart->txfifo) == 0);
+	}
     fifo_put(&huart->txfifo, (uint8_t)c);
 	SET_BIT(uart->CR1, USART_CR1_TXEIE);
 }
@@ -41,9 +45,14 @@ void UART_PutChar(serialbus_t *huart, char c){
 void UART_Puts(serialbus_t *huart, const char *str){
 	USART_TypeDef *uart = (USART_TypeDef*)huart->ctrl;
 
-    while(*str){
-		fifo_put(&huart->txfifo, *(uint8_t*)str++);
-	}
+	while(*str){
+		if(fifo_put(&huart->txfifo, *(uint8_t*)str)){
+			str++;
+		}else{
+			SET_BIT(uart->CR1, USART_CR1_TXEIE);
+			while(fifo_free(&huart->txfifo) == 0);
+		}
+	}	
 	
 	SET_BIT(uart->CR1, USART_CR1_TXEIE);
 }

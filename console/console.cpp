@@ -259,12 +259,11 @@ char Console::getLine(char *dst, uint8_t maxLen)
 }
 
 void Console::print(const char* fmt, ...){
-	char buf[CONSOLE_PRINT_MAX_LEN];
 	va_list arp;
 	va_start(arp, fmt);
-	strformater(buf, fmt, arp);
+	strformater(m_buf, fmt, arp);
 	va_end(arp);
-	out->xputs(buf);
+	out->xputs(m_buf);
 }
 
 uint8_t Console::kbhit(void) {
