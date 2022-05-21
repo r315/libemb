@@ -25,12 +25,12 @@ uint16_t dta = 0;
 	LCD_DATAPORT =reg;
 	LCDWR0;LCDWR0;LCDWR1;
 
-    LCD_DATAPORTDIR &= ~0xFF;          /* change to input */
+    LCD_DATAPORTDIR = 0x00;          /* change to input */
     DelayMs(3);
 	LCDRS1;
 	LCDRD0; DelayMs(3); dta = (LCD_DATAPORT << 8); LCDRD1;
 	LCDRD0; DelayMs(3); dta |= (LCD_DATAPORT);     LCDRD1;
-	LCD_DATAPORTDIR |= 0xFF;          /* change to out      put */
+	LCD_DATAPORTDIR = 0xFF;          /* change to out      put */
     DelayMs(3);
 return dta;
 }
