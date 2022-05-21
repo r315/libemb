@@ -19,7 +19,7 @@ int err = -1;
 		return err;
 	}
 
-	fp = fopen(filename, "r+b");
+	fp = fopen(filename, "r+b"); // Read/Update
 
 	if(fp == NULL){
 		printf("Error opening file: %s\n", filename);
@@ -29,13 +29,10 @@ int err = -1;
 
 	// Read vectors	
 	for(int i = 0; i < EXCEPTION_VECTOR_SIZE; i++){
-		errno = 0;
-		
 		if( fread(&tmp, sizeof(uint32_t), 1, fp) != 1){
-    		printf("Error reading vectors: %s\n", strerror(errno));	
+    		printf("Error reading vector: %d\n", i);	
 			goto on_error;
 		}
-		//printf("0x%08X\n", tmp);
 		sum += tmp; 
 	}
 
@@ -43,11 +40,15 @@ int err = -1;
 	sum = (~sum) + 1;
 	printf("\nChecksum word 0x%08X\n", sum);
 
+	fseek(fp, EXCEPTION_VECTOR_SIZE * sizeof(uint32_t),  SEEK_SET);
+
 	// write checksum at offset 0x1C (vector 7)
-	if( fwrite(&sum, sizeof(uint32_t), 1, fp) != 1){
+	if( fwrite(&sum, sizeof(sum), 1, fp) != 1){
 		printf("Error writing checksum: %s\n", strerror(errno));	
 		goto on_error;
-	}
+	}	
+
+	fflush (fp);
 
 	//verify checksum
 	if( fseek(fp, EXCEPTION_VECTOR_SIZE * sizeof(uint32_t),  SEEK_SET) != 0){
