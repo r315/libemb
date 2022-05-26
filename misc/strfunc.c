@@ -414,7 +414,7 @@ uint32_t strformater(char *dst, const char* fmt, va_list arp){
 		}
 
 		while ((d >= '0') && (d <= '9')) {
-			w += w * 10 + (d - '0');
+			w = w * 10 + (d - '0');
 			d = *fmt++;
 		}
 
