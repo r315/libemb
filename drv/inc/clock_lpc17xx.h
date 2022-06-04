@@ -15,59 +15,60 @@ extern "C" {
 
 
 #define CLOCK_OUT {LPC_SC->CLKOUTCFG = (1<<8); /* CCLK/2, CLKOU_EN */     \
-	              LPC_PINCON->PINSEL3 |= (1<<22);}    /* P1.27 CLKOUT */  \
+                  LPC_PINCON->PINSEL3 |= (1<<22);}    /* P1.27 CLKOUT */  \
 
 
 //PCLKSEL0 Bits
-#define PCLK_TIMER0_pos      2
-#define PCLK_TIMER1_pos      4
-#define PCLK_UART0_pos       6
-#define PCLK_UART1_pos       8
-#define PCLK_PWM1_pos        12
-#define PCLK_I2C0_pos        14
-#define PCLK_SPI_pos         16
-#define PCLK_SSP1_pos        20
-#define PCLK_DAC_pos         22
-#define PCLK_ADC_pos         24
-#define PCLK_CAN1_pos        26
-#define PCLK_CAN2_pos        28
-#define PCLK_ACF_pos         30
+#define PCLKSEL1_PCLK_TIMER0_pos      2
+#define PCLKSEL1_PCLK_TIMER1_pos      4
+#define PCLKSEL1_PCLK_UART0_pos       6
+#define PCLKSEL1_PCLK_UART1_pos       8
+#define PCLKSEL1_PCLK_PWM1_pos        12
+#define PCLKSEL1_PCLK_I2C0_pos        14
+#define PCLKSEL1_PCLK_SPI_pos         16
+#define PCLKSEL1_PCLK_SSP1_pos        20
+#define PCLKSEL1_PCLK_DAC_pos         22
+#define PCLKSEL1_PCLK_ADC_pos         24
+#define PCLKSEL1_PCLK_CAN1_pos        26
+#define PCLKSEL1_PCLK_CAN2_pos        28
+#define PCLKSEL1_PCLK_ACF_pos         30
 
 //PCLKSEL1 Bits
-#define PCLK_RIT_pos         26
-#define PCLK_TIMER2_pos      12
-#define PCLK_TIMER3_pos      14
+#define PCLKSEL1_PCLK_RIT_pos         26
+#define PCLKSEL1_PCLK_TIMER2_pos      12
+#define PCLKSEL1_PCLK_TIMER3_pos      14
+#define PCLKSEL1_PCLK_I2S_pos	      22
 
 // PCLK Peripherals index
 typedef enum pclknum {
-	PCLK_WDT       = 0,
-	PCLK_TIMER0,
-	PCLK_TIMER1,
-	PCLK_UART0,
-	PCLK_UART1,
-	PCLK_PWM1      = 6,
-	PCLK_I2C0,
-	PCLK_SPI,
-	PCLK_SSP1      = 10,
-	PCLK_DAC,
-	PCLK_ADC,
-	PCLK_CAN1,
-	PCLK_CAN2,
-	PCLK_ACF,
-	PCLK_QEI,
-	PCLK_GPIOINT,
-	PCLK_PCB,
-	PCLK_I2C1,
-	PCLK_SSP0      = 21,
-	PCLK_TIMER2,
-	PCLK_TIMER3,
-	PCLK_UART2,
-	PCLK_UART3,
-	PCLK_I2C2,
-	PCLK_I2S,
-	PCLK_RIT       = 29,
-	PCLK_SYSCON,
-	PCLK_MC
+    PCLK_WDT       = 0,
+    PCLK_TIMER0,
+    PCLK_TIMER1,
+    PCLK_UART0,
+    PCLK_UART1,
+    PCLK_PWM1      = 6,
+    PCLK_I2C0,
+    PCLK_SPI,
+    PCLK_SSP1      = 10,
+    PCLK_DAC,
+    PCLK_ADC,
+    PCLK_CAN1,
+    PCLK_CAN2,
+    PCLK_ACF,
+    PCLK_QEI,
+    PCLK_GPIOINT,
+    PCLK_PCB,
+    PCLK_I2C1,
+    PCLK_SSP0      = 21,
+    PCLK_TIMER2,
+    PCLK_TIMER3,
+    PCLK_UART2,
+    PCLK_UART3,
+    PCLK_I2C2,
+    PCLK_I2S,
+    PCLK_RIT       = 29,
+    PCLK_SYSCON,
+    PCLK_MC
 }pclknum_e;
 
 
