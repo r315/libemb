@@ -39,7 +39,7 @@ void BB_Init(void)
 
 void BB_SW_Reset(void){
     LPC_WDT->WDCLKSEL = WDCLKSEL_WDSEL_PCLK;
-    LPC_WDT->WDMOD |= WDMOD_WDEN | WDMOD_WDRESET;    
+    LPC_WDT->MOD |= WDMOD_WDEN | WDMOD_WDRESET;    
     WDT_RELOAD;
 }
 

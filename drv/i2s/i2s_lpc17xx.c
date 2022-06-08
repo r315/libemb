@@ -1,8 +1,9 @@
-#include "board.h"
+#include "lpc17xx_hal.h"
 #include "i2s.h"
 
 /**
- * Signals      PINS_1      PIN_2
+ * Signals      PIN_1      PIN_2
+ * 
  * RX_CLK       P0.4        P0.23
  * RX_WS        P0.5        P0.24
  * RX_SDA       P0.6        P0.25
@@ -15,24 +16,32 @@
  * */
 
 #define I2S_PINS_RX1 \
-    GPIO_Function(P0_4, P0_4_I2SRX_CLK); \
-    GPIO_Function(P0_5, P0_5_I2SRX_WS);  \
-    GPIO_Function(P0_6, P0_6_I2SRX_SDA);
+    LPC_PINCON->PINSEL0 = (LPC_PINCON->PINSEL0 & ~((3 << 12) | (3 << 10) | (3 << 8))) | (( 1 << 12) | ( 1 << 10) | ( 1 << 8))
+    
+    //GPIO_Function(P0_4, P0_4_I2SRX_CLK);
+    //GPIO_Function(P0_5, P0_5_I2SRX_WS);
+    //GPIO_Function(P0_6, P0_6_I2SRX_SDA);
 
 #define I2S_PINS_RX2 \
-    GPIO_Function(P0_23, P0_23_I2SRX_CLK); \
-    GPIO_Function(P0_24, P0_24_I2SRX_WS);  \
-    GPIO_Function(P0_25, P0_25_I2SRX_SDA);
+    LPC_PINCON->PINSEL1 = (LPC_PINCON->PINSEL1 & ~((3 << 18) | (3 << 16) | (3 << 14))) | (( 2 << 18) | ( 2 << 16) | ( 2 << 14))
+    
+    //GPIO_Function(P0_23, P0_23_I2SRX_CLK);
+    //GPIO_Function(P0_24, P0_24_I2SRX_WS);
+    //GPIO_Function(P0_25, P0_25_I2SRX_SDA);
 
 #define I2S_PINS_TX1 \
-    GPIO_Function(P0_7, P0_7_I2STX_CLK); \
-    GPIO_Function(P0_8, P0_8_I2STX_WS);  \
-    GPIO_Function(P0_9, P0_9_I2STX_SDA);
+    LPC_PINCON->PINSEL0 = (LPC_PINCON->PINSEL0 & ~((3 << 18) | (3 << 16) | (3 << 14))) | (( 1 << 18) | ( 1 << 16) | ( 1 << 14))
+    
+    //GPIO_Function(P0_7, P0_7_I2STX_CLK);
+    //GPIO_Function(P0_8, P0_8_I2STX_WS);
+    //GPIO_Function(P0_9, P0_9_I2STX_SDA);
 
 #define I2S_PINS_TX2 \
-    GPIO_Function(P2_11, P2_11_I2STX_CLK); \
-    GPIO_Function(P2_12, P2_12_I2STX_WS);  \
-    GPIO_Function(P2_13, P2_13_I2STX_SDA);
+    LPC_PINCON->PINSEL4 = LPC_PINCON->PINSEL4 | ( 3 << 26) | ( 3 << 24) | ( 3 << 22)
+    
+    //GPIO_Function(P2_11, P2_11_I2STX_CLK);
+    //GPIO_Function(P2_12, P2_12_I2STX_WS);
+    //GPIO_Function(P2_13, P2_13_I2STX_SDA);
 
 /* USB RAM is used for GPDMA operation. */
 //#define DMA_SRC			0x7FD00000	
@@ -45,19 +54,12 @@
 #define DMA_I2S_TX_FIFO	0x400A8008
 #define	DMA_I2S_RX_FIFO	0x400A800C
  
-#define DMA_SIZE		0x200
-
 /* DMA mode */
 #define M2M				0x00
 #define M2P				0x01
 #define P2M				0x02
 #define P2P				0x03
 
-#define I2S_DMA_ENABLED		1
-
-#define BUFSIZE				0x200
-#define RXFIFO_EMPTY		0
-#define TXFIFO_FULL			8
 
 /**
  * @brief Configure MCLK according configuration.
@@ -72,8 +74,16 @@ static void clock_config(i2sbus_t *i2s){
     uint32_t x, y, N;
     uint16_t err, ErrorOptimal = 0xFFFF;
     uint16_t x_divide, y_divide, dif;
-    uint32_t pclk = CLOCK_GetPCLK(PCLK_I2S);
+    uint32_t pclk;
     LPC_I2S_TypeDef *i2sx = (LPC_I2S_TypeDef*)i2s->regs;
+
+    switch((LPC_SC->PCLKSEL1 >> PCLKSEL1_PCLK_I2S_pos) & 3){
+        default:
+        case 0: pclk = SystemCoreClock >> 2;  break; // Div 4
+        case 1: pclk = SystemCoreClock;       break; // Div 1
+        case 2: pclk = SystemCoreClock >> 1;  break; // Div 2
+        case 3: pclk = SystemCoreClock >> 3;  break; // Div 8
+    }
 
     /**
      * Source: Marlin 3D Printer Firmware
@@ -93,7 +103,7 @@ static void clock_config(i2sbus_t *i2s){
 	 * We use a loop function to chose the most suitable X,Y value
 	 */
 
-	/* divider is a fixed point number with 16 fractional bits */
+    /* divider is a fixed point number with 16 fractional bits */
     uint64_t divider = (((uint64_t)i2s->sample_rate * i2s->channels * i2s->data_size * 2) << 16) / pclk;
 
 	/* find N that make x/y <= 1 -> divider <= 2^16 */
@@ -131,65 +141,76 @@ static void clock_config(i2sbus_t *i2s){
 		}
 	}
 
-	x_divide = ((uint64_t)y_divide * i2s->sample_rate *(i2s->channels * i2s->data_size)* N * 2) / pclk;
+    x_divide = ((uint64_t)y_divide * i2s->sample_rate *(i2s->channels * i2s->data_size)* N * 2) / pclk;
 
 	if(x_divide >= 256) x_divide = 0xFF;
 	if(x_divide == 0) x_divide = 1;
 
-    i2sx->I2STXBITRATE = N-1;
-    i2sx->I2SRXBITRATE = N-1;
-    i2sx->I2STXRATE = y_divide | (x_divide << 8);
+    i2sx->TXRATE = y_divide | (x_divide << 8);
+
+    if(i2s->mode & I2S_TX_EN)
+        i2sx->TXBITRATE = N - 1;
+    
+    if(i2s->mode & I2S_RX_EN)
+        i2sx->RXBITRATE = N - 1;
 }
 
 /**
  * @brief I2S Configuration
  * 
- * @param   i2s:    Configuration structure
- * */
+ * @param i2s           I2S regs
+ * @param mode          0: Slave, Master otherwise
+ * @param sample_rate   desired sample rate
+ * @param channels      1: mono, otherwise stereo
+ * @param data_size     bits per sample 8,16 and 32
+ */
 void I2S_Config(i2sbus_t *i2s){
-    uint32_t value = I2S_DAO_STOP | I2S_DAO_RESET;
-    
-    SET_BIT(LPC_I2S->I2SDAO, I2S_DAO_RESET | I2S_DAO_STOP);
-    SET_BIT(LPC_I2S->I2SDAI, I2S_DAI_RESET | I2S_DAI_STOP);
+    uint32_t value = I2SDAO_STOP | I2SDAO_RESET;
     
     clock_config(i2s);
 
     switch(i2s->data_size){
         case 8:
-            value |= I2S_DAO_WIDTH_8B |
+            value |= I2SDAO_WIDTH_8B |
                     (7 << 6);  /* Bits per slot 1 to 64*/
             break;
 
         default:
         case 16:
-            value |= I2S_DAO_WIDTH_16B | (15 << 6);
+            value |= I2SDAO_WIDTH_16B | (15 << 6);
             break;
 
         case 32:
-            value |= I2S_DAO_WIDTH_32B | (31 << 6);
+            value |= I2SDAO_WIDTH_32B | (31 << 6);
             break;
+    }    
+
+    if(i2s->mode & I2S_RX_EN){
+        if(!(i2s->mode & I2S_RX_MASTER)){
+            value |= I2SDAI_WS_SEL;
+        }
+
+        if(i2s->channels == 1){
+            value |= I2SDAI_MONO;
+        }
+
+        LPC_I2S->DAI = value;
     }
 
-    if(i2s->channels == 1){
-        value |= I2S_DAO_MONO;
-    }  
+    if(i2s->mode & I2S_TX_EN){
+        if(!(i2s->mode & I2S_TX_MASTER)){
+            value |= I2SDAO_WS_SEL; /* Slave */
+        }
 
-    /* Configure transmitter */
-    if(!(i2s->mode & I2S_TX_MASTER)){
-        LPC_I2S->I2SDAO = value | I2S_DAO_WS_SEL; /* Slave */
-    }else{
-        LPC_I2S->I2SDAO = value;
-    }
+        if(i2s->channels == 1){
+            value |= I2SDAO_MONO;
+        }
 
-    if(i2s->mute){
-        SET_BIT(LPC_I2S->I2SDAO, I2S_DAO_MUTE);
-    }
-
-    /* Configure same parameters for receiver */
-    if(!(i2s->mode & I2S_TX_MASTER)){
-        LPC_I2S->I2SDAI = value | I2S_DAI_WS_SEL;
-    }else{
-        LPC_I2S->I2SDAI = value;
+        if(i2s->mute){
+            value |= I2SDAO_MUTE;
+        }
+        
+        LPC_I2S->DAO = value;
     }
 }
 
@@ -200,87 +221,124 @@ void I2S_Config(i2sbus_t *i2s){
  * @param   i2s:    i2sbus structure for initialization
  * */
 void I2S_Init(i2sbus_t *i2s){
-    PCONP_I2S_ENABLE();
+    LPC_SC->PCONP |= (1 << 27) | (1 << 29); /* PCONP_PCI2S, PCONP_PCGPDMA */
+
+    LPC_SC->PCLKSEL1 = (LPC_SC->PCLKSEL1 & ~(3 << PCLKSEL1_PCLK_I2S_pos)) | (PCLK_4 << PCLKSEL1_PCLK_I2S_pos);
 
     i2s->regs = LPC_I2S;
 
     I2S_Config(i2s);
 
-    i2s->txbuffer = (uint32_t *)(DMA_SRC); 
-    i2s->rxbuffer = (uint32_t *)(DMA_DST);
-
     i2s->wridx = 0;
     i2s->rdidx = 0;
 
+    // BUS defines used pins
     switch(i2s->bus){
         case I2S_BUS0:
-            I2S_PINS_RX1 
-            I2S_PINS_TX1
+            if(i2s->mode & I2S_RX_EN) {I2S_PINS_RX1;}
+            if(i2s->mode & I2S_TX_EN) {I2S_PINS_TX1;}
             break;
 
         case I2S_BUS1:
-            I2S_PINS_RX2
-            I2S_PINS_TX1
+            if(i2s->mode & I2S_RX_EN) {I2S_PINS_RX2;}
+            if(i2s->mode & I2S_TX_EN) {I2S_PINS_TX1;}
             break;
 
         case I2S_BUS2:
-            I2S_PINS_RX1 
-            I2S_PINS_TX2
+            if(i2s->mode & I2S_RX_EN) {I2S_PINS_RX1;}
+            if(i2s->mode & I2S_TX_EN) {I2S_PINS_TX2;}
             break;
 
         case I2S_BUS3:
-            I2S_PINS_RX2 
-            I2S_PINS_TX2
+            if(i2s->mode & I2S_RX_EN) {I2S_PINS_RX2;}
+            if(i2s->mode & I2S_TX_EN) {I2S_PINS_TX2;}
             break;
 
         default:
             return;
     }
 
-    GPIO_Function(P4_28, P4_28_RX_MCLK);
-    GPIO_Function(P4_29, P4_29_TX_MCLK);
+    if(i2s->mode & I2S_MCLK_OUT){
+        if(i2s->mode & I2S_TX_EN){
+            LPC_I2S->TXMODE = I2STXMODE_TXMCENA; /* Enable MCLK output */
+            LPC_PINCON->PINSEL9 = (LPC_PINCON->PINSEL9 & (3 << 26)) | ( 1 << 26);    
+        }
 
-    LPC_I2S->I2STXMODE = I2S_TXMODE_TXMCENA; /* Enable MCLK output */
-    LPC_I2S->I2SRXMODE = I2S_RXMODE_RXMCENA;
+        if(i2s->mode & I2S_RX_EN){
+            LPC_I2S->RXMODE = I2SRXMODE_RXMCENA;
+            LPC_PINCON->PINSEL9 = (LPC_PINCON->PINSEL9 & (3 << 24)) | ( 1 << 24);
+        }
+    }
 
-
-    //LPC_I2S->I2STXRATE = 0x241;
-    //LPC_I2S->I2SRXRATE = 0x241;
-    I2S_Stop();
+    I2S_Stop(i2s);
 
     NVIC_EnableIRQ(I2S_IRQn);
 }
 
-void I2S_Start( void ){
-    /* Audio output is the master, audio input is the slave, */
-    /* 16 bit data, stereo, master mode, not mute. */
-    CLEAR_BIT(LPC_I2S->I2SDAO, I2S_DAO_RESET | I2S_DAO_STOP);
-    /* 16 bit data, stereo, reset, slave mode, not mute. */
-    CLEAR_BIT(LPC_I2S->I2SDAI, I2S_DAI_RESET | I2S_DAI_STOP);
+void I2S_Start(i2sbus_t *i2s){
+    uint32_t irq = 0;
+
+    if(i2s->mode & I2S_RX_EN) {
+        LPC_I2S->DAI = LPC_I2S->DAI & ~(I2SDAI_RESET | I2SDAI_STOP);
+        irq |= I2SIRQ_RX_IRQ_EN | ((I2S_TXFIFO_SIZE - 6) << I2SIRQ_RX_DEPTH_POS);
+    }else{
+        irq |= I2SIRQ_RX_DEPTH_MSK;
+    }
+    
+    if(i2s->mode & I2S_TX_EN) {
+        LPC_I2S->DAO = LPC_I2S->DAO & ~(I2SDAO_RESET | I2SDAO_STOP);
+        irq |= I2SIRQ_TX_IRQ_EN | ((I2S_TXFIFO_SIZE - 6) << I2SIRQ_TX_DEPTH_POS);
+    }else{
+        irq |= I2SIRQ_TX_DEPTH_MSK;
+    }
+
+    LPC_I2S->IRQ = irq;
 }
 
-void I2S_Stop(void){
-    /* Stop the I2S to start. Audio output is master, audio input is the slave. */
-    /* 16 bit data, set STOP and RESET bits to reset the channels */
-    SET_BIT(LPC_I2S->I2SDAO, I2S_DAO_RESET | I2S_DAO_STOP);
-    /* Switch to master mode, TX channel, no mute */
-    CLEAR_BIT(LPC_I2S->I2SDAO, I2S_DAO_MUTE | I2S_DAO_WS_SEL);  /* Master */
-    /* 16 bit data, set STOP and RESET bits to reset the channels */
-    SET_BIT(LPC_I2S->I2SDAI, I2S_DAI_RESET | I2S_DAI_STOP);     /* Slave */
+void I2S_Stop(i2sbus_t *i2s){
+    if(i2s->mode & I2S_RX_EN) {
+        LPC_I2S->DAI = LPC_I2S->DAI | (I2SDAI_RESET | I2SDAI_STOP);
+    }
+    
+    if(i2s->mode & I2S_TX_EN) {
+        LPC_I2S->DAO = LPC_I2S->DAO | (I2SDAO_RESET | I2SDAO_STOP);
+    }
 }
 
-void I2S_DMA_IRQHandler(i2sbus_t *i2s){
-    uint32_t RxCount, WrIndex;
-    if ( LPC_I2S->I2SSTATE & I2S_STATE_IRQ ){
-        RxCount = (LPC_I2S->I2SSTATE >> 8) & 0x0F;
-        WrIndex = i2s->wridx;
-        while ( RxCount > 0 ){
-            i2s->rxbuffer[WrIndex++] = LPC_I2S->I2SRXFIFO;            
-            if ( WrIndex == BUFSIZE ){
-               WrIndex = 0;
-            }
-            RxCount--;
+void I2S_Mute(i2sbus_t *i2s, uint8_t mute){
+    if(i2s->mode & I2S_TX_EN) {
+        if(mute){
+            LPC_I2S->DAO = LPC_I2S->DAO | I2SDAO_MUTE;
+        }else{
+            LPC_I2S->DAO = LPC_I2S->DAO & ~I2SDAO_MUTE;
         }
-        i2s->wridx = WrIndex;
+    }
+}
+
+void I2S_Handler(i2sbus_t *i2s){
+    uint32_t State, Count;
+    
+    if ( LPC_I2S->STATE & I2SSTATE_IRQ ){
+        State = LPC_I2S->STATE;
+#if 0
+        Count = I2S_RXFIFO_SIZE - (State >> I2SSTATE_RX_LEVEL_pos) & 0xF;
+
+        if(Count){
+            Index = i2s->wridx;
+            len = i2s->buf_len;
+            while ( Count > 0 ){
+                i2s->rxbuffer[Index++] = LPC_I2S->RXFIFO;
+                if (Index == len){
+                    Index = 0;
+                }
+                Count--;
+            }
+            i2s->wridx = Index;
+        }
+#endif
+        Count =  I2S_TXFIFO_SIZE - ((State >> I2SSTATE_TX_LEVEL_pos) & 0xF);
+        if(Count){
+            i2s->txcp((uint32_t*)&LPC_I2S->TXFIFO, Count);
+        }
     }
 }

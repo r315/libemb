@@ -19,25 +19,32 @@ extern "C" {
 
 
 //PCLKSEL0 Bits
-#define PCLKSEL1_PCLK_TIMER0_pos      2
-#define PCLKSEL1_PCLK_TIMER1_pos      4
-#define PCLKSEL1_PCLK_UART0_pos       6
-#define PCLKSEL1_PCLK_UART1_pos       8
-#define PCLKSEL1_PCLK_PWM1_pos        12
-#define PCLKSEL1_PCLK_I2C0_pos        14
-#define PCLKSEL1_PCLK_SPI_pos         16
-#define PCLKSEL1_PCLK_SSP1_pos        20
-#define PCLKSEL1_PCLK_DAC_pos         22
-#define PCLKSEL1_PCLK_ADC_pos         24
-#define PCLKSEL1_PCLK_CAN1_pos        26
-#define PCLKSEL1_PCLK_CAN2_pos        28
-#define PCLKSEL1_PCLK_ACF_pos         30
+#define PCLKSEL0_PCLK_TIMER0_pos      2
+#define PCLKSEL0_PCLK_TIMER1_pos      4
+#define PCLKSEL0_PCLK_UART0_pos       6
+#define PCLKSEL0_PCLK_UART1_pos       8
+#define PCLKSEL0_PCLK_PWM1_pos        12
+#define PCLKSEL0_PCLK_I2C0_pos        14
+#define PCLKSEL0_PCLK_SPI_pos         16
+#define PCLKSEL0_PCLK_SSP1_pos        20
+#define PCLKSEL0_PCLK_DAC_pos         22
+#define PCLKSEL0_PCLK_ADC_pos         24
+#define PCLKSEL0_PCLK_CAN1_pos        26
+#define PCLKSEL0_PCLK_CAN2_pos        28
+#define PCLKSEL0_PCLK_ACF_pos         30
+
+#define PCLKSEL0_PCLK_TIMER0_MSK      ( 3 << PCLKSEL0_PCLK_TIMER0_pos)
+#define PCLKSEL0_PCLK_TIMER1_MSK      ( 3 << PCLKSEL0_PCLK_TIMER1_pos)
+
 
 //PCLKSEL1 Bits
 #define PCLKSEL1_PCLK_RIT_pos         26
 #define PCLKSEL1_PCLK_TIMER2_pos      12
 #define PCLKSEL1_PCLK_TIMER3_pos      14
 #define PCLKSEL1_PCLK_I2S_pos	      22
+
+#define PCLKSEL1_PCLK_TIMER2_MSK      ( 3 << PCLKSEL1_PCLK_TIMER2_pos)
+#define PCLKSEL1_PCLK_TIMER3_MSK      ( 3 << PCLKSEL1_PCLK_TIMER3_pos)
 
 // PCLK Peripherals index
 typedef enum pclknum {

@@ -16,8 +16,13 @@ extern "C" {
 
 #include <stdint.h>
 
-#define I2S_TX_MASTER       1
-#define I2S_RX_MASTER       2
+#define I2S_TX_EN           (1 << 0)
+#define I2S_RX_EN           (1 << 1)
+#define I2S_TX_MASTER       (1 << 2)
+#define I2S_RX_MASTER       (1 << 3)
+#define I2S_TX_EN_MASTER    (I2S_TX_EN | I2S_TX_MASTER)
+#define I2S_RX_EN_MASTER    (I2S_RX_EN | I2S_RX_MASTER)
+#define I2S_MCLK_OUT        (1 << 4)
 
 typedef enum {
     I2S_BUS0 = 0,
@@ -39,13 +44,16 @@ typedef struct {
     volatile uint32_t *rxbuffer;
     volatile uint32_t wridx;
     volatile uint32_t rdidx;
+    uint32_t buf_len;
+    void (*txcp)(uint32_t *dst, uint32_t cnt);
+    void (*rxcp)(uint32_t *src, uint32_t cnt);
 }i2sbus_t;
 
 void I2S_Init(i2sbus_t *i2s);
 void I2S_Config(i2sbus_t *i2s);
-void I2S_DMA_IRQHandler(i2sbus_t *spidev);
-void I2S_Stop(void);
-void I2S_Start(void);
+void I2S_Handler(i2sbus_t *spidev);
+void I2S_Stop(i2sbus_t *i2s);
+void I2S_Start(i2sbus_t *i2s);
 
 #ifdef __cplusplus
 }

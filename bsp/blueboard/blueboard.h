@@ -48,8 +48,8 @@ extern "C" {
 
 #define WDT_RELOAD          \
 {                           \
-    LPC_WDT->WDFEED = 0xAA; \
-    LPC_WDT->WDFEED = 0x55; \
+    LPC_WDT->FEED = 0xAA; \
+    LPC_WDT->FEED = 0x55; \
 }
 
 //-----------------------------------------------------

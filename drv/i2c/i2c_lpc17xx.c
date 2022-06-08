@@ -43,13 +43,13 @@ I2C_Controller *I2C_Init(uint8_t ifNumber, uint8_t dev){
 	i2cController[ifNumber].device = dev;
 	i2cController[ifNumber].state = I2C_IDLE;
 
-	i2cController[ifNumber].interface->I2CONCLR = I2C_I2EN;
+	i2cController[ifNumber].interface->CONCLR = I2C_I2EN;
 
-	i2cController[ifNumber].interface->I2SCLH = ((SystemCoreClock/2)/I2C_DEFAULT_CLOCK)>>2;
-	i2cController[ifNumber].interface->I2SCLL = ((SystemCoreClock/2)/I2C_DEFAULT_CLOCK)>>2;
+	i2cController[ifNumber].interface->SCLH = ((SystemCoreClock/2)/I2C_DEFAULT_CLOCK)>>2;
+	i2cController[ifNumber].interface->SCLL = ((SystemCoreClock/2)/I2C_DEFAULT_CLOCK)>>2;
 
-	i2cController[ifNumber].interface->I2CONSET = I2C_I2EN;
-	i2cController[ifNumber].interface->I2CONCLR = I2C_STA | I2C_STO | I2C_SI;
+	i2cController[ifNumber].interface->CONSET = I2C_I2EN;
+	i2cController[ifNumber].interface->CONCLR = I2C_STA | I2C_STO | I2C_SI;
 
 	return &i2cController[ifNumber];
 }
@@ -63,19 +63,19 @@ I2C_Controller *I2C_Init(uint8_t ifNumber, uint8_t dev){
 static void I2C_StateMachine(I2C_Controller *i2cifc){
 
 	//DBG("%X\n",i2cifc->interface->I2STAT);
-	switch(i2cifc->interface->I2STAT)
+	switch(i2cifc->interface->STAT)
 	{
 	case I2C_START:
 	case I2C_REPEATEAD_START:
 		if(i2cifc->operation == DATA_READ){
-			i2cifc->interface->I2DAT = i2cifc->device | 1;
+			i2cifc->interface->DAT = i2cifc->device | 1;
 			i2cifc->state = SLA_READ;
 		}
 		else{
-			i2cifc->interface->I2DAT = i2cifc->device;
+			i2cifc->interface->DAT = i2cifc->device;
 			i2cifc->state = SLA_WRITE;
 		}
-		i2cifc->interface->I2CONCLR = I2C_STA;
+		i2cifc->interface->CONCLR = I2C_STA;
 		break;
 
 		//SLA+W was transmitted, ACK from slave was received
@@ -86,12 +86,12 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 		//send remaining data
 	case I2C_DTA_W_ACK:
 		if(i2cifc->count < i2cifc->size){
-			i2cifc->interface->I2DAT = *(i2cifc->data + i2cifc->count);
-			i2cifc->interface->I2CONSET = I2C_AA;
+			i2cifc->interface->DAT = *(i2cifc->data + i2cifc->count);
+			i2cifc->interface->CONSET = I2C_AA;
 			i2cifc->count++;
 		}else{
 			i2cifc->state = CALL_CB;
-			i2cifc->interface->I2CONSET = I2C_STO;
+			i2cifc->interface->CONSET = I2C_STO;
 		}
 		break;
 
@@ -99,41 +99,41 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 		//set ACK bit
 	case I2C_SLA_R_ACK:
 		i2cifc->state = DATA_READ;
-		i2cifc->interface->I2CONSET = I2C_AA;
+		i2cifc->interface->CONSET = I2C_AA;
 		break;
 		//Data was received and ACK transmitted,
 		//receive remaining data
 	case I2C_DTA_R_ACK:
-		*(i2cifc->data + i2cifc->count) = i2cifc->interface->I2DAT;
+		*(i2cifc->data + i2cifc->count) = i2cifc->interface->DAT;
 		i2cifc->count++;
 		if(i2cifc->count < i2cifc->size){
-			i2cifc->interface->I2CONSET = I2C_AA;
+			i2cifc->interface->CONSET = I2C_AA;
 		}else{
 			i2cifc->state = CALL_CB;
-			i2cifc->interface->I2CONCLR = I2C_AA;
+			i2cifc->interface->CONCLR = I2C_AA;
 		}
 		break;
 
     case I2C_SLA_R_NACK:
 	case I2C_SLA_W_NACK:
 		i2cifc->state = ERROR_SLA_NACK;
-		i2cifc->interface->I2CONCLR = I2C_STA;
-		i2cifc->interface->I2CONSET = I2C_STO;
+		i2cifc->interface->CONCLR = I2C_STA;
+		i2cifc->interface->CONSET = I2C_STO;
 		break;
 
 	case I2C_DTA_W_NACK:
 		i2cifc->state = I2C_IDLE;
-		i2cifc->interface->I2CONSET = I2C_STO;
+		i2cifc->interface->CONSET = I2C_STO;
 		break;
 
 	case I2C_DTA_R_NACK:
 		i2cifc->state = I2C_IDLE;
-		i2cifc->interface->I2CONSET = I2C_STO;
+		i2cifc->interface->CONSET = I2C_STO;
 		break;
 
 	case I2C_SLA_LOST:
 		i2cifc->state = I2C_IDLE;
-		i2cifc->interface->I2CONCLR = I2C_STO;
+		i2cifc->interface->CONCLR = I2C_STO;
 		break;
 
 	case I2C_NO_INFO:
@@ -141,7 +141,7 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 		break;
 	}
 
-	i2cifc->interface->I2CONCLR = I2C_SI;
+	i2cifc->interface->CONCLR = I2C_SI;
 
 	if (i2cifc->state == CALL_CB){
 		if( i2cifc->cb != NULL){
@@ -158,7 +158,7 @@ uint32_t timeout = I2C_MAX_TIMEOUT;
 	i2cifc->size = size;
 	i2cifc->data = data;
 
-	i2cifc->interface->I2CONSET = I2C_STA;
+	i2cifc->interface->CONSET = I2C_STA;
 
 	while(timeout){
 		if ( i2cifc->state != I2C_IDLE ){
@@ -167,8 +167,8 @@ uint32_t timeout = I2C_MAX_TIMEOUT;
 		timeout--;
 	}
 	
-	i2cifc->interface->I2CONSET = I2C_STO;
-  	i2cifc->interface->I2CONCLR = I2C_SI;
+	i2cifc->interface->CONSET = I2C_STO;
+  	i2cifc->interface->CONCLR = I2C_SI;
 	
 	return 0;	
 }
