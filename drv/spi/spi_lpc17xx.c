@@ -1,8 +1,8 @@
 
-#include "board.h"
+//#include "board.h"
+#include "lpc17xx_hal.h"
 #include "spi.h"
 
-#include <LPC17xx.h>
 
 
 #define SSP0_ConfigPins()                             \
@@ -72,13 +72,13 @@ void SPI_Init(spibus_t *spi){
 	sspx->CR1 = 0;	
 
 	if(sspx == LPC_SSP0){
-		PCONP_SSP0_ENABLE();
+		PCONP_SSP0_ENABLE;
 		LPC_PINCON->PINSEL0 &= ~(SSP0_CLK_PIN_MASK);	// configure pins
 	    LPC_PINCON->PINSEL1 &= ~(SSP0_PINS_MASK);
 	    LPC_PINCON->PINSEL0 |= SSP0_CLK_PIN;
 	    LPC_PINCON->PINSEL1 |= SSP0_PINS;
 	}else{
-		PCONP_SSP1_ENABLE();
+		PCONP_SSP1_ENABLE;
 		LPC_PINCON->PINSEL0 &= ~(SSP1_PINS_MASK);
 		LPC_PINCON->PINSEL0 |= SSP1_PINS;
 	}

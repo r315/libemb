@@ -17,10 +17,7 @@ extern "C" {
 #define BOARD_BLUEBOARD
 #endif
 
-#include "LPC17xx.h"
-#include "clock_lpc17xx.h"
-#include "system_LPC17xx.h"
-#include "regs_lpc17xx.h"
+#include "lpc17xx_hal.h"
 //#include <pwm.h>
 //#include <i2c.h>
 //#include <dac.h>
@@ -28,9 +25,8 @@ extern "C" {
 //#include <lcd.h>
 #include "button.h"
 #include "display.h"
-//#include "uart_lpc17xx.h"
 //#include <timer.h>
-#include "gpio_lpc17xx.h"
+
 
 #define PLL48   0
 #define PLL72   1

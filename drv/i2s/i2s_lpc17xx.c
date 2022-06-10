@@ -165,33 +165,33 @@ static void clock_config(i2sbus_t *i2s){
  * @param data_size     bits per sample 8,16 and 32
  */
 void I2S_Config(i2sbus_t *i2s){
-    uint32_t value = I2SDAO_STOP | I2SDAO_RESET;
+    uint32_t value = DAO_STOP | DAO_RESET;
     
     clock_config(i2s);
 
     switch(i2s->data_size){
         case 8:
-            value |= I2SDAO_WIDTH_8B |
+            value |= DAO_WIDTH_8B |
                     (7 << 6);  /* Bits per slot 1 to 64*/
             break;
 
         default:
         case 16:
-            value |= I2SDAO_WIDTH_16B | (15 << 6);
+            value |= DAO_WIDTH_16B | (15 << 6);
             break;
 
         case 32:
-            value |= I2SDAO_WIDTH_32B | (31 << 6);
+            value |= DAO_WIDTH_32B | (31 << 6);
             break;
     }    
 
     if(i2s->mode & I2S_RX_EN){
         if(!(i2s->mode & I2S_RX_MASTER)){
-            value |= I2SDAI_WS_SEL;
+            value |= DAI_WS_SEL;
         }
 
         if(i2s->channels == 1){
-            value |= I2SDAI_MONO;
+            value |= DAI_MONO;
         }
 
         LPC_I2S->DAI = value;
@@ -199,15 +199,15 @@ void I2S_Config(i2sbus_t *i2s){
 
     if(i2s->mode & I2S_TX_EN){
         if(!(i2s->mode & I2S_TX_MASTER)){
-            value |= I2SDAO_WS_SEL; /* Slave */
+            value |= DAO_WS_SEL; /* Slave */
         }
 
         if(i2s->channels == 1){
-            value |= I2SDAO_MONO;
+            value |= DAO_MONO;
         }
 
         if(i2s->mute){
-            value |= I2SDAO_MUTE;
+            value |= DAO_MUTE;
         }
         
         LPC_I2S->DAO = value;
@@ -260,12 +260,12 @@ void I2S_Init(i2sbus_t *i2s){
 
     if(i2s->mode & I2S_MCLK_OUT){
         if(i2s->mode & I2S_TX_EN){
-            LPC_I2S->TXMODE = I2STXMODE_TXMCENA; /* Enable MCLK output */
+            LPC_I2S->TXMODE = TXMODE_TXMCENA; /* Enable MCLK output */
             LPC_PINCON->PINSEL9 = (LPC_PINCON->PINSEL9 & (3 << 26)) | ( 1 << 26);    
         }
 
         if(i2s->mode & I2S_RX_EN){
-            LPC_I2S->RXMODE = I2SRXMODE_RXMCENA;
+            LPC_I2S->RXMODE = RXMODE_RXMCENA;
             LPC_PINCON->PINSEL9 = (LPC_PINCON->PINSEL9 & (3 << 24)) | ( 1 << 24);
         }
     }
@@ -279,17 +279,17 @@ void I2S_Start(i2sbus_t *i2s){
     uint32_t irq = 0;
 
     if(i2s->mode & I2S_RX_EN) {
-        LPC_I2S->DAI = LPC_I2S->DAI & ~(I2SDAI_RESET | I2SDAI_STOP);
-        irq |= I2SIRQ_RX_IRQ_EN | ((I2S_TXFIFO_SIZE - 6) << I2SIRQ_RX_DEPTH_POS);
+        LPC_I2S->DAI = LPC_I2S->DAI & ~(DAI_RESET | DAI_STOP);
+        irq |= IRQ_RX_IRQ_EN | ((TXFIFO_SIZE - 6) << IRQ_RX_DEPTH_POS);
     }else{
-        irq |= I2SIRQ_RX_DEPTH_MSK;
+        irq |= IRQ_RX_DEPTH_MSK;
     }
     
     if(i2s->mode & I2S_TX_EN) {
-        LPC_I2S->DAO = LPC_I2S->DAO & ~(I2SDAO_RESET | I2SDAO_STOP);
-        irq |= I2SIRQ_TX_IRQ_EN | ((I2S_TXFIFO_SIZE - 6) << I2SIRQ_TX_DEPTH_POS);
+        LPC_I2S->DAO = LPC_I2S->DAO & ~(DAO_RESET | DAO_STOP);
+        irq |= IRQ_TX_IRQ_EN | ((TXFIFO_SIZE - 6) << IRQ_TX_DEPTH_POS);
     }else{
-        irq |= I2SIRQ_TX_DEPTH_MSK;
+        irq |= IRQ_TX_DEPTH_MSK;
     }
 
     LPC_I2S->IRQ = irq;
@@ -297,20 +297,20 @@ void I2S_Start(i2sbus_t *i2s){
 
 void I2S_Stop(i2sbus_t *i2s){
     if(i2s->mode & I2S_RX_EN) {
-        LPC_I2S->DAI = LPC_I2S->DAI | (I2SDAI_RESET | I2SDAI_STOP);
+        LPC_I2S->DAI = LPC_I2S->DAI | (DAI_RESET | DAI_STOP);
     }
     
     if(i2s->mode & I2S_TX_EN) {
-        LPC_I2S->DAO = LPC_I2S->DAO | (I2SDAO_RESET | I2SDAO_STOP);
+        LPC_I2S->DAO = LPC_I2S->DAO | (DAO_RESET | DAO_STOP);
     }
 }
 
 void I2S_Mute(i2sbus_t *i2s, uint8_t mute){
     if(i2s->mode & I2S_TX_EN) {
         if(mute){
-            LPC_I2S->DAO = LPC_I2S->DAO | I2SDAO_MUTE;
+            LPC_I2S->DAO = LPC_I2S->DAO | DAO_MUTE;
         }else{
-            LPC_I2S->DAO = LPC_I2S->DAO & ~I2SDAO_MUTE;
+            LPC_I2S->DAO = LPC_I2S->DAO & ~DAO_MUTE;
         }
     }
 }
@@ -318,7 +318,7 @@ void I2S_Mute(i2sbus_t *i2s, uint8_t mute){
 void I2S_Handler(i2sbus_t *i2s){
     uint32_t State, Count;
     
-    if ( LPC_I2S->STATE & I2SSTATE_IRQ ){
+    if ( LPC_I2S->STATE & STATE_IRQ ){
         State = LPC_I2S->STATE;
 #if 0
         Count = I2S_RXFIFO_SIZE - (State >> I2SSTATE_RX_LEVEL_pos) & 0xF;
@@ -336,7 +336,7 @@ void I2S_Handler(i2sbus_t *i2s){
             i2s->wridx = Index;
         }
 #endif
-        Count =  I2S_TXFIFO_SIZE - ((State >> I2SSTATE_TX_LEVEL_pos) & 0xF);
+        Count =  TXFIFO_SIZE - ((State >> STATE_TX_LEVEL_pos) & 0xF);
         if(Count){
             i2s->txcp((uint32_t*)&LPC_I2S->TXFIFO, Count);
         }

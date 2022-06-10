@@ -52,7 +52,7 @@ enum spiflags_e{
 
 typedef struct spibus{
     void *ctrl;             // CMSIS compliant controller
-    dmactrl_t dma;     		// DMA channel/controller
+    dmatype_t dma;     		// DMA channel/controller
     uint8_t  bus;   		// bus number 0,1...
     uint32_t freq;  		// Clock frequency in khz
     uint8_t  flags;   		// MSB: Mode, LSB: databits

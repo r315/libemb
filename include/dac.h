@@ -1,35 +1,65 @@
 #ifndef _dac_h_
 #define _dac_h_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
-/**
- * @brief Initialize DAC
- * */
-void DAC_Init(void);
+typedef struct {
+    void *per;
+    int16_t *buf;
+    uint32_t len;
+    uint32_t rate;
+    uint32_t loop;
+}dactype_t;
 
 /**
- * @brief Set update rate
- * @ param fq  clock frequency for DMA timer
+ * @brief Power up DAC and configure default
+ *      output pin
  * */
-void DAC_SetRate(uint32_t fq);
+void DAC_Init(dactype_t *dac);
 
 /**
- * @brief
- * @param[in] buf   Pointer to buffer containing wave data
- * @param[in] len   Number of data points in buffer
- * @param[in] rate  Frequency at data is retrieved from buffer
- * */
-void DAC_StartSave(uint16_t *buf, uint32_t len, uint16_t rate);  
+ * @brief Power down DAC and configure output pin to reset state
+ * 
+ */
+void DAC_DeInit(dactype_t *dac);
 
 /**
- * @brief
+ * @brief Start DAC
+ * 
+ */
+void DAC_Start(dactype_t *dac);
+
+/**
+ * @brief Stops generating wave, resets DMA and buffer pointers
  * */
-void DAC_Stop(void);
+void DAC_Stop(dactype_t *dac);
 
+/**
+ * @brief Pause wave generation
+ * 
+ */
+void DAC_Pause(dactype_t *dac);
 
-void DAC_WriteBufer(uint16_t *buf, uint32_t len, uint16_t rate);
+/**
+ * @brief 
+ * 
+ * @param dac 
+ */
+void DAC_Config(dactype_t *dac);
 
+/**
+ * @brief 
+ * 
+ * @param value 
+ */
+void DAC_Write(dactype_t *dac, uint16_t value);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _dac_h_ */

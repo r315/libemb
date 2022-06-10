@@ -111,7 +111,7 @@ void UART_Init(serialbus_t *serialbus){
         case UART_BUS0: 
             puart = (LPC_UART_TypeDef *)LPC_UART0;
             // Turn on power to UART0
-	        PCONP_UART0_ENABLE();
+	        PCONP_UART0_ENABLE;
             // Turn on UART0 peripheral clock
 	        CLOCK_SetPCLK(PCLK_UART0, PCLK_4);
 			irq = UART0_IRQn;
@@ -123,7 +123,7 @@ void UART_Init(serialbus_t *serialbus){
 
         case UART_BUS1: 
 			puart = (LPC_UART_TypeDef *)LPC_UART1;
-			PCONP_UART1_ENABLE();
+			PCONP_UART1_ENABLE;
 			CLOCK_SetPCLK(PCLK_UART1, PCLK_4);
 			irq = UART1_IRQn;
 
@@ -148,7 +148,7 @@ void UART_Init(serialbus_t *serialbus){
 
         case UART_BUS3: 
 			puart = (LPC_UART_TypeDef *)LPC_UART3;
-			PCONP_UART3_ENABLE();
+			PCONP_UART3_ENABLE;
 			CLOCK_SetPCLK(PCLK_UART3, PCLK_4);
 			irq = UART3_IRQn;
 
