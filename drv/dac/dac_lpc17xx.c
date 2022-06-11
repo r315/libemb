@@ -73,9 +73,7 @@ void DAC_Config(dactype_t *dac){
 }
 
 void DAC_Write(dactype_t *dac, uint16_t value){
-    volatile uint16_t *cr = (volatile uint16_t*)&LPC_DAC->CR;
-    //LPC_DAC->CR = (LPC_DAC->CR & 0x10000) | value; // six lsb bits are discarted
-    cr[0] = value;
+    LPC_DAC->CR = (LPC_DAC->CR & 0x10000) | value; // six lsb bits are discarted
 }
 
 void DAC_Stop(dactype_t *dac){
