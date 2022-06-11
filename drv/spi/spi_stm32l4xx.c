@@ -1,4 +1,5 @@
 #include "stm32l4xx.h"
+#include "dma_stm32l4xx.h"
 #include "spi.h"
 #include "dma.h"
 
@@ -14,12 +15,17 @@
 #define SPIDEV_CLR_FLAG(_D, _F) _D->flags &= ~(_F)
 #define SPIDEV_GET_FLAG(_D, _F) !! (_D->flags & _F)
 
+
+static spibus_t *spi_eot[2];
+static inline void spi1Eot(void){ SPI_DMA_IRQHandler(spi_eot[0]);}
+static inline void spi2Eot(void){ SPI_DMA_IRQHandler(spi_eot[1]);}
+
 /**
  * @brief DMA Interrupt handler
  * */
 void SPI_DMA_IRQHandler(spibus_t *spidev){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.channel;
+    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.stream;
     
     dma_channel->CCR &= ~(DMA_CCR_EN);
         
@@ -84,17 +90,18 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
  * */
 void SPI_Init(spibus_t *spidev){
     SPI_TypeDef *spi;
-    DMA_Channel_TypeDef *dma_channel;
-
+    
     switch(spidev->bus){
         case SPI_BUS0:
             __HAL_RCC_SPI1_CLK_ENABLE();
             spi = SPI1;
+            spi_eot[0] = spidev;
             break;
 
         case SPI_BUS1:
             __HAL_RCC_SPI2_CLK_ENABLE();
             spi = SPI2;
+            spi_eot[1] = spidev;
             break;
 
         default : 
@@ -114,24 +121,19 @@ void SPI_Init(spibus_t *spidev){
 
     spi->CR1 |= SPI_CR1_SPE;
 
-    if(spidev->dma.ctrl != NULL){
-        dma_channel = (DMA_Channel_TypeDef*)spidev->dma.channel;
-
-        spi->CR2 |= SPI_CR2_TXDMAEN;
+    spidev->dma.dst = (void*)&spi->DR;
+    spidev->dma.dsize = DMA_CCR_PSIZE_16;
+    spidev->dma.src = NULL;
+    spidev->dma.ssize = DMA_CCR_MSIZE_16;
+    spidev->dma.dir = DMA_DIR_M2P;
+    spidev->dma.eot = (spi == SPI1) ? spi1Eot : spi2Eot;
     
-        dma_channel->CCR =
-            DMA_CCR_MSIZE_0 |                           // 16bit Dst size
-			DMA_CCR_PSIZE_0 |                           // 16bit src size
-            DMA_CCR_DIR |                               // Write to peripheral
-			DMA_CCR_TCIE;                               // Enable Transfer Complete interrupt
-        dma_channel->CPAR = (uint32_t)&spi->DR;         // Peripheral source
-        dma_channel->CCR |= DMA_CCR_MINC;               // Enable memory increment
-
-        HAL_NVIC_EnableIRQ(spidev->dma.irq);
-    }
+    DMA_Config(&spidev->dma, DMA2_REQ_SPI1_TX);
 
     spidev->flags |= SPI_ENABLED;
     spidev->ctrl = spi;
+
+    spi->CR2 |= SPI_CR2_TXDMAEN;
 }
 
 /**
@@ -158,7 +160,7 @@ void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
 void SPI_WriteDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
     static uint16_t _data;
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.channel;
+    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.stream;
 
     spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
 

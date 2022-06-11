@@ -18,7 +18,7 @@
  * */
 void SPI_DMA_IRQHandler(spibus_t *spidev){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma.channel;
+    DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma.stream;
     
     dma->CCR &= ~(DMA_CCR_EN);
         
@@ -88,7 +88,8 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
  * */
 void SPI_Init(spibus_t *spidev){
     SPI_TypeDef *spi;
-    DMA_Channel_TypeDef *dma_channel;    
+    DMA_Channel_TypeDef *dma_channel;
+    uint8_t irq;
 
     switch(spidev->bus){
         case SPI_BUS0:
@@ -96,9 +97,9 @@ void SPI_Init(spibus_t *spidev){
             __HAL_RCC_SPI1_FORCE_RESET();
             __HAL_RCC_SPI1_RELEASE_RESET();
             spi = SPI1;
-            spidev->dma.ctrl = DMA1;
+            spidev->dma.per = DMA1;
             dma_channel = DMA1_Channel3;
-            spidev->dma.irq = DMA1_Channel3_IRQn;
+            irq = DMA1_Channel3_IRQn;
             break;
 
         case SPI_BUS1:
@@ -106,9 +107,9 @@ void SPI_Init(spibus_t *spidev){
             __HAL_RCC_SPI2_FORCE_RESET();
             __HAL_RCC_SPI2_RELEASE_RESET();
             spi = SPI2;
-            spidev->dma.ctrl = DMA1;
+            spidev->dma.per = DMA1;
             dma_channel = DMA1_Channel5;
-            spidev->dma.irq = DMA1_Channel5_IRQn;
+            irq = DMA1_Channel5_IRQn;
             break;
 
         default : return;
@@ -138,10 +139,10 @@ void SPI_Init(spibus_t *spidev){
             DMA_CCR_DIR |               // Write to peripheral
 			DMA_CCR_TCIE;               // Enable Transfer Complete interrupt
 
-    NVIC_EnableIRQ(spidev->dma.irq);
+    NVIC_EnableIRQ(irq);
 
     spidev->ctrl = spi;
-    spidev->dma.channel = dma_channel;
+    spidev->dma.stream = dma_channel;
     spidev->flags |= SPI_ENABLED;
 }
 
@@ -188,7 +189,7 @@ void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
 void SPI_WriteDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
     static uint16_t _data;
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma.channel;
+    DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma.stream;
 
     // Configure Spi for 16bit DMA
     spi->CR1 &= ~SPI_CR1_SPE;

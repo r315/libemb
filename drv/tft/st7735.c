@@ -182,7 +182,7 @@ void LCD_Write(uint16_t *data, uint32_t count){
 	SPI_WaitEOT(spidev);
 
 	LCD_CS0;
-	if(spidev->dma.ctrl != NULL){
+	if(spidev->dma.per != NULL){
 		SPI_WriteDMA(spidev, data, count);
 		//LCD_CS1; // SET by DMA handler
 	}else{
@@ -206,7 +206,7 @@ static void LCD_Fill(uint16_t data, uint32_t count){
 	SPI_WaitEOT(spidev);
 
 	LCD_CS0;
-	if(spidev->dma.ctrl != NULL){
+	if(spidev->dma.per != NULL){
 		spidev->flags |= SPI_DMA_NO_MINC;
 		SPI_WriteDMA(spidev, &data, count);
 		//LCD_CS1; // SET by DMA handler	
@@ -342,7 +342,7 @@ void LCD_Init(void *spi){
 	//LCD_PIN_INIT; made on board level
 
 	spidev = (spibus_t*)spi;
-	if(spidev->dma.ctrl != NULL){
+	if(spidev->dma.per != NULL){
 		spidev->eot_cb = LCD_EOTHandler;
 	}
 
