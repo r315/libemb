@@ -58,6 +58,13 @@ void DAC_Config(dactype_t *dac);
  */
 void DAC_Write(dactype_t *dac, uint16_t value);
 
+/**
+ * @brief 
+ * 
+ * @param dac 
+ */
+void DAC_UpdateRate(dactype_t *dac, uint32_t rate);
+
 #ifdef __cplusplus
 }
 #endif

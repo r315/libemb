@@ -87,3 +87,8 @@ void DAC_Start(dactype_t *dac){
     
     SET_BIT(LPC_DAC->CTRL, CTRL_DMA_ENA | CTRL_CNT_ENA);
 }
+
+void DAC_UpdateRate(dactype_t *dac, uint32_t rate){
+    dac->rate = rate;
+    LPC_DAC->CNTVAL = dac->rate;
+}
