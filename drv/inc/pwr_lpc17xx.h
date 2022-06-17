@@ -6,12 +6,6 @@ extern "C" {
 #endif
 
 
-/**
- * Register bit definitions
- * */
-#define SET_BIT(REG, BIT)       ((REG) |= (BIT))
-#define CLEAR_BIT(REG, BIT)     ((REG) &= ~(BIT))
-
 // PCONP
 #define SC_PCONP_PCTIM0         (1 << 1)
 #define SC_PCONP_PCTIM1         (1 << 2)

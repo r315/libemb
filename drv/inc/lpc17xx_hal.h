@@ -13,7 +13,8 @@ extern "C" {
 #include "gpio_lpc17xx.h"
 #include "uart_lpc17xx.h"
 #include "dma_lpc17xx.h"
-
+#include "dac_lpc17xx.h"
+#include "adc_lpc17xx.h"
 
 #define SET_BIT(REG, BIT)       ((REG) |= (BIT))
 #define CLEAR_BIT(REG, BIT)     ((REG) &= ~(BIT))
@@ -27,6 +28,7 @@ extern "C" {
 #define PCONP_UART3_ENABLE    SET_BIT(LPC_SC->PCONP, SC_PCONP_PCUART3)
 #define PCONP_I2S_ENABLE      SET_BIT(LPC_SC->PCONP, SC_PCONP_PCI2S)
 #define PCONP_GPDMA_ENABLE    SET_BIT(LPC_SC->PCONP, SC_PCONP_PCGPDMA)
+#define PCONP_ADC_ENABLE      SET_BIT(LPC_SC->PCONP, SC_PCONP_PCADC)
 
 #ifdef __cplusplus
 }
