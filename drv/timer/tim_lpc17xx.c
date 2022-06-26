@@ -1,5 +1,7 @@
-#include <board.h>
-#include <timer.h>
+#include "lpc17xx_hal.h"
+#include "timer.h"
+
+// TODO: FIX all
 
 void TIMER_Start(Timer *tm, uint32_t interval){
     tm->initial = TIMER_GetTicks();
@@ -8,7 +10,7 @@ void TIMER_Start(Timer *tm, uint32_t interval){
 }
 
 uint8_t TIMER_IsExpired(Timer *tm){
-return TIMER_GetTicks() >= tm->expires;
+    return TIMER_GetTicks() >= tm->expires;
 }
 
 void TIMER_Reset(Timer *tm){
