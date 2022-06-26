@@ -43,23 +43,8 @@
     //GPIO_Function(P2_12, P2_12_I2STX_WS);
     //GPIO_Function(P2_13, P2_13_I2STX_SDA);
 
-/* USB RAM is used for GPDMA operation. */
-//#define DMA_SRC			0x7FD00000	
-//#define DMA_DST			0x7FD01000		
-//#define DMA_I2S_TX_FIFO	0xE0088008
-//#define	DMA_I2S_RX_FIFO	0xE008800C
-
-#define DMA_SRC			0x20080000	
-#define DMA_DST			0x20081000
-#define DMA_I2S_TX_FIFO	0x400A8008
-#define	DMA_I2S_RX_FIFO	0x400A800C
- 
-/* DMA mode */
-#define M2M				0x00
-#define M2P				0x01
-#define P2M				0x02
-#define P2P				0x03
-
+static i2sCallback txCallback;
+static i2sCallback rxCallback;
 
 /**
  * @brief Configure MCLK according configuration.
@@ -270,9 +255,11 @@ void I2S_Init(i2sbus_t *i2s){
         }
     }
 
-    I2S_Stop(i2s);
-
-    NVIC_EnableIRQ(I2S_IRQn);
+    if(i2s->txcp || i2s->rxcp){
+        txCallback = i2s->txcp;
+        rxCallback = i2s->rxcp;
+        NVIC_EnableIRQ(I2S_IRQn);
+    }
 }
 
 void I2S_Start(i2sbus_t *i2s){
@@ -315,7 +302,7 @@ void I2S_Mute(i2sbus_t *i2s, uint8_t mute){
     }
 }
 
-void I2S_Handler(i2sbus_t *i2s){
+void I2S_IRQHandler(void){
     uint32_t State, Count;
     
     if ( LPC_I2S->STATE & STATE_IRQ ){
@@ -338,7 +325,7 @@ void I2S_Handler(i2sbus_t *i2s){
 #endif
         Count =  TXFIFO_SIZE - ((State >> STATE_TX_LEVEL_pos) & 0xF);
         if(Count){
-            i2s->txcp((uint32_t*)&LPC_I2S->TXFIFO, Count);
+            txCallback((uint32_t*)&LPC_I2S->TXFIFO, Count);
         }
     }
 }

@@ -1,13 +1,5 @@
-#ifndef _uart_lpc17xx_h_
-#define _uart_lpc17xxh_
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
- 
-#include <stdint.h>
-
+#ifndef _i2s_lpc17xx_h_
+#define _i2s_lpc17xxh_
 
 /* I2SDAO Bits */
 #define DAO_WIDTH_8B     (0 << 0)
@@ -54,8 +46,5 @@ extern "C" {
 #define RXFIFO_SIZE     8
 #define TXFIFO_SIZE     8
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif

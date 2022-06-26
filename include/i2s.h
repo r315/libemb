@@ -31,6 +31,8 @@ typedef enum {
     I2S_BUS3
 }i2sbus_e;
 
+typedef void (*i2sCallback)(uint32_t *, uint32_t);
+
 typedef struct {
     void *regs;
     void *dma;
@@ -44,14 +46,15 @@ typedef struct {
     volatile uint32_t *rxbuffer;
     volatile uint32_t wridx;
     volatile uint32_t rdidx;
-    uint32_t buf_len;
-    void (*txcp)(uint32_t *dst, uint32_t cnt);
-    void (*rxcp)(uint32_t *src, uint32_t cnt);
+    uint32_t tx_buf_len;
+    uint32_t rx_buf_len;
+    i2sCallback txcp;
+    i2sCallback rxcp;
 }i2sbus_t;
+
 
 void I2S_Init(i2sbus_t *i2s);
 void I2S_Config(i2sbus_t *i2s);
-void I2S_Handler(i2sbus_t *spidev);
 void I2S_Stop(i2sbus_t *i2s);
 void I2S_Start(i2sbus_t *i2s);
 
