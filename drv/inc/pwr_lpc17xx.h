@@ -1,10 +1,16 @@
 #ifndef _pwr_lpc17xx_h_
 #define _pwr_lpc17xx_h_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+// PCON
+#define SC_PCON_PM0             (1 << 0)
+#define SC_PCON_PM1             (1 << 1)
+#define SC_PCON_BODRPM          (1 << 2)
+#define SC_PCON_BOGD            (1 << 3)
+#define SC_PCON_BORD            (1 << 4)
+#define SC_PCON_SMFLAG          (1 << 8)
+#define SC_PCON_DSFLAG          (1 << 9)
+#define SC_PCON_PDFLAG          (1 << 10)
+#define SC_PCON_DPDFLAG         (1 << 11)
 
 // PCONP
 #define SC_PCONP_PCTIM0         (1 << 1)
@@ -34,10 +40,5 @@ extern "C" {
 #define SC_PCONP_PCGPDMA        (1 << 29)
 #define SC_PCONP_PCENET         (1 << 30)
 #define SC_PCONP_PCUSB          (1 << 31)
- 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

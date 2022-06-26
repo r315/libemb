@@ -15,6 +15,8 @@ extern "C" {
 #include "dma_lpc17xx.h"
 #include "dac_lpc17xx.h"
 #include "adc_lpc17xx.h"
+#include "tim_lpc17xx.h"
+#include "rit_lpc17xx.h"
 
 #define SET_BIT(REG, BIT)       ((REG) |= (BIT))
 #define CLEAR_BIT(REG, BIT)     ((REG) &= ~(BIT))
@@ -29,6 +31,11 @@ extern "C" {
 #define PCONP_I2S_ENABLE      SET_BIT(LPC_SC->PCONP, SC_PCONP_PCI2S)
 #define PCONP_GPDMA_ENABLE    SET_BIT(LPC_SC->PCONP, SC_PCONP_PCGPDMA)
 #define PCONP_ADC_ENABLE      SET_BIT(LPC_SC->PCONP, SC_PCONP_PCADC)
+#define PCONP_TIM0_ENABLE     SET_BIT(LPC_SC->PCONP, SC_PCONP_PCTIM0)
+#define PCONP_TIM1_ENABLE     SET_BIT(LPC_SC->PCONP, SC_PCONP_PCTIM1)
+#define PCONP_TIM2_ENABLE     SET_BIT(LPC_SC->PCONP, SC_PCONP_PCTIM2)
+#define PCONP_TIM3_ENABLE     SET_BIT(LPC_SC->PCONP, SC_PCONP_PCTIM3)
+#define PCONP_RIT_ENABLE      SET_BIT(LPC_SC->PCONP, SC_PCONP_PCRIT)
 
 #ifdef __cplusplus
 }
