@@ -43,10 +43,10 @@
 // TIM_CCR Bits
 #define TIM_CCR_CAP0RE  (1 << 0)    // Capture on rising edge
 #define TIM_CCR_CAP0FE  (1 << 1)    // Capture on falling edge
-#define TIM_MCR_CAP0I   (1 << 2)    // Interrupt on capture
+#define TIM_CCR_CAP0I   (1 << 2)    // Interrupt on capture
 #define TIM_CCR_CAP1RE  (1 << 3)
 #define TIM_CCR_CAP1FE  (1 << 4)
-#define TIM_MCR_CAP1I   (1 << 5)
+#define TIM_CCR_CAP1I   (1 << 5)
 
 // TIM_EMR Bits
 #define TIM_EMR_EM0     (1 << 0)
@@ -54,5 +54,15 @@
 #define TIM_EMR_EM2     (1 << 2)
 #define TIM_EMR_EM3     (1 << 3)
 
+#define TIM_MR_REG_COUNT    4
 
+void TIM_InitMatch(LPC_TIM_TypeDef *tim);
+void TIM_Interval(LPC_TIM_TypeDef *tim, uint8_t match, void (*func)(void), uint32_t us);
+void TIM_Stop(LPC_TIM_TypeDef *tim);
+void TIM_Start(LPC_TIM_TypeDef *tim);
+void TIM_Reset(LPC_TIM_TypeDef *tim);
+void TIM_Restart(LPC_TIM_TypeDef *tim);
+
+void TIM_InitCapture(LPC_TIM_TypeDef *tim);
+void TIM_Capture(LPC_TIM_TypeDef *tim, uint8_t mrx, uint8_t edge, void (*func)(uint32_t));
 #endif
