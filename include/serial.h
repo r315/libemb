@@ -15,7 +15,9 @@ extern "C" {
 #define SERIAL_PARITY_ODD   (2 << 28)
 #define SERIAL_STOP_1B      (1 << 30)
 #define SERIAL_STOP_2B      (2 << 30)
+#define SERIAL_SPEED_9600   (9600 << 4)
 #define SERIAL_SPEED_115200 (115200 << 4)
+#define SERIAL_SPEED_230400 (230400 << 4)
 
 #define SERIAL_CONFIG_GET_SPEED(cfg)    ((cfg >> 4) & 0xFFFFF)     // 20bit
 #define SERIAL_CONFIG_GET_NUM(cfg)      ((cfg >> 0) & 15)  // 4bit
