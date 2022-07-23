@@ -128,69 +128,161 @@ typedef enum pinName{
   * @{
   */
 
-#define GPIO_FUNC0          0
-#define GPIO_FUNC1          1
-#define GPIO_FUNC2          2
-#define GPIO_FUNC3          3
+#define PIN_FUNC0           0
+#define PIN_FUNC1           1
+#define PIN_FUNC2           2
+#define PIN_FUNC3           3
 
-#define P0_4_I2SRX_CLK      GPIO_FUNC1
-#define P0_5_I2SRX_WS       GPIO_FUNC1
-#define P0_6_I2SRX_SDA      GPIO_FUNC1
-#define P0_7_I2STX_CLK      GPIO_FUNC1
-#define P0_8_I2STX_WS       GPIO_FUNC1
-#define P0_9_I2STX_SDA      GPIO_FUNC1
+#define P0_4_I2SRX_CLK      PIN_FUNC1
+#define P0_5_I2SRX_WS       PIN_FUNC1
 
-#define P0_23_I2SRX_CLK     GPIO_FUNC2
-#define P0_24_I2SRX_WS      GPIO_FUNC2
-#define P0_25_I2SRX_SDA     GPIO_FUNC2
+#define P0_6_GPIO           PIN_FUNC0
+#define P0_6_I2SRX_SDA      PIN_FUNC1
+#define P0_6_SSEL1          PIN_FUNC2
+#define P0_6_MAT2_0         PIN_FUNC3
 
-#define P2_11_I2STX_CLK     GPIO_FUNC3
-#define P2_12_I2STX_WS      GPIO_FUNC3
-#define P2_13_I2STX_SDA     GPIO_FUNC3
+#define P0_7_GPIO           PIN_FUNC0
+#define P0_7_I2STX_CLK      PIN_FUNC1
+#define P0_7_SCK1           PIN_FUNC2
+#define P0_7_MAT2_1         PIN_FUNC3
 
-#define P4_28_RX_MCLK       GPIO_FUNC1
-#define P4_29_TX_MCLK       GPIO_FUNC1
+#define P0_8_GPIO           PIN_FUNC0
+#define P0_8_I2STX_WS       PIN_FUNC1
+#define P0_8_MISO1          PIN_FUNC2
+#define P0_8_MAT2_2         PIN_FUNC3
 
-#define P0_23_GPIO       0
-#define P0_23_AD0_0      1
-#define P0_23_CAP3_0     3
+#define P0_9_GPIO           PIN_FUNC0
+#define P0_9_I2STX_SDA      PIN_FUNC1
+#define P0_9_MOSI1          PIN_FUNC2
+#define P0_9_MA2_3          PIN_FUNC3
 
-#define P0_24_GPIO       0
-#define P0_24_AD0_2      1
-#define P0_24_CAP3_1     3
+#define P0_15_GPIO          PIN_FUNC0
+#define P0_15_TXD1          PIN_FUNC1
+#define P0_15_SCK0          PIN_FUNC2
+#define P0_15_SCK           PIN_FUNC3
+
+#define P0_16_GPIO          PIN_FUNC0
+#define P0_16_RXD1          PIN_FUNC1
+#define P0_16_SSEL0         PIN_FUNC2
+#define P0_16_SSEL          PIN_FUNC3
+
+#define P0_17_GPIO          PIN_FUNC0
+#define P0_17_CTS1          PIN_FUNC1
+#define P0_17_MISO0         PIN_FUNC2
+#define P0_17_MISO          PIN_FUNC3
+
+#define P0_18_GPIO          PIN_FUNC0
+#define P0_18_DCD1          PIN_FUNC1
+#define P0_18_MOSI0         PIN_FUNC2
+#define P0_18_MOSI          PIN_FUNC3
+
+#define P0_23_I2SRX_CLK     PIN_FUNC2
+#define P0_24_I2SRX_WS      PIN_FUNC2
+#define P0_25_I2SRX_SDA     PIN_FUNC2
+
+#define P0_23_GPIO          PIN_FUNC0
+#define P0_23_AD0_0         PIN_FUNC1
+#define P0_23_I2SRX_CLK     PIN_FUNC2
+#define P0_23_CAP3_0        PIN_FUNC3
+
+#define P0_24_GPIO          PIN_FUNC0
+#define P0_24_AD0_2         PIN_FUNC1
+#define P0_24_CAP3_1        PIN_FUNC3
+
+//Port 1 pin functions
+#define P1_20_GPIO          PIN_FUNC0
+#define P1_20_MCI0          PIN_FUNC1
+#define P1_20_PWM1_2        PIN_FUNC2
+#define P1_20_SCK0          PIN_FUNC3
+
+#define P1_21_GPIO          PIN_FUNC0
+#define P1_21_MCABORT       PIN_FUNC1
+#define P1_21_PWM1_3        PIN_FUNC2
+#define P1_21_SSEL0         PIN_FUNC3
+
+#define P1_22_GPIO          PIN_FUNC0
+#define P1_22_MCOB0         PIN_FUNC1
+#define P1_22_USB_PWRD      PIN_FUNC2
+#define P1_22_MAT1_0        PIN_FUNC3
+
+#define P1_23_GPIO          PIN_FUNC0
+#define P1_23_MCI1          PIN_FUNC1
+#define P1_23_PWM1_4        PIN_FUNC2
+#define P1_23_MISO0         PIN_FUNC3
+
+#define P1_24_GPIO          PIN_FUNC0
+#define P1_24_MCI2          PIN_FUNC1
+#define P1_24_PWM1_5        PIN_FUNC2
+#define P1_24_MOSI0         PIN_FUNC3
 
 //Port 2 pin functions
-#define P2_0_GPIO      0
-#define P2_0_PWM1_1    1
-#define P2_0_TXD1      2
+#define P2_0_GPIO           PIN_FUNC0
+#define P2_0_PWM1_1         PIN_FUNC1
+#define P2_0_TXD1           PIN_FUNC2
 
-#define P2_1_GPIO      0
-#define P2_1_PWM1_2    1
-#define P2_1_RXD1      2
+#define P2_1_GPIO           PIN_FUNC0
+#define P2_1_PWM1_2         PIN_FUNC1
+#define P2_1_RXD1           PIN_FUNC2
 
-#define P2_2_GPIO      0
-#define P2_2_PWM1_3    1
-#define P2_2_CTS1      2
+#define P2_2_GPIO           PIN_FUNC0
+#define P2_2_PWM1_3         PIN_FUNC1
+#define P2_2_CTS1           PIN_FUNC2
 
-#define P2_3_GPIO      0
-#define P2_3_PWM1_4    1
-#define P2_3_DCD1      2
+#define P2_3_GPIO           PIN_FUNC0
+#define P2_3_PWM1_4         PIN_FUNC1
+#define P2_3_DCD1           PIN_FUNC2
 
-#define P2_4_GPIO      0
-#define P2_4_PWM1_5    1
-#define P2_4_DSR1      2
+#define P2_4_GPIO           PIN_FUNC0
+#define P2_4_PWM1_5         PIN_FUNC1
+#define P2_4_DSR1           PIN_FUNC2
 
-#define P2_5_GPIO      0
-#define P2_5_PWM1_6    1
-#define P2_5_DTR1      2
+#define P2_5_GPIO           PIN_FUNC0
+#define P2_5_PWM1_6         PIN_FUNC1
+#define P2_5_DTR1           PIN_FUNC2
 
-#define P2_6_GPIO      0
-#define P2_6_PACP1_0   1
-#define P2_6_RI1       2
+#define P2_6_GPIO           PIN_FUNC0
+#define P2_6_PACP1_0        PIN_FUNC1
+#define P2_6_RI1            PIN_FUNC2
 
-#define P2_7_GPIO      0
-#define P2_7_RD2       1
-#define P2_7_RTS1      2
+#define P2_7_GPIO           PIN_FUNC0
+#define P2_7_RD2            PIN_FUNC1
+#define P2_7_RTS1           PIN_FUNC2
+
+#define P2_11_I2STX_CLK     PIN_FUNC3
+#define P2_12_I2STX_WS      PIN_FUNC3
+#define P2_13_I2STX_SDA     PIN_FUNC3
+
+#define P4_28_RX_MCLK       PIN_FUNC1
+#define P4_29_TX_MCLK       PIN_FUNC1
+
+#define P0_6_FUNC_POS      12
+#define P0_6_FUNC_MASK     (3 << P0_6_FUNC_POS)
+#define P0_7_FUNC_POS      14
+#define P0_7_FUNC_MASK     (3 << P0_7_FUNC_POS)
+#define P0_8_FUNC_POS      16
+#define P0_8_FUNC_MASK     (3 << P0_8_FUNC_POS)
+#define P0_9_FUNC_POS      18
+#define P0_9_FUNC_MASK     (3 << P0_9_FUNC_POS)
+
+#define P0_15_FUNC_POS      30
+#define P0_15_FUNC_MASK     (3 << P0_15_FUNC_POS)
+#define P0_16_FUNC_POS      0
+#define P0_16_FUNC_MASK     (3 << P0_16_FUNC_POS)
+#define P0_17_FUNC_POS      2
+#define P0_17_FUNC_MASK     (3 << P0_17_FUNC_POS)
+#define P0_18_FUNC_POS      4
+#define P0_18_FUNC_MASK     (3 << P0_18_FUNC_POS)
+
+#define P1_20_FUNC_POS      8
+#define P1_20_FUNC_MASK     (3 << P0_15_FUNC_POS)
+#define P1_21_FUNC_POS      10
+#define P1_21_FUNC_MASK     (3 << P0_16_FUNC_POS)
+#define P1_22_FUNC_POS      12
+#define P1_22_FUNC_MASK     (3 << P0_17_FUNC_POS)
+#define P1_23_FUNC_POS      14
+#define P1_23_FUNC_MASK     (3 << P0_18_FUNC_POS)
+#define P1_24_FUNC_POS      16
+#define P1_24_FUNC_MASK     (3 << P0_18_FUNC_POS)
 
 /**
   * @}
