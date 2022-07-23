@@ -18,20 +18,7 @@ extern "C" {
 #endif
 
 #include "lpc17xx_hal.h"
-//#include <pwm.h>
-//#include <i2c.h>
-//#include <dac.h>
-//#include <spi.h>
-//#include <lcd.h>
-#include "button.h"
 #include "display.h"
-//#include <timer.h>
-
-
-#define PLL48   0
-#define PLL72   1
-#define PLL80   2
-#define PLL100  3
 
 #define GetTick         CLOCK_GetTicks
 #define DelayMs         CLOCK_DelayMs
@@ -63,10 +50,10 @@ extern "C" {
 #define BUTTON_HW_INIT  (LPC_GPIO1->FIODIR &= ~(BUTTON_MASK))
 
 #define BUTTON_MASK     (BUTTON_UP | BUTTON_DOWN | BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A )
+
 //-----------------------------------------------------
 //
 //-----------------------------------------------------
-
 #define LED1            (1<<29) //P1.29 (D8 BLUE)
 #define LED1_ON         LPC_GPIO1->FIOSET = LED1
 #define LED1_OFF        LPC_GPIO1->FIOCLR = LED1
@@ -82,15 +69,16 @@ extern "C" {
 
 #define LEDS_CFG
 
+#define ACCEL_CS_PIN    P0_6
+#define ACCEL_CS_PIN_MASK (1 << 6)
+#define SELECT_ACCEL    LPC_GPIO0->FIOCLR = ACCEL_CS_PIN_MASK
+#define DESELECT_ACCEL  LPC_GPIO0->FIOSET = ACCEL_CS_PIN_MASK
 
-#define ACCEL_CS_PIN    (1<<6)
-#define SELECT_ACCEL    LPC_GPIO0->FIOCLR = ACCEL_CS_PIM
-#define DESELECT_ACCEL  LPC_GPIO0->FIOSET = ACCEL_CS_PIN
-
-#define MMC_CS_PIN      (1<<16)
-#define SELECT_CARD     LPC_GPIO0->FIOCLR = MMC_CS_PIN		/* MMC CS = L */
-#define	DESELECT_CARD	LPC_GPIO0->FIOSET = MMC_CS_PIN		/* MMC CS = H */
-#define	MMC_SEL         !(LPC_GPIO0->FIOPIN & MMC_CS_PIN)		/* MMC CS status (true:selected) */
+#define MMC_CS_PIN      P0_16
+#define MMC_CS_PIN_MASK (1 << 16)
+#define SELECT_CARD     LPC_GPIO0->FIOCLR = MMC_CS_PIN_MASK		/* MMC CS = L */
+#define	DESELECT_CARD	LPC_GPIO0->FIOSET = MMC_CS_PIN_MASK		/* MMC CS = H */
+#define	MMC_SEL         !(LPC_GPIO0->FIOPIN & MMC_CS_PIN_MASK)  /* MMC CS status (true:selected) */
 
 #define  LCD_CS         (1<<10) //P1.10
 #define  LCD_RS         (1<<9)  //P1.9
@@ -130,6 +118,11 @@ void BB_ConfigClockOut(uint8_t en);
 void BB_RitTimeBase_Init(void);
 void BB_RitDelay(uint32_t ms);
 uint32_t BB_RitTicks(void);
+
+void BB_SPI_Init(void);
+void BB_SPI_Write(uint8_t *src, uint32_t count);
+void BB_SPI_WaitEOT(void);
+void BB_SPI_SetFrequency(uint32_t freq);
 
 #ifdef __cplusplus
 }

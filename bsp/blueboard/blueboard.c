@@ -7,27 +7,25 @@ TODO: inicializar clock usb
 */
 
 #include "blueboard.h"
+#include "spi.h"
+#include "button.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#define BB_MAIN_SPI (&s_spi1)
+
+static spibus_t s_spi1;
 //---------------------------------------------------
 //	
 //---------------------------------------------------
-void BB_Init(void)
-{
-	LPC_GPIO0->FIODIR |= 0xFF;
+void BB_Init(void){
 	LPC_GPIO1->FIODIR |= LED1|LED2;
 	LPC_GPIO2->FIODIR |= LED3;
 
-    // accelerometer cs pin
-    LPC_GPIO0->FIODIR   |= ACCEL_CS_PIN;  // en cs pin   	
-    LPC_PINCON->PINSEL0 &= ~(3<<12);  // P0.6 (used as GPIO)    
-
-    // mmc cs pin
-	LPC_GPIO0->FIODIR   |=  MMC_CS_PIN;   /* SET MMC_CS pin  as output */	
-	LPC_PINCON->PINSEL1 &= ~(3<<0);  /* P0.16 (used as GPIO)   */ 
+	GPIO_Function(ACCEL_CS_PIN, PIN_FUNC0); // GPIO
+	GPIO_Function(MMC_CS_PIN, PIN_FUNC0);
 	
 	LED1_OFF;
 	LED2_OFF;
@@ -35,6 +33,16 @@ void BB_Init(void)
 	
 	DESELECT_ACCEL;	
 	DESELECT_CARD;
+
+	LCD_Init(NULL);
+	BUTTON_Init(BUTTON_DEFAULT_HOLD_TIME);
+
+	BB_MAIN_SPI->bus = SPI_BUS0;
+    BB_MAIN_SPI->freq = 500000;
+    BB_MAIN_SPI->flags  = SPI_MODE0;
+    SPI_Init(BB_MAIN_SPI);
+
+	//ACC_Init();
 }
 
 void BB_SW_Reset(void){
@@ -60,23 +68,24 @@ void BB_ConfigClockOut(uint8_t en){
 //--------------------------------------------------
 //
 //--------------------------------------------------
-void BB_RitTimeBase_Init(void){
-
-
+void BB_SPI_Write(uint8_t *data, uint32_t count){
+	SPI_Write(BB_MAIN_SPI, data, count);
 }
 
-//--------------------------------------------------
-//
-//--------------------------------------------------
-void BB_RitDelay(uint32_t ms){
-	
+void BB_SPI_WriteDMA(uint16_t *data, uint32_t count){
+	SPI_WriteDMA(BB_MAIN_SPI, data, count);
 }
-//--------------------------------------------------
-//
-//--------------------------------------------------
-uint32_t BB_RitTicks(void){
-	return 0;
+
+void BB_SPI_WaitEOT(){
+	SPI_WaitEOT(BB_MAIN_SPI);
 }
+
+void BB_SPI_SetFrequency(uint32_t freq){
+    BB_MAIN_SPI->flags &= ~SPI_ENABLED;	 
+    BB_MAIN_SPI->freq = freq;    
+    SPI_Init(BB_MAIN_SPI);
+}
+
 
 #ifdef __cplusplus
 }
