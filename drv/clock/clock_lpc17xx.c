@@ -2,27 +2,26 @@
 #include <LPC17xx.h>
 #include "clock_lpc17xx.h"
 
-#ifdef __USE_SYSTICK
-volatile uint32_t _systicks;
+#ifndef __TIMER_SYSTICK
+static volatile uint32_t _systicks;
 
-//-----------------------------------------------------									   
-// SysTick Interrupt Handler (1ms)   
-//-----------------------------------------------------
-void SysTick_Handler(void){
-	_systicks++;
-}
-
-void CLOCK_DelayMs(uint32_t ms){
-uint32_t ticks = _systicks + ms;
-	while(ticks > _systicks);
+void systickInit(){
+	SysTick_Config(SystemCoreClock/1000);
 }
 
 uint32_t CLOCK_GetTicks(void){
 	return _systicks;
 }
 
-void systickInit(){
-	SysTick_Config(SystemCoreClock/1000);
+void CLOCK_DelayMs(uint32_t ms){
+uint32_t ticks = _systicks + ms;
+	while(ticks > _systicks);
+}
+//-----------------------------------------------------									   
+// SysTick Interrupt Handler (1ms)   
+//-----------------------------------------------------
+void SysTick_Handler(void){
+	_systicks++;
 }
 #else
 
