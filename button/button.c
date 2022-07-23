@@ -11,6 +11,11 @@
 
 static BUTTON_Controller __button;
 
+/**
+ * @brief Initialise internal state variables
+ * 
+ * @param ht : time in ms before HOLD state
+ */
 void BUTTON_Init(int ht){    
     __button.cur  = BUTTON_EMPTY;
     __button.last = BUTTON_EMPTY;
