@@ -19,6 +19,7 @@ extern "C" {
 
 #include "lpc17xx_hal.h"
 #include "display.h"
+#include "spi.h"
 
 #define GetTick         CLOCK_GetTicks
 #define DelayMs         CLOCK_DelayMs
@@ -74,11 +75,11 @@ extern "C" {
 #define SELECT_ACCEL    LPC_GPIO0->FIOCLR = ACCEL_CS_PIN_MASK
 #define DESELECT_ACCEL  LPC_GPIO0->FIOSET = ACCEL_CS_PIN_MASK
 
-#define MMC_CS_PIN      P0_16
-#define MMC_CS_PIN_MASK (1 << 16)
-#define SELECT_CARD     LPC_GPIO0->FIOCLR = MMC_CS_PIN_MASK		/* MMC CS = L */
-#define	DESELECT_CARD	LPC_GPIO0->FIOSET = MMC_CS_PIN_MASK		/* MMC CS = H */
-#define	MMC_SEL         !(LPC_GPIO0->FIOPIN & MMC_CS_PIN_MASK)  /* MMC CS status (true:selected) */
+#define BOARD_CARD_CS_PIN       P0_16
+#define BOARD_CARD_CS_PIN_MASK  (1 << 16)
+#define BOARD_CARD_SELECT       LPC_GPIO0->FIOCLR = BOARD_CARD_CS_PIN_MASK		/* MMC CS = L */
+#define	BOARD_CARD_DESELECT     LPC_GPIO0->FIOSET = BOARD_CARD_CS_PIN_MASK		/* MMC CS = H */
+#define	BOARD_CARD_IS_SELECTED  !(LPC_GPIO0->FIOPIN & BOARD_CARD_CS_PIN_MASK)   /* MMC CS status (true:selected) */
 
 #define  LCD_CS         (1<<10) //P1.10
 #define  LCD_RS         (1<<9)  //P1.9
@@ -124,6 +125,7 @@ void BB_SPI_Write(uint8_t *src, uint32_t count);
 void BB_SPI_WaitEOT(void);
 void BB_SPI_SetFrequency(uint32_t freq);
 
+void mmc_setSpi(spibus_t *spi);
 #ifdef __cplusplus
 }
 #endif

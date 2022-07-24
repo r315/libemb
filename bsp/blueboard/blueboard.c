@@ -24,15 +24,15 @@ void BB_Init(void){
 	LPC_GPIO1->FIODIR |= LED1|LED2;
 	LPC_GPIO2->FIODIR |= LED3;
 
-	GPIO_Function(ACCEL_CS_PIN, PIN_FUNC0); // GPIO
-	GPIO_Function(MMC_CS_PIN, PIN_FUNC0);
+	GPIO_Init(ACCEL_CS_PIN, PIN_OUT_PP);
+	GPIO_Init(BOARD_CARD_CS_PIN, PIN_OUT_PP);
 	
 	LED1_OFF;
 	LED2_OFF;
 	LED3_OFF;
 	
 	DESELECT_ACCEL;	
-	DESELECT_CARD;
+	BOARD_CARD_DESELECT;
 
 	LCD_Init(NULL);
 	BUTTON_Init(BUTTON_DEFAULT_HOLD_TIME);
@@ -42,6 +42,7 @@ void BB_Init(void){
     BB_MAIN_SPI->flags  = SPI_MODE0;
     SPI_Init(BB_MAIN_SPI);
 
+	mmc_setSpi(BB_MAIN_SPI);
 	//ACC_Init();
 }
 
@@ -76,6 +77,10 @@ void BB_SPI_WriteDMA(uint16_t *data, uint32_t count){
 	SPI_WriteDMA(BB_MAIN_SPI, data, count);
 }
 
+uint16_t BB_SPI_Send(uint16_t data){
+	return SPI_Send(BB_MAIN_SPI, data);
+}
+
 void BB_SPI_WaitEOT(){
 	SPI_WaitEOT(BB_MAIN_SPI);
 }
@@ -85,6 +90,7 @@ void BB_SPI_SetFrequency(uint32_t freq){
     BB_MAIN_SPI->freq = freq;    
     SPI_Init(BB_MAIN_SPI);
 }
+
 
 
 #ifdef __cplusplus

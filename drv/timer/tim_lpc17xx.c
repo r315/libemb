@@ -149,10 +149,10 @@ void TIM_Capture(LPC_TIM_TypeDef *tim, uint8_t mrx, uint8_t edge, void (*func)(u
 
     // Configure GPIO pin
     if(mrx == 0){
-        GPIO_Function(P0_23, P0_23_CAP3_0); 
+        GPIO_Init(P0_23, P0_23_CAP3_0); 
     }
     else{
-        GPIO_Function(P0_24, P0_24_CAP3_1);
+        GPIO_Init(P0_24, P0_24_CAP3_1);
     }
     
     tim_cap_cb = func;

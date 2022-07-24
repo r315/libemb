@@ -31,7 +31,7 @@ void SPI_Init(spibus_t *spi){
 			LPC_PINCON->PINSEL1 = (LPC_PINCON->PINSEL1 & ~(P0_17_FUNC_MASK | P0_18_FUNC_MASK)) | 
 							  (P0_17_MISO0 << P0_17_FUNC_POS) | (P0_18_MOSI0 << P0_18_FUNC_POS);
 			if(spi->flags & SPI_HW_CS){
-				GPIO_Function(P0_16, P0_16_SSEL0);
+				GPIO_Init(P0_16, P0_16_SSEL0);
 			}
 			break;
 
@@ -42,7 +42,7 @@ void SPI_Init(spibus_t *spi){
 			LPC_PINCON->PINSEL0 = (LPC_PINCON->PINSEL0 & ~(P0_7_FUNC_MASK | P0_8_FUNC_MASK | P0_9_FUNC_MASK)) | 
 							(P0_7_SCK1 << P0_7_FUNC_POS) | (P0_8_MISO1 << P0_8_FUNC_POS) | (P0_9_MOSI1 << P0_9_FUNC_POS);
 			if(spi->flags & SPI_HW_CS){
-				GPIO_Function(P0_6, P0_6_SSEL1);
+				GPIO_Init(P0_6, P0_6_SSEL1);
 			}
 			break;
 
@@ -54,7 +54,7 @@ void SPI_Init(spibus_t *spi){
 							(P1_20_SCK0 << P1_20_FUNC_POS) | (P1_23_MISO0 << P1_23_FUNC_POS) | (P1_24_MOSI0 << P1_24_FUNC_POS);
 			
 			if(spi->flags & SPI_HW_CS){
-				GPIO_Function(P1_21, P1_21_SSEL0);
+				GPIO_Init(P1_21, P1_21_SSEL0);
 			}
 			break;
 
@@ -100,7 +100,7 @@ void SPI_Init(spibus_t *spi){
 
 void SPI_Write(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
 
-LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
+	LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 
 	while(sspx->SR & SSP_SR_RNE){ // empty fifo
 	    LPC_RTC->GPREG0 = sspx->DR;
@@ -124,12 +124,15 @@ LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 }
 
 uint16_t SPI_Send(spibus_t *spi, uint16_t data){
-LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
+	LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 	sspx->DR = data;
-		while((sspx->SR & SSP_SR_BSY));
+	while((sspx->SR & SSP_SR_BSY));
 	return sspx->DR;
 }
 
+void SPI_WriteDMA(spibus_t *spi, uint16_t *data, uint32_t count){
+	//LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;	
+}
 
 //------------------------------
 // Interrupt Handlers

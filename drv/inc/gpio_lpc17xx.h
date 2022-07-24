@@ -124,14 +124,33 @@ typedef enum pinName{
   P4_29 = 157
 }pinName_e;
 
-/** @defgroup GPIO Alternative functions
-  * @{
+/** 
+  * b7 | b6 | b5 | b4  | b3 b2 | b1 b0
+  *         | od | dir | mode  | func
   */
+#define PIN_FUNC_POS        0
+#define PIN_MODE_POS        2
+#define PIN_DIR_POS         4
+#define PIN_OD_POS          5
 
 #define PIN_FUNC0           0
 #define PIN_FUNC1           1
 #define PIN_FUNC2           2
 #define PIN_FUNC3           3
+#define PIN_MODE_PU         0
+#define PIN_MODE_REPEATER   1
+#define PIN_MODE_FLOAT      2
+#define PIN_MODE_PD         3
+#define PIN_MODE_PP         4
+#define PIN_MODE_OD         8
+
+#define PIN_FUNC_MASK       (3 << 0)
+#define PIN_IN_PU           (PIN_MODE_PU << PIN_MODE_POS)
+#define PIN_IN_REPEATER     (PIN_MODE_REPEATER << PIN_MODE_POS)
+#define PIN_IN_FLOAT        (PIN_MODE_FLOAT << PIN_MODE_POS)
+#define PIN_IN_PD           (PIN_MODE_PD << PIN_MODE_POS)
+#define PIN_OUT_PP          (PIN_MODE_PP << PIN_MODE_POS)
+#define PIN_OUT_OD          (PIN_MODE_OD << PIN_MODE_POS)
 
 #define P0_4_I2SRX_CLK      PIN_FUNC1
 #define P0_5_I2SRX_WS       PIN_FUNC1
@@ -284,26 +303,14 @@ typedef enum pinName{
 #define P1_24_FUNC_POS      16
 #define P1_24_FUNC_MASK     (3 << P0_18_FUNC_POS)
 
-/**
-  * @}
-  */
 
-/* ****** Pin modes ****** */
-#define PIN_OUT_MASK        (1 << 2)
-#define PIN_OUT_PP          (PIN_OUT_MASK | (0 << 0))
-#define PIN_OUT_OD          (PIN_OUT_MASK | (1 << 0))
-#define PIN_IN_PU           (0 << 0)
-#define PIN_IN_REPEATER     (1 << 0)
-#define PIN_IN_FLOAT        (2 << 0)
-#define PIN_IN_PD           (3 << 0)
-
-
-void GPIO_Config(pinName_e name, uint8_t mode);
+void GPIO_Init(pinName_e name, uint8_t cfg);
+void GPIO_Function(pinName_e name, uint8_t func);
+void GPIO_Mode(pinName_e name, uint8_t mode);
+void GPIO_Direction(pinName_e name, uint8_t mode);
 void GPIO_Write(pinName_e name, uint8_t state);
 void GPIO_Toggle(pinName_e name);
-//void GPIO_PORT_Write(pinName_e name, uint32_t value);
 uint32_t GPIO_Read(pinName_e name);
-void GPIO_Function(pinName_e pin, uint8_t func);
 
 #ifdef __cplusplus
 }
