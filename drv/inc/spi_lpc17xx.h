@@ -5,7 +5,29 @@
 extern "C" {
 #endif
 
+/**
+SPI Pins:
+  SCK       P0.15
+  SSEL      P0.16
+  MISO      P0.17
+  MOSI      P0.18
+
+SSP0 Pins:
+  SCK0      P0.15     P1.20
+  SSEL0     P0.16     P1.21
+  MISO0     P0.17     P1.23
+  MOSI0     P0.18     P1.24
+  
+SSP1 Pins:
+  SCK1      P0.7      P1.31
+  SSEL1     P0.6      -
+  MISO1     P0.8      -
+  MOSI1     P0.9      -
+*/
+
 // SSPx
+#define SSP_CR0_DSS_8       7
+#define SSP_CR0_DSS_16      15
 #define SSP_CR0_CPOL        (1<<6)  // idle level
 #define SSP_CR0_CPHA        (1<<7)  // data valid
 #define SSP_CR1_SSE         (1<<1)  // ssp enable
@@ -33,6 +55,12 @@ extern "C" {
 #define SPI_SPSR_ROVR       (1 << 5)
 #define SPI_SPSR_WCOL       (1 << 6)
 #define SPI_SPSR_SPIF       (1 << 7)
+
+#define SPI_NUM_BUS         2
+
+#define SSP_MAX_PCLK_DIV    8
+#define SSP_MIN_PRES        10
+#define SSP_MAX_PRES        254
 
 
 #ifdef __cplusplus
