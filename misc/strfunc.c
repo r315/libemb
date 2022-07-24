@@ -43,6 +43,8 @@ uint32_t argc = 0;
 		}
     }
 
+	argv[argc] = NULL;
+
 	return argc;
 }
 /**
