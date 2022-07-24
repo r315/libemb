@@ -46,7 +46,7 @@ enum spiflags_e{
     SPI_DMA_NO_MINC = (1 << 0),
     SPI_16BIT = (1 << 1),
     SPI_BUSY = (1 << 2),
-    SPI_SW_CS = (1 << 3),
+    SPI_HW_CS = (1 << 3),
     SPI_ENABLED = (1 << 4)
 };
 
