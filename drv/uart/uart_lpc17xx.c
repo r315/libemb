@@ -5,6 +5,8 @@
 
 #define DIVADDVAL_MULVAL(D, M) D | (M << 4)
 
+static serialbus_t *s_uart[4];
+
 typedef struct FdrPair
 {
 	uint16_t fr;	 // 1.1 < FR < 1.9
@@ -127,6 +129,7 @@ void UART_Init(serialbus_t *serialbus)
 	{
 	case UART_BUS0:
 		puart = (LPC_UART_TypeDef *)LPC_UART0;
+		s_uart[0] = serialbus;
 		// Turn on power to UART0
 		PCONP_UART0_ENABLE;
 		// Turn on UART0 peripheral clock
@@ -141,6 +144,7 @@ void UART_Init(serialbus_t *serialbus)
 
 	case UART_BUS1:
 		puart = (LPC_UART_TypeDef *)LPC_UART1;
+		s_uart[1] = serialbus;
 		PCONP_UART1_ENABLE;
 		CLOCK_SetPCLK(PCLK_UART1, PCLK_4);
 		pclk = CLOCK_GetPCLK(PCLK_UART1);
@@ -154,6 +158,7 @@ void UART_Init(serialbus_t *serialbus)
 	case UART_BUS2:
 #if 0 /* PINS are not available on BB */
 			puart = (LPC_UART_TypeDef *)LPC_UART2;
+			s_uart[2] = serialbus;
 			PCONP_UART2_ENABLE();
 			CLOCK_SetPCLK(PCLK_UART2, PCLK_4);
 			pclk = CLOCK_GetPCLK(PCLK_UART2);
@@ -168,6 +173,7 @@ void UART_Init(serialbus_t *serialbus)
 
 	case UART_BUS3:
 		puart = (LPC_UART_TypeDef *)LPC_UART3;
+		s_uart[3] = serialbus;
 		PCONP_UART3_ENABLE;
 		CLOCK_SetPCLK(PCLK_UART3, PCLK_4);
 		pclk = CLOCK_GetPCLK(PCLK_UART3);
@@ -211,17 +217,25 @@ char UART_GetChar(serialbus_t *huart)
 void UART_PutChar(serialbus_t *huart, char c)
 {
 	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
+	
 	fifo_put(&huart->txfifo, (uint8_t)c);
+	
+	while(!(uart->LSR & UART_LSR_TEMT));
 	fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
 }
 
 void UART_Puts(serialbus_t *huart, const char *str)
 {
 	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
+
 	while (*str)
 	{
-		fifo_put(&huart->txfifo, (uint8_t)*str++);
+		if(fifo_put(&huart->txfifo, (uint8_t)*str++) == 0){
+			break;
+		}
 	}
+	
+	while(!(uart->LSR & UART_LSR_TEMT));
 	fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
 }
 
@@ -246,8 +260,8 @@ uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len)
 	uint16_t count = len;
 	while (--count)
 	{
-		if (fifo_put(&huart->txfifo, (uint8_t)*data++) == 0)
-		{
+		if (fifo_put(&huart->txfifo, (uint8_t)*data++) == 0){
+			// Fifo full, break and return bytes pushed to fifo
 			break;
 		}
 	}
@@ -260,11 +274,11 @@ uint16_t UART_Read(serialbus_t *huart, uint8_t *data, uint16_t len)
 	return 0;
 }
 
-void UART_IRQHandler(void *ptr)
+static void UART_IRQHandler(void *ptr)
 {
 	serialbus_t *serialbus;
 	LPC_UART_TypeDef *uart;
-	uint32_t iir, lsr, dummy __attribute__((unused));
+	uint32_t iir, lsr;
 
 	if (ptr == NULL)
 	{
@@ -281,20 +295,20 @@ void UART_IRQHandler(void *ptr)
 		switch ((iir >> 1) & 7)
 		{
 
-		case UART_IIR_THRE:
+		case UART_IIR_INTID_THRE:
 			fifo_get(&serialbus->txfifo, (uint8_t *)&uart->THR);
 			break;
 
-		case UART_IIR_RDA:
+		case UART_IIR_INTID_RDA:
 			fifo_put(&serialbus->rxfifo, uart->RBR);
 			break;
 
-		case UART_IIR_RLS:
+		case UART_IIR_INTID_RLS:
 			lsr = uart->LSR;
 			if (lsr & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_RXFE | UART_LSR_BI))
 			{
-				// errors have occurred
-				dummy = uart->RBR;
+				// errors have occurred, dummy read
+				uart->SCR = uart->RBR;
 			}
 			else if (lsr & UART_LSR_RDR)
 			{
@@ -303,11 +317,24 @@ void UART_IRQHandler(void *ptr)
 			}
 			break;
 
-		case UART_IIR_CTI:
-			break;
-
+		case UART_IIR_INTID_CTI:
+		case UART_IIR_INTID_MODEM:
 		default:
 			break;
 		}
 	}
+}
+
+void UART0_IRQHandler(void){
+	UART_IRQHandler(s_uart[0]);
+}
+
+void UART1_IRQHandler(void){
+	UART_IRQHandler(s_uart[1]);
+}
+
+void UART2_IRQHandler(void){}
+
+void UART3_IRQHandler(void){
+	UART_IRQHandler(s_uart[3]);
 }

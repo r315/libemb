@@ -37,5 +37,4 @@ uint8_t UART_Kbhit(serialbus_t *huart);
 uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len);
 uint16_t UART_Read(serialbus_t *huart, uint8_t *data, uint16_t len);
 void UART_Attach(serialbus_t *huart, void (*fptr)(void));
-void UART_IRQHandler(void *ptr);
 #endif /* _usart_h_ */

@@ -32,11 +32,12 @@ extern "C" {
 #define UART_IER_ABTO       (1 << 9)    // Auto-baud timeout
 
 // IIR
-#define UART_IIR_STATUS     (1 << 0)
-#define UART_IIR_THRE       1
-#define UART_IIR_RLS        3
-#define UART_IIR_RDA        2
-#define UART_IIR_CTI        6
+#define UART_IIR_STATUS         (1 << 0)
+#define UART_IIR_INTID_MODEM    0
+#define UART_IIR_INTID_THRE     1
+#define UART_IIR_INTID_RDA      2
+#define UART_IIR_INTID_RLS      3
+#define UART_IIR_INTID_CTI      6
 
 // FCR
 #define UART_FCR_EN         (1 << 0)    // 
