@@ -15,26 +15,26 @@ Console::Console(StdOut *sp, const char *prompt) {
 }
 
 void Console::init(StdOut *sp, const char *prompt) {
-	memset(cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
-	memset(line, '\0', COMMAND_MAX_LEN);
-	cmdListSize = 0;
-	processing = NO;
-	out = sp;
-	prt = prompt;
+	memset(m_cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
+	memset(m_line, '\0', CONSOLE_COMMAND_MAX_LEN);
+	m_cmdListSize = 0;
+	m_active = NO;
+	m_out = sp;
+	m_prompt = prompt;
 	historyClear();	
-	line_len = 0;
+	m_line_len = 0;
 	//addCommand(&help); // since all cpp support is disabled, classes on .data section are not initialized
 }
 
 void Console::addCommand(ConsoleCommand *cmd) {
-	if (cmd == NULL || cmdListSize == CONSOLE_MAX_COMMANDS)
+	if (cmd == NULL || m_cmdListSize == CONSOLE_MAX_COMMANDS)
 	{
 		putString("Invalid command or command list full!");
 		return;
 	}
 
 	cmd->init(this);
-	cmdList[cmdListSize++] = cmd;	
+	m_cmdList[m_cmdListSize++] = cmd;	
 }
 
 void Console::registerCommandList(ConsoleCommand **list){
@@ -44,25 +44,31 @@ void Console::registerCommandList(ConsoleCommand **list){
 }
 
 char Console::parseCommand(char *line) {
-	char res = CMD_NOT_FOUND, *cmdname, *param;
-	ConsoleCommand **cmd = cmdList;
+	char res = CMD_NOT_FOUND, *cmdname;
+	ConsoleCommand **cmd = m_cmdList;
 
+	// check if empty line
 	if (*line == '\n' || *line == '\r' || *line == '\0')
 		return CMD_OK;
 
-	cmdname = strsub(line, ' ', COMMAND_MAX_LEN, &param);
+	// Convert command line into string array
+	m_argc = strToArray((char*)line, m_argv);
 
-	for (uint8_t i = 0; i < cmdListSize; i++, cmd++) {
-		if (*cmd == NULL) {
-			break;
+	if(m_argc < CONSOLE_MAX_PARAMS && m_argv[0] != NULL){
+		cmdname = m_argv[0];
+		for (uint8_t i = 0; i < m_cmdListSize; i++, cmd++) {
+			if (*cmd == NULL) {
+				break;
+			}
+			if ((*cmd)->isNameEqual(cmdname) != 0) {
+				res = (*cmd)->execute(m_argc, m_argv);
+				break;
+			}	
 		}
-		if ((*cmd)->isNameEqual(cmdname) != 0) {
-			res = (*cmd)->execute((void*)param);
-			break;
-		}	
 	}
-
-	memset(line, '\0', COMMAND_MAX_LEN);
+	
+	// Clear command line
+	memset(line, '\0', CONSOLE_COMMAND_MAX_LEN);
 
 	if (res == CMD_NOT_FOUND) {
 		putString("Command not found\r");
@@ -76,33 +82,33 @@ char Console::parseCommand(char *line) {
 }
 
 void Console::process(void) {
-	if(processing == NO){
-		processing = YES;
-		out->xputs(prt);
+	if(m_active == NO){
+		m_active = YES;
+		m_out->xputs(m_prompt);
 		return;
 	}
 #if defined(CONSOLE_BLOCKING)
 	line_len = 0;
 	line_len = getLine(line, COMMAND_MAX_LEN);	
 #else
-	if (getLineNonBlocking(line, &line_len, COMMAND_MAX_LEN)) 
+	if (getLineNonBlocking(m_line, &m_line_len, CONSOLE_COMMAND_MAX_LEN)) 
 #endif
 	{
-		historyAdd(line);
-		if(parseCommand(line) != CMD_OK_NO_PRT){
-			out->xputs(prt);
+		historyAdd(m_line);
+		if(parseCommand(m_line) != CMD_OK_NO_PRT){
+			m_out->xputs(m_prompt);
 		}
 	}
 }
 
 void Console::cls(void){
-	out->xputs("\e[2J\r");	
+	m_out->xputs("\e[2J\r");	
 }
 
 /**
  * */
 void Console::setOutput(StdOut *sp){
-	out = sp;	
+	m_out = sp;	
 }
 
 /**
@@ -110,8 +116,8 @@ void Console::setOutput(StdOut *sp){
  * */
 int Console::putString(const char* str)
 {
-	out->xputs(str);
-	out->xputchar('\n');
+	m_out->xputs(str);
+	m_out->xputchar('\n');
 	return 1;
 }
 
@@ -120,12 +126,12 @@ char *Console::getString(char* str)
 	uint8_t i = 0;
 	char c;
 
-	c = out->xgetchar();
+	c = m_out->xgetchar();
 
 	while ((c != '\n') && (c != '\r'))
 	{
 		*(str + i++) = c;		
-		c = out->xgetchar();
+		c = m_out->xgetchar();
 	}
 	*(str + i) = '\0';
 
@@ -133,20 +139,20 @@ char *Console::getString(char* str)
 }
 
 int Console::putChar(int c) {
-	out->xputchar(c);
+	m_out->xputchar(c);
 	return (int)c;
 }
 
 int Console::getChar(void)
 {
-	char c = out->xgetchar();
-	out->xputchar(c);
+	char c = m_out->xgetchar();
+	m_out->xputchar(c);
 	return (int)c;
 }
 
 uint8_t Console::getCharNonBlocking(char *c)
 {
-	return out->getCharNonBlocking(c);
+	return m_out->getCharNonBlocking(c);
 }
 
 /**
@@ -157,19 +163,19 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 	char c;
 	uint8_t len;
 
-	while (out->getCharNonBlocking(&c)) {
+	while (m_out->getCharNonBlocking(&c)) {
 		len = *cur_len;
 		
 		if ((c == '\n') || (c == '\r')) {			
 			//Remove all extra text from previous commands
 			memset(dst + len, '\0', maxLen - len);
-			out->xputchar('\n');
+			m_out->xputchar('\n');
 			*cur_len = 0;
 			return len + 1;
 		}
 		else if (c == '\b') {
 			if (len > 0) {
-				out->xputs("\b \b");
+				m_out->xputs("\b \b");
 				(*cur_len)--;
 			}
 		}
@@ -177,7 +183,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 			uint16_t count = 1000; // counter to ensure that escape sequences are received
 			do{
 				//print("%X ", c);				
-			}while (out->getCharNonBlocking(&c) || count--);
+			}while (m_out->getCharNonBlocking(&c) || count--);
 			
 
 			switch (c) {
@@ -193,7 +199,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 			historyDump();
 #endif
 		}else if (len < maxLen) {
-			out->xputchar(c);
+			m_out->xputchar(c);
 			*(dst + len) = c;
 			(*cur_len)++;
 		}	
@@ -207,13 +213,13 @@ char Console::getLine(char *dst, uint8_t maxLen)
 	char c;
 
 	while (!hasLine) {
-		c = out->xgetchar();
+		c = m_out->xgetchar();
 		switch (c) {
 		case '\b':
 			if (len != 0) {
-				out->xputchar(c);
-				out->xputchar(' ');
-				out->xputchar(c);
+				m_out->xputchar(c);
+				m_out->xputchar(' ');
+				m_out->xputchar(c);
 				len--;
 			}
 			break;
@@ -221,12 +227,12 @@ char Console::getLine(char *dst, uint8_t maxLen)
 		case '\n':
 		case '\r':
 			hasLine = 1;
-			out->xputchar(c);
+			m_out->xputchar(c);
 			break;
 
 		case 0x1b:
-			c = out->xgetchar();
-			c = out->xgetchar();
+			c = m_out->xgetchar();
+			c = m_out->xgetchar();
 			//print("%X ", c);
 			switch (c) {
 			case 0x41:  // [1B, 5B, 41] UP arrow
@@ -246,7 +252,7 @@ char Console::getLine(char *dst, uint8_t maxLen)
 
 		default:
 			if (len < maxLen) {
-				out->xputchar(c);
+				m_out->xputchar(c);
 				dst[len] = c;
 				len++;
 			}
@@ -263,86 +269,86 @@ void Console::print(const char* fmt, ...){
 	va_start(arp, fmt);
 	strformater(m_buf, fmt, arp);
 	va_end(arp);
-	out->xputs(m_buf);
+	m_out->xputs(m_buf);
 }
 
 uint8_t Console::kbhit(void) {
-	return out->kbhit();
+	return m_out->kbhit();
 }
 
 char *Console::historyGet(void) {
-	return &history[hist_cur][0];
+	return &m_history[m_hist_cur][0];
 }
 
 void Console::historyDump(void) {
-	for (uint8_t i = 0; i < HISTORY_SIZE; i++)
+	for (uint8_t i = 0; i < CONSOLE_HISTORY_SIZE; i++)
 	{
-		print("\n %u %s", i, history[i]);
+		print("\n %u %s", i, m_history[i]);
 	}
-	out->xputchar('\n');
+	m_out->xputchar('\n');
 }
 
 void Console::historyAdd(char *entry) {
-	if (*line != '\n' && *line != '\r' && *line != '\0') {
+	if (*m_line != '\n' && *m_line != '\r' && *m_line != '\0') {
 		
-		memcpy(history[hist_cur], entry, COMMAND_MAX_LEN);
+		memcpy(m_history[m_hist_cur], entry, CONSOLE_COMMAND_MAX_LEN);
 
-		if (++hist_cur == HISTORY_SIZE)
-			hist_cur = 0;		
-		hist_idx = hist_cur;
+		if (++m_hist_cur == CONSOLE_HISTORY_SIZE)
+			m_hist_cur = 0;		
+		m_hist_idx = m_hist_cur;
 
-		if (hist_size < HISTORY_SIZE) {
-			hist_size++;
+		if (m_hist_size < CONSOLE_HISTORY_SIZE) {
+			m_hist_size++;
 		}
 	}
 }
 
 char *Console::historyBack(void) {
-	uint8_t new_idx = hist_idx;
+	uint8_t new_idx = m_hist_idx;
 
-	if (hist_size == HISTORY_SIZE) {
+	if (m_hist_size == CONSOLE_HISTORY_SIZE) {
 		// History is full, wrap arround is allowed
-		if (--new_idx > HISTORY_SIZE)
-			new_idx = HISTORY_SIZE - 1;
-		if (new_idx != hist_cur) {
-			hist_idx = new_idx;
+		if (--new_idx > CONSOLE_HISTORY_SIZE)
+			new_idx = CONSOLE_HISTORY_SIZE - 1;
+		if (new_idx != m_hist_cur) {
+			m_hist_idx = new_idx;
 		}
 	}
-	else if(hist_idx > 0){
-		hist_idx--;
+	else if(m_hist_idx > 0){
+		m_hist_idx--;
 	}
 
-	return &history[hist_idx][0];
+	return &m_history[m_hist_idx][0];
 }
 
 char *Console::historyForward(void) {
-	if (hist_idx != hist_cur) {
-		if (++hist_idx == HISTORY_SIZE)
-			hist_idx = 0;
+	if (m_hist_idx != m_hist_cur) {
+		if (++m_hist_idx == CONSOLE_HISTORY_SIZE)
+			m_hist_idx = 0;
 	}
 	
-	if(hist_idx == hist_cur){
-		// Clear current line to avoid duplicating history navigation
-		memset(history[hist_cur], '\0', COMMAND_MAX_LEN);
+	if(m_hist_idx == m_hist_cur){
+		// Clear current line to avoid duplicating m_history navigation
+		memset(m_history[m_hist_cur], '\0', CONSOLE_COMMAND_MAX_LEN);
 	}
-	return &history[hist_idx][0];
+	return &m_history[m_hist_idx][0];
 }
 
 void Console::historyClear(void) {
-	for (uint8_t i = 0; i < HISTORY_SIZE; i++)
+	for (uint8_t i = 0; i < CONSOLE_HISTORY_SIZE; i++)
 	{
-		memset(history[i], '\0', COMMAND_MAX_LEN);
+		memset(m_history[i], '\0', CONSOLE_COMMAND_MAX_LEN);
 	}
-	hist_idx = hist_cur = hist_size = 0;
+	m_hist_idx = m_hist_cur = m_hist_size = 0;
 }
 
 uint8_t Console::changeLine(char *old_line, char *new_line, uint8_t old_line_len) {
 	uint8_t new_line_len;
 	while (old_line_len--) {
-		out->xputs("\b \b");
+		m_out->xputs("\b \b");
 	}
 
-	out->xputs(new_line);
+	m_out->xputs(new_line);
 	new_line_len = strlen(new_line);
 
 	memcpy(old_line, new_line, new_line_len);

@@ -27,7 +27,7 @@ public:
 	char isNameEqual(char *cmd) { return xstrcmp(cmd, (char*)this->name) == 0; }
 
 	virtual void init(void *params) {}
-	virtual char execute(void *ptr) { return CMD_OK; }
+	virtual char execute(int argc, char **argv) { return CMD_OK; }
 	virtual void help(void) {}
 
 	ConsoleCommand() {  }

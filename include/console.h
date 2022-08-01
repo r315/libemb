@@ -25,10 +25,12 @@ extern "C" {
 #endif
 
 #define CONSOLE_MAX_COMMANDS 	64
-#ifndef COMMAND_MAX_LEN
-#define COMMAND_MAX_LEN		 	64
+#ifndef CONSOLE_COMMAND_MAX_LEN
+#define CONSOLE_COMMAND_MAX_LEN	64
 #endif
-#define HISTORY_SIZE		 	5
+
+#define CONSOLE_HISTORY_SIZE 	5
+#define CONSOLE_MAX_PARAMS		10
 
 #ifndef CONSOLE_PRINT_MAX_LEN
 #define CONSOLE_PRINT_MAX_LEN	64
@@ -37,16 +39,22 @@ extern "C" {
 
 	class Console {
 
-		ConsoleCommand *cmdList[CONSOLE_MAX_COMMANDS];
-		uint8_t cmdListSize;
-		uint8_t processing;
-		char line[COMMAND_MAX_LEN];
+		ConsoleCommand *m_cmdList[CONSOLE_MAX_COMMANDS];
+		uint8_t m_cmdListSize;
+		uint8_t m_active;
+		char m_line[CONSOLE_COMMAND_MAX_LEN];
 		char m_buf[CONSOLE_PRINT_MAX_LEN];
-		uint8_t line_len;
-		const char *prt;
-		StdOut *out;
+		uint8_t m_line_len;
+		const char *m_prompt;
+		char *m_argv[CONSOLE_MAX_PARAMS];
+    	int m_argc;
 		
-		char history[HISTORY_SIZE][COMMAND_MAX_LEN];
+		char m_history[CONSOLE_HISTORY_SIZE][CONSOLE_COMMAND_MAX_LEN];
+		uint8_t m_hist_idx;
+		uint8_t m_hist_cur;
+		uint8_t m_hist_size;
+		StdOut *m_out;
+
 		void historyDump(void);
 		void historyAdd(char *entry);
 		char *historyBack(void);
@@ -54,9 +62,6 @@ extern "C" {
 		char *historyGet(void);
 		void historyClear(void);
 		uint8_t changeLine(char *old_line, char *new_line, uint8_t old_line_len);
-		uint8_t hist_idx;
-		uint8_t hist_cur;
-		uint8_t hist_size;
 
 	public:
 		Console(void);
@@ -82,8 +87,8 @@ extern "C" {
 		void print(const char* str, ...);
 		uint8_t kbhit(void);
 
-		uint8_t getCmdListSize(void) { return cmdListSize; }
-		ConsoleCommand *getCmdIndexed(uint8_t idx) { return cmdList[idx]; } // security issues??
+		uint8_t getCmdListSize(void) { return m_cmdListSize; }
+		ConsoleCommand *getCmdIndexed(uint8_t idx) { return m_cmdList[idx]; } // security issues??
 	};
 }
 #endif
