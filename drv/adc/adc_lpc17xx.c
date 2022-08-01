@@ -6,18 +6,18 @@ static adctype_t *s_adc;
 
 static void configAnPin(uint8_t ch){
     uint8_t bitpos;
-    
-    if(ch < 4){                          // configure channels 3:0
-        bitpos = (14 + (2 * ch));       // calculate bit position on pinsel1
+
+    if(ch < 4){                                    // configure channels 3:0 (P0_26:P0_23)
+        bitpos = (14 + (2 * ch));                  // calculate bit position on pinsel1
         LPC_PINCON->PINSEL1 &= ~(0x03 << bitpos);
         LPC_PINCON->PINSEL1 |=  (0x01 << bitpos);  // Function1
-    }else if(ch > 3 && ch < 6){            // configure channels 5:4
+    }else if(ch > 3 && ch < 6){                   // configure channels 5:4 (P1_31:P1_30)
         bitpos = (28 + (2 * (ch & 1)));
-        LPC_PINCON->PINSEL3 |= (0x03 << bitpos); //function3
-    }else{                            // configure channels 7:6
+        LPC_PINCON->PINSEL3 |= (0x03 << bitpos);   // Function3
+    }else{                                        // configure channels 7:6 (P0_3:P0_2)
         bitpos = (6 - (2 * (ch & 1)));
         LPC_PINCON->PINSEL0 &= ~(0x03 << bitpos);
-        LPC_PINCON->PINSEL0 |=  (0x02 << bitpos); //function2
+        LPC_PINCON->PINSEL0 |=  (0x02 << bitpos);  // Function2
     }    
 }
 
