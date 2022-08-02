@@ -121,7 +121,7 @@ void SPI_Init(spibus_t *spidev){
     
     SPI_SetFreq(spi, spidev->freq);
 
-    if((spidev->flags & SPI_SW_CS) != 0){
+    if((spidev->flags & SPI_HW_CS) != 0){
         spi->CR2 |=  SPI_CR2_SSOE;
     }            
 
