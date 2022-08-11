@@ -42,7 +42,7 @@ void BB_Init(void){
     BB_MAIN_SPI->flags  = SPI_MODE0;
     SPI_Init(BB_MAIN_SPI);
 
-	mmc_setSpi(BB_MAIN_SPI);
+	cardSetSpi(BB_MAIN_SPI);
 	//ACC_Init();
 }
 
@@ -91,7 +91,9 @@ void BB_SPI_SetFrequency(uint32_t freq){
     SPI_Init(BB_MAIN_SPI);
 }
 
-
+spibus_t *BB_SPI_GetMain(void){
+    return BB_MAIN_SPI;
+}
 
 #ifdef __cplusplus
 }

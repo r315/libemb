@@ -124,8 +124,9 @@ void BB_SPI_Init(void);
 void BB_SPI_Write(uint8_t *src, uint32_t count);
 void BB_SPI_WaitEOT(void);
 void BB_SPI_SetFrequency(uint32_t freq);
+spibus_t *BB_SPI_GetMain(void);
 
-void mmc_setSpi(spibus_t *spi);
+void cardSetSpi(spibus_t *spi);
 #ifdef __cplusplus
 }
 #endif
