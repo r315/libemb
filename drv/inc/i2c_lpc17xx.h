@@ -45,6 +45,7 @@ typedef struct _I2C_Controller{
 	uint8_t operation;			// Read/Write
 	uint32_t count;             // current byte counter	
 	volatile i2cstates_e state; // current state
+	void(*cb)(void);
 }I2C_Controller;
 
 //P0.27 -> SDA0

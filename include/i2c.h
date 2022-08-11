@@ -16,8 +16,6 @@ typedef struct {
     void *ctrl;
     uint8_t addr;           // Slave address
     uint8_t bus_num;        // Bus number
-    void(*txcb)(void);
-    void(*rxcb)(void);
 }i2cbus_t;
 
 

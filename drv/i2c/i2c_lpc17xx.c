@@ -67,20 +67,20 @@ void I2C_Init(i2cbus_t *i2c){
 }
 
 
-void I2C_ReadAsync(i2cbus_t *i2c, uint8_t *data, uint32_t size, void (*cb)(void*)){
-	//i2citf->cb = cb;
+void I2C_ReadIT(i2cbus_t *i2c, uint8_t *data, uint32_t size, void (*cb)(void)){
+	((I2C_Controller*)i2c->ctrl)->cb = cb;
 	I2C_StartStateMachine( i2c->ctrl, DATA_READ, data, size);
 }
 
-void I2C_WriteAsync(i2cbus_t *i2c, uint8_t *data, uint32_t size, void (*cb)(void*)){
-	//i2citf->cb = cb;
+void I2C_WriteIT(i2cbus_t *i2c, uint8_t *data, uint32_t size, void (*cb)(void)){
+	((I2C_Controller*)i2c->ctrl)->cb = cb;
 	I2C_StartStateMachine( i2c->ctrl, DATA_WRITE, data, size);
 }
 
 uint32_t I2C_Write(i2cbus_t *i2c, uint8_t *data, uint32_t size){
 	I2C_Controller *ctrl = (I2C_Controller*)i2c->ctrl;
 	ctrl->device = i2c->addr;
-	I2C_WriteAsync(i2c, data, size, NULL);
+	I2C_WriteIT(i2c, data, size, NULL);
 	while(ctrl->state != I2C_IDLE){
        if(ctrl->state == ERROR_SLA_NACK){
             return 0;
@@ -92,7 +92,7 @@ uint32_t I2C_Write(i2cbus_t *i2c, uint8_t *data, uint32_t size){
 uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size){
 	I2C_Controller *ctrl = (I2C_Controller*)i2c->ctrl;
 	ctrl->device = i2c->addr;
-	I2C_ReadAsync(i2c, data, size, NULL);
+	I2C_ReadIT(i2c, data, size, NULL);
 	while(ctrl->state != I2C_IDLE ){
         if(ctrl->state == ERROR_SLA_NACK){
             return 0;
@@ -215,10 +215,10 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 	i2cifc->interface->CONCLR = I2C_CONCLR_SIC;
 
 	if (i2cifc->state == CALL_CB){
-		//if( i2cifc->cb != NULL){
-	//		i2cifc->cb(i2cifc->data);
-	//	}
 		i2cifc->state = I2C_IDLE;
+		if( i2cifc->cb != NULL){
+			i2cifc->cb();
+		}
 	}	
 }
 
