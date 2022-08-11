@@ -9,12 +9,13 @@
 extern "C" {
 #endif
 
-#include <ff.h>
+#include "pff.h"
 
 /* Status of Disk Functions */
 typedef enum {
-	STA_NOINIT = 1,	/* Drive not initialized */
-	STA_NODISK		    /* No medium in the drive */
+	STA_OK = 0,
+	STA_NOINIT,     /* Drive not initialized */
+	STA_NODISK      /* No medium in the drive */
 } DSTATUS;
 
 
