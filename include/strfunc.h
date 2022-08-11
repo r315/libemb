@@ -18,7 +18,7 @@ extern "C" {
 	uint8_t nextDouble(char **line, double *value);
 	char nextChar(char **line);
 	uint8_t isNextWord(char **str, const char *word);
-	void xstrcpy(char *dst, char *src, uint8_t maxLen);
+	void xstrcpy(char *dst, const char *src, uint8_t maxLen);
 	char xstrcmp(char const *str1, char const *str2);
 	//size_t strlen(const char *str);
 	uint8_t yatoi(char *str, int32_t *value);
