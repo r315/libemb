@@ -42,10 +42,8 @@ typedef struct {
     uint8_t mode;
     uint8_t mute;
     i2sbus_e bus;
-    volatile uint32_t *txbuffer;
-    volatile uint32_t *rxbuffer;
-    volatile uint32_t wridx;
-    volatile uint32_t rdidx;
+    uint32_t *txbuffer;
+    uint32_t *rxbuffer;
     uint32_t tx_buf_len;
     uint32_t rx_buf_len;
     i2sCallback txcp;
@@ -57,6 +55,7 @@ void I2S_Init(i2sbus_t *i2s);
 void I2S_Config(i2sbus_t *i2s);
 void I2S_Stop(i2sbus_t *i2s);
 void I2S_Start(i2sbus_t *i2s);
+void I2S_Mute(i2sbus_t *i2s, uint8_t mute);
 
 #ifdef __cplusplus
 }

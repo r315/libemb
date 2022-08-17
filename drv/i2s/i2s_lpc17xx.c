@@ -1,5 +1,6 @@
 #include "lpc17xx_hal.h"
 #include "i2s.h"
+#include "dma.h"
 
 /**
  * Signals      PIN_1      PIN_2
@@ -42,9 +43,14 @@
     //GPIO_Function(P2_11, P2_11_I2STX_CLK);
     //GPIO_Function(P2_12, P2_12_I2STX_WS);
     //GPIO_Function(P2_13, P2_13_I2STX_SDA);
+#ifndef I2S_NO_DMA
+static dmatype_t s_i2s_tx_dma;
+static dmalli_t s_lli;
+void I2S_DMAHandler(void);
+#endif
 
-static i2sCallback txCallback;
-static i2sCallback rxCallback;
+static i2sCallback s_txCallback;
+static i2sCallback s_rxCallback;
 
 /**
  * @brief Configure MCLK according configuration.
@@ -62,13 +68,7 @@ static void clock_config(i2sbus_t *i2s){
     uint32_t pclk;
     LPC_I2S_TypeDef *i2sx = (LPC_I2S_TypeDef*)i2s->regs;
 
-    switch((LPC_SC->PCLKSEL1 >> PCLKSEL1_PCLK_I2S_pos) & 3){
-        default:
-        case 0: pclk = SystemCoreClock >> 2;  break; // Div 4
-        case 1: pclk = SystemCoreClock;       break; // Div 1
-        case 2: pclk = SystemCoreClock >> 1;  break; // Div 2
-        case 3: pclk = SystemCoreClock >> 3;  break; // Div 8
-    }
+    pclk = CLOCK_GetPCLK(PCLK_I2S);
 
     /**
      * Source: Marlin 3D Printer Firmware
@@ -141,13 +141,9 @@ static void clock_config(i2sbus_t *i2s){
 }
 
 /**
- * @brief I2S Configuration
+ * @brief I2S Interface configuration
  * 
- * @param i2s           I2S regs
- * @param mode          0: Slave, Master otherwise
- * @param sample_rate   desired sample rate
- * @param channels      1: mono, otherwise stereo
- * @param data_size     bits per sample 8,16 and 32
+ * @param   i2s:    i2sbus structure
  */
 void I2S_Config(i2sbus_t *i2s){
     uint32_t value = DAO_STOP | DAO_RESET;
@@ -200,22 +196,26 @@ void I2S_Config(i2sbus_t *i2s){
 }
 
 /**
- * @brief I2S initialization and configuration.
- *      PINS are configured according bus number
+ * @brief I2S Controller and IO PINS initialization and configuration.
+ * DMA is also configured to perform 32bit transfers to TX_FIFO
  * 
- * @param   i2s:    i2sbus structure for initialization
+ * @param   i2s:    i2sbus structure
  * */
 void I2S_Init(i2sbus_t *i2s){
-    LPC_SC->PCONP |= (1 << 27) | (1 << 29); /* PCONP_PCI2S, PCONP_PCGPDMA */
+    PCONP_I2S_ENABLE;  
 
-    LPC_SC->PCLKSEL1 = (LPC_SC->PCLKSEL1 & ~(3 << PCLKSEL1_PCLK_I2S_pos)) | (PCLK_4 << PCLKSEL1_PCLK_I2S_pos);
+    CLOCK_SetPCLK(PCLK_I2S, PCLK_4);
 
     i2s->regs = LPC_I2S;
 
+    // Reset I2C Controller
+    LPC_I2S->DAO = 0x87E1;
+    LPC_I2S->DAI = 0x07E1;
+    for (uint32_t i = 0, *ptr = (uint32_t*)&LPC_I2S->DMA1; i < 9; i++){
+        *ptr++ = 0;
+    }
+    
     I2S_Config(i2s);
-
-    i2s->wridx = 0;
-    i2s->rdidx = 0;
 
     // BUS defines used pins
     switch(i2s->bus){
@@ -255,16 +255,57 @@ void I2S_Init(i2sbus_t *i2s){
         }
     }
 
-    if(i2s->txcp || i2s->rxcp){
-        txCallback = i2s->txcp;
-        rxCallback = i2s->rxcp;
-        NVIC_EnableIRQ(I2S_IRQn);
-    }
+#ifndef I2S_NO_DMA
+    s_i2s_tx_dma.dir = DMA_DIR_M2P;
+    s_i2s_tx_dma.dst = (void*)&LPC_I2S->TXFIFO;
+    s_i2s_tx_dma.dsize = DMA_CONTROL_WIDTH32;
+    s_i2s_tx_dma.ssize = DMA_CONTROL_WIDTH32;
+    DMA_Init(&s_i2s_tx_dma);
+    i2s->dma = &s_i2s_tx_dma; // Not sure if useful..
+#endif
+
 }
 
+/**
+ * @brief Start I2S interface.
+ * 
+ * @param i2s 
+ */
 void I2S_Start(i2sbus_t *i2s){
-    uint32_t irq = 0;
+    
+#ifndef I2S_NO_DMA
+    if(i2s->mode & I2S_TX_EN) {
+        s_txCallback = i2s->txcp;
 
+        s_i2s_tx_dma.src = i2s->txbuffer;
+        s_i2s_tx_dma.len = i2s->tx_buf_len / 2; // divide buffer into two lists
+        s_i2s_tx_dma.eot = I2S_DMAHandler;
+        DMA_Config(&s_i2s_tx_dma, DMA_REQ_PER_I2S_CH0);
+
+        // get configured lli then reconfigure it to use two linked lists
+        dmalli_t *cfg_lli = (dmalli_t*)((LPC_GPDMACH_TypeDef *)s_i2s_tx_dma.stream)->CLLI;
+
+        s_lli.ctl = cfg_lli->ctl;
+        s_lli.dst = cfg_lli->dst;
+        cfg_lli->lli = (uint32_t)&s_lli;
+        s_lli.lli = (uint32_t)cfg_lli;
+
+        cfg_lli->src = (uint32_t)i2s->txbuffer;   // first half
+        s_lli.src = (uint32_t)i2s->txbuffer + (s_i2s_tx_dma.len << 2); // second half
+    
+        LPC_I2S->DAO = LPC_I2S->DAO & ~(DAO_RESET | DAO_STOP);
+        LPC_I2S->DMA1 = I2S_DMA_TX_EN | I2S_DMA_TX_DEPTH2;   
+        DMA_Start(&s_i2s_tx_dma);
+    }
+
+    if(i2s->mode & I2S_RX_EN) {
+        LPC_I2S->DAI = LPC_I2S->DAI & ~(DAI_RESET | DAI_STOP);
+        LPC_I2S->DMA2 = I2S_DMA_RX_EN | I2S_DMA_RX_DEPTH2;   
+        s_rxCallback = i2s->rxcp;
+    }
+
+#else
+    uint32_t irq = 0;
     if(i2s->mode & I2S_RX_EN) {
         LPC_I2S->DAI = LPC_I2S->DAI & ~(DAI_RESET | DAI_STOP);
         irq |= IRQ_RX_IRQ_EN | ((TXFIFO_SIZE - 6) << IRQ_RX_DEPTH_POS);
@@ -278,20 +319,44 @@ void I2S_Start(i2sbus_t *i2s){
     }else{
         irq |= IRQ_TX_DEPTH_MSK;
     }
-
     LPC_I2S->IRQ = irq;
+#endif
+
+    if(s_txCallback || s_rxCallback){    
+        NVIC_EnableIRQ(I2S_IRQn);
+    }
 }
 
+/**
+ * @brief Stop I2S Interface, TX_SDA and TX_WS are held low only TX_CLK continues to be generated.
+ * All DMA transference's related with I2S are cancelled.
+ * 
+ * @param i2s   : I2S state structure
+ */
 void I2S_Stop(i2sbus_t *i2s){
+
     if(i2s->mode & I2S_RX_EN) {
+        LPC_I2S->IRQ &= ~IRQ_RX_IRQ_EN;
         LPC_I2S->DAI = LPC_I2S->DAI | (DAI_RESET | DAI_STOP);
     }
     
     if(i2s->mode & I2S_TX_EN) {
+        LPC_I2S->IRQ &= ~IRQ_TX_IRQ_EN;
         LPC_I2S->DAO = LPC_I2S->DAO | (DAO_RESET | DAO_STOP);
+        #ifndef I2S_NO_DMA
+        DMA_Stop(&s_i2s_tx_dma);
+        #endif
     }
 }
 
+/**
+ * @brief Mute output audio by holding TX_SDA pin low, 
+ * all remaining signals continue to be generated and DMA 
+ * transference's continue to be performed.
+ * 
+ * @param i2s   : I2S state structure
+ * @param mute  : 0 - Unmute, otherwise muted
+ */
 void I2S_Mute(i2sbus_t *i2s, uint8_t mute){
     if(i2s->mode & I2S_TX_EN) {
         if(mute){
@@ -299,9 +364,16 @@ void I2S_Mute(i2sbus_t *i2s, uint8_t mute){
         }else{
             LPC_I2S->DAO = LPC_I2S->DAO & ~DAO_MUTE;
         }
+        i2s->mute = mute;
     }
 }
 
+/**
+ * @brief Interrupt handlers
+ * 
+ *
+ */
+#if I2S_NO_DMA
 void I2S_IRQHandler(void){
     uint32_t State, Count;
     
@@ -325,7 +397,17 @@ void I2S_IRQHandler(void){
 #endif
         Count =  TXFIFO_SIZE - ((State >> STATE_TX_LEVEL_pos) & 0xF);
         if(Count){
-            txCallback((uint32_t*)&LPC_I2S->TXFIFO, Count);
+            s_txCallback((uint32_t*)&LPC_I2S->TXFIFO, Count);
         }
     }
 }
+#else
+void I2S_DMAHandler(void){
+    if(s_txCallback){
+        // At this point DMA Controller hasn't moved yet to next LLI,
+        // src buffer just finished to be sent to i2s controller
+        dmalli_t *lli = (dmalli_t*)((LPC_GPDMACH_TypeDef *)s_i2s_tx_dma.stream)->CLLI;
+        s_txCallback((uint32_t*)lli->src, s_i2s_tx_dma.len);
+    }
+}
+#endif

@@ -43,6 +43,14 @@
 #define IRQ_RX_DEPTH_MSK (0xF << IRQ_RX_DEPTH_POS)
 #define IRQ_TX_DEPTH_MSK (0xF << IRQ_TX_DEPTH_POS)
 
+/* I2S DMA1/2 Bits */
+#define I2S_DMA_RX_EN       (1 << 0)
+#define I2S_DMA_TX_EN       (1 << 1)
+#define I2S_DMA_RX_DEPTH_POS 8
+#define I2S_DMA_TX_DEPTH_POS 16
+#define I2S_DMA_TX_DEPTH2   ((TXFIFO_SIZE - 6) << I2S_DMA_TX_DEPTH_POS)
+#define I2S_DMA_RX_DEPTH2   ((RXFIFO_SIZE - 6) << I2S_DMA_RX_DEPTH_POS)
+
 #define RXFIFO_SIZE     8
 #define TXFIFO_SIZE     8
 
