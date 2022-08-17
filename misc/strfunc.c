@@ -600,17 +600,25 @@ void * memcpy(void * destination, const void * source, size_t num) {
 	return destination;
 }
 
-void * memset(void * ptr, int value, size_t num) {
+void *memset(void * ptr, int value, size_t num) {
 	for (size_t i = 0; i < num; i++) {
 		*((uint8_t*)ptr + i) = (uint8_t)value;
 	}
 	return ptr;
 }
 
-void *memset16(void *ptr, int value, size_t num){
-	uint16_t *aux = ptr;
-	while(num--){
-		*aux++ = (uint16_t)value;
-	}
-	return ptr;
+void memset16(uint16_t *dst, uint16_t c, uint32_t n){
+    while(n--){ *dst++ = c;  }
+}
+
+void memcpy16(uint16_t *dst, uint16_t *src, uint32_t n){
+    while(n--){ *dst++ = *src++;  }
+}
+
+void memset32(uint32_t *dst, uint32_t c, uint32_t n){
+    while(n--){ *dst++ = c;  }
+}
+
+void memcpy32(uint32_t *dst, uint32_t *src, uint32_t n){
+    while(n--){ *dst++ = *src++;  }
 }
