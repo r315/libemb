@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 #define BB_MAIN_SPI (&s_spi1)
+#define SPI_DEFAULT_SPEED	8000000		// Speed for SD card
 
 static spibus_t s_spi1;
 //---------------------------------------------------
@@ -38,7 +39,7 @@ void BB_Init(void){
 	BUTTON_Init(BUTTON_DEFAULT_HOLD_TIME);
 
 	BB_MAIN_SPI->bus = SPI_BUS0;
-    BB_MAIN_SPI->freq = 500000;
+    BB_MAIN_SPI->freq = SPI_DEFAULT_SPEED;
     BB_MAIN_SPI->flags  = SPI_MODE0;
     SPI_Init(BB_MAIN_SPI);
 
