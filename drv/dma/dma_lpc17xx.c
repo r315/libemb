@@ -2,18 +2,28 @@
 #include "lpc17xx_hal.h"
 #include "dma.h"
 
-typedef struct{
-    void *src;
-    void *dst;
-    uint32_t lli;
-    uint32_t ctl;
-}dmalli_t;
+
 
 typedef void (*eot_t)(void);
 
-static const void *m_dmachs[8] = {LPC_GPDMACH0, LPC_GPDMACH1, LPC_GPDMACH2, LPC_GPDMACH3, LPC_GPDMACH4, LPC_GPDMACH5, LPC_GPDMACH6, LPC_GPDMACH7};
-static dmalli_t m_lli[DMA_MAX_CHANNELS];
-static eot_t ch_eot[DMA_MAX_CHANNELS];
+static const void *s_dmachs[8] = {LPC_GPDMACH0, LPC_GPDMACH1, LPC_GPDMACH2, LPC_GPDMACH3, LPC_GPDMACH4, LPC_GPDMACH5, LPC_GPDMACH6, LPC_GPDMACH7};
+static dmalli_t s_lli[DMA_MAX_CHANNELS];
+static eot_t s_eot[DMA_MAX_CHANNELS];
+
+/**
+ * @brief DMA Controller initialization.
+ * 
+ * @param dma 
+ */
+void DMA_Init(dmatype_t *dma){
+    PCONP_GPDMA_ENABLE;
+    if(!(LPC_GPDMA->Config & DMAC_CONFIG_E)){
+        LPC_GPDMA->Config = DMAC_CONFIG_E; // Enable DMA
+        NVIC_EnableIRQ(DMA_IRQn);
+    }
+
+    dma->len = 0;
+}
 
 /**
  * @brief 
@@ -37,7 +47,7 @@ void DMA_Config(dmatype_t *dma, uint32_t req){
         }
     }else{        
         for (ch_num = 0; ch_num < DMA_MAX_CHANNELS; ch_num++){
-            if(m_dmachs[ch_num] == dma->stream){
+            if(s_dmachs[ch_num] == dma->stream){
                 break;
             }
         }
@@ -47,15 +57,12 @@ void DMA_Config(dmatype_t *dma, uint32_t req){
         }
     }
     
-    dmach = (LPC_GPDMACH_TypeDef*)m_dmachs[ch_num];
+    dmach = (LPC_GPDMACH_TypeDef*)s_dmachs[ch_num];
 
     /* Clear any error */
     LPC_GPDMA->IntTCClear = (1 << ch_num);
     LPC_GPDMA->IntErrClr = (1 << ch_num);
-
-	dmach->CSrcAddr = (uint32_t)dma->src;
-	dmach->CDestAddr = (uint32_t)dma->dst;   
-
+	
 	/* Configure control, Note transfer size not visible
     if channel is disabled */
 	uint32_t control, config;
@@ -92,43 +99,47 @@ void DMA_Config(dmatype_t *dma, uint32_t req){
             break;
     }
 
-    ch_eot[ch_num] = dma->eot;    
+    s_eot[ch_num] = dma->eot;
+
+    if(dma->eot != NULL){
+        control |= DMA_CONTROL_I;
+        config |= DMA_CONFIG_ITC;
+    }
     
     if(dma->single == 0){
-        m_lli[ch_num].src = dma->src;
-        m_lli[ch_num].dst = dma->dst;
-        m_lli[ch_num].lli = (uint32_t)&m_lli[ch_num];
-        m_lli[ch_num].ctl = control;
-        dmach->CLLI = (uint32_t)&m_lli[ch_num];
-    }else{
-        if(dma->eot != NULL){
-            control |= DMA_CONTROL_I;
-            config |= DMA_CONFIG_ITC;
-        }
+        s_lli[ch_num].src = (uint32_t)dma->src;
+        s_lli[ch_num].dst = (uint32_t)dma->dst;
+        s_lli[ch_num].lli = (uint32_t)&s_lli[ch_num];
+        s_lli[ch_num].ctl = control;
+        dmach->CLLI = s_lli[ch_num].lli;
+    }else{       
         dmach->CLLI = 0;
     }
+
+    dmach->CSrcAddr = (uint32_t)dma->src;
+	dmach->CDestAddr = (uint32_t)dma->dst;   
 
     dmach->CControl = control; 
     dmach->CConfig = config;
     dma->stream = dmach;
 }
 
-void DMA_Init(dmatype_t *dma){
-    PCONP_GPDMA_ENABLE;
-    if(!(LPC_GPDMA->Config & DMAC_CONFIG_E)){
-        LPC_GPDMA->Config = DMAC_CONFIG_E; // Enable DMA
-        NVIC_EnableIRQ(DMA_IRQn);
-    }
-
-    dma->len = 0;
-}
-
+/**
+ * @brief 
+ * 
+ * @param dma 
+ */
 void DMA_Start(dmatype_t *dma){
     if(dma->len > 0){
         ((LPC_GPDMACH_TypeDef *)dma->stream)->CConfig |= DMA_CONFIG_E;
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param ch 
+ */
 void DMA_Stop(dmatype_t *ch){
     LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)ch->stream;
 
@@ -146,12 +157,16 @@ void DMA_Stop(dmatype_t *ch){
     #endif
 }
 
+/**
+ * @brief HW Handler
+ * 
+ */
 void DMA_IRQHandler(void){
     for(uint8_t ch = 0, ch_msk = 1; ch < DMA_MAX_CHANNELS; ch++, ch_msk <<= 1){
         if(LPC_GPDMA->IntStat & ch_msk){
             if(LPC_GPDMA->IntTCStat & ch_msk){
-                if(ch_eot[ch] != NULL){
-                    ch_eot[ch]();
+                if(s_eot[ch] != NULL){
+                    s_eot[ch]();
                 }
                 LPC_GPDMA->IntTCClear = ch_msk;
             }

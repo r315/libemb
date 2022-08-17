@@ -5,6 +5,13 @@
 extern "C" {
 #endif
 
+typedef struct{
+    uint32_t src;
+    uint32_t dst;
+    uint32_t lli;
+    uint32_t ctl;
+}dmalli_t;
+
 #define DMA_MAX_CHANNELS    8
 
 // DMACIntStat
@@ -33,7 +40,7 @@ extern "C" {
 #define DMA_CONTROL_SET_TRANSFER(x) (x & 0xFFF)
 
 //DMACCxConfig
-#define DMA_CONFIG_E                (1 << 0)
+#define DMA_CONFIG_E                (1 << 0)    // Channel Enable
 #define DMA_CONFIG_M2M              0
 #define DMA_CONFIG_M2P              1
 #define DMA_CONFIG_P2M              2
@@ -41,11 +48,11 @@ extern "C" {
 #define DMA_CONFIG_SET_SRC_PER(x)   ((x & 15) << 1)
 #define DMA_CONFIG_SET_DST_PER(x)   ((x & 15) << 6)
 #define DMA_CONFIG_SET_TYPE(x)      (x << 11)
-#define DMA_CONFIG_IE               (1 << 14)
-#define DMA_CONFIG_ITC              (1 << 15)
-#define DMA_CONFIG_L                (1 << 16)
-#define DMA_CONFIG_A                (1 << 17)
-#define DMA_CONFIG_H                (1 << 18)
+#define DMA_CONFIG_IE               (1 << 14)   // Interrupt error mask
+#define DMA_CONFIG_ITC              (1 << 15)   // Terminal count interrupt mask
+#define DMA_CONFIG_L                (1 << 16)   // Lock
+#define DMA_CONFIG_A                (1 << 17)   // Active
+#define DMA_CONFIG_H                (1 << 18)   // Halt
 
 enum {
     DMA_REQ_PER_SSP0_TX = 0,
