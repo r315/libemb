@@ -70,10 +70,10 @@ extern "C" {
 
 #define LEDS_CFG
 
-#define ACCEL_CS_PIN    P0_6
-#define ACCEL_CS_PIN_MASK (1 << 6)
-#define SELECT_ACCEL    LPC_GPIO0->FIOCLR = ACCEL_CS_PIN_MASK
-#define DESELECT_ACCEL  LPC_GPIO0->FIOSET = ACCEL_CS_PIN_MASK
+#define BOARD_ACCEL_CS_PIN    P0_6
+#define BOARD_ACCEL_CS_PIN_MASK (1 << 6)
+#define BOARD_ACCEL_SELECT    LPC_GPIO0->FIOCLR = BOARD_ACCEL_CS_PIN_MASK
+#define BOARD_ACCEL_DESELECT  LPC_GPIO0->FIOSET = BOARD_ACCEL_CS_PIN_MASK
 
 #define BOARD_CARD_CS_PIN       P0_16
 #define BOARD_CARD_CS_PIN_MASK  (1 << 16)
@@ -126,7 +126,7 @@ void BB_SPI_WaitEOT(void);
 void BB_SPI_SetFrequency(uint32_t freq);
 spibus_t *BB_SPI_GetMain(void);
 
-void cardSetSpi(spibus_t *spi);
+void memcardSetSpi(spibus_t *spi);
 #ifdef __cplusplus
 }
 #endif

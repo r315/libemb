@@ -25,25 +25,26 @@ void BB_Init(void){
 	LPC_GPIO1->FIODIR |= LED1|LED2;
 	LPC_GPIO2->FIODIR |= LED3;
 
-	GPIO_Init(ACCEL_CS_PIN, PIN_OUT_PP);
+	//GPIO_Init(BOARD_ACCEL_CS_PIN, PIN_OUT_PP);
 	GPIO_Init(BOARD_CARD_CS_PIN, PIN_OUT_PP);
 	
 	LED1_OFF;
 	LED2_OFF;
 	LED3_OFF;
 	
-	DESELECT_ACCEL;	
+	//BOARD_ACCEL_DESELECT;	
 	BOARD_CARD_DESELECT;
 
 	LCD_Init(NULL);
 	BUTTON_Init(BUTTON_DEFAULT_HOLD_TIME);
 
+    // SPI configuration for memory card
 	BB_MAIN_SPI->bus = SPI_BUS0;
     BB_MAIN_SPI->freq = SPI_DEFAULT_SPEED;
     BB_MAIN_SPI->flags  = SPI_MODE0;
     SPI_Init(BB_MAIN_SPI);
 
-	cardSetSpi(BB_MAIN_SPI);
+	memcardSetSpi(BB_MAIN_SPI);
 	//ACC_Init();
 }
 
@@ -71,7 +72,7 @@ void BB_ConfigClockOut(uint8_t en){
 //
 //--------------------------------------------------
 void BB_SPI_Write(uint8_t *data, uint32_t count){
-	SPI_Write(BB_MAIN_SPI, data, count);
+	SPI_Transfer(BB_MAIN_SPI, data, count);
 }
 
 void BB_SPI_WriteDMA(uint16_t *data, uint32_t count){
