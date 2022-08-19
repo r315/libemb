@@ -61,7 +61,7 @@ typedef struct spibus{
 }spibus_t;
 
 void SPI_Init(spibus_t *spidev);
-void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count);
+void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count);
 void SPI_WriteDMA(spibus_t *spidev, uint16_t *data, uint32_t count);
 void SPI_WaitEOT(spibus_t *spidev);
 uint16_t SPI_Send(spibus_t *spidev, uint16_t data);

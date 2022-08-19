@@ -86,7 +86,7 @@ void SPI_Init(spibus_t *spi){
 		case SPI_MODE0: break;
 		case SPI_MODE1: data |= SSP_CR0_CPHA; break;
 		case SPI_MODE2: data |= SSP_CR0_CPOL; break;
-		case SPI_MODE3: data |= SSP_CR0_CPHA | SSP_CR0_CPHA; break;
+		case SPI_MODE3: data |= SSP_CR0_CPOL | SSP_CR0_CPHA; break;
 		default: break;
 	}
 
@@ -98,7 +98,7 @@ void SPI_Init(spibus_t *spi){
 	spi->flags |= SPI_ENABLED;
 }
 
-void SPI_Write(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
+void SPI_Transfer(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
 
 	LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 
@@ -109,14 +109,14 @@ void SPI_Write(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
 	if(spi->flags & SPI_16BIT){
 		while(lenght--){
 			sspx->DR = *((uint16_t*)buffer);
-			while(sspx->SR & SSP_SR_BSY);
+            while((sspx->SR & SSP_SR_BSY)){}
 			*((uint16_t*)buffer) = sspx->DR;
 			buffer = buffer + 2;
 		}
 	}else{
 		while(lenght--){
 			sspx->DR = *((uint8_t*)buffer);
-			while(sspx->SR & SSP_SR_BSY);
+            while((sspx->SR & SSP_SR_BSY)){}
 			*((uint8_t*)buffer) = sspx->DR;
 			buffer = buffer + 1;
 		}
@@ -126,7 +126,7 @@ void SPI_Write(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
 uint16_t SPI_Send(spibus_t *spi, uint16_t data){
 	LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 	sspx->DR = data;
-	while((sspx->SR & SSP_SR_BSY));
+	while((sspx->SR & SSP_SR_BSY)){}
 	return sspx->DR;
 }
 
