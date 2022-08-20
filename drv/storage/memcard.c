@@ -41,7 +41,6 @@
 -------------------------------------------------------------------------*/
 static uint8_t CardType;
 static spibus_t *s_spi = NULL;
-static uint8_t data_packet[6];
 /*-----------------------------------------------------------------------*/
 /* Send a command packet to MMC                                          */
 /*-----------------------------------------------------------------------*/	
@@ -54,7 +53,8 @@ static uint8_t data_packet[6];
  */
 static uint8_t cardCmd (uint8_t cmd, uint32_t arg){
     uint8_t r1;
-    
+    uint8_t data_packet[6];
+
     if (cmd & ACMD_FLAG) {	/* ACMD<n> is the command sequence of CMD55-CMD<n> */
         r1 = cardCmd(CMD55, 0);
         if (r1 > 1) 
@@ -84,33 +84,16 @@ static uint8_t cardCmd (uint8_t cmd, uint32_t arg){
     SPI_Transfer(s_spi, data_packet, sizeof(data_packet));
 
     /* Receive a command response */
-    /* Wait for a valid response within timeout*/
-    #if 0
-    for (uint8_t n = 0; n < sizeof(data_packet); n++){
-        data_packet[n] = SPI_Send(s_spi, 0xFF);
-        //if((r1 & R1_MSB) == 0){
-        //    break;
-        //}
-    }
-
-    /* Return with the response value */
-    return data_packet[1];
-    #else
+    /* Wait for a valid response within timeout, responses are not fixed to index*/
     for (uint8_t n = 0; n < sizeof(data_packet); n++){
         r1 = SPI_Send(s_spi, 0xFF);
-        if((r1 & R1_MSB) == 0){
+        if((r1 & R1_MSB) == 0){ /* MSB is cleared, a valid response was received */
             break;
         }
     }
     return r1;
-    #endif
 }
 
-static void memcardGetResponse(uint8_t *buf, uint8_t len){
-    for (uint8_t n = 0; n < len; n++){
-        buf[n] = SPI_Send(s_spi, 0xFF);
-    }
-}
 /*--------------------------------------------------------------------------
 
    Public Functions
@@ -147,23 +130,26 @@ DSTATUS disk_initialize (void){
 
     BOARD_CARD_DESELECT;
 
-    n = 8;
+    n = 10;
     do{ /* Dummy clocks for enter SPI mode */
-        SPI_Send(s_spi, 0xFF);    
+        SPI_Send(s_spi, 0xFF);
     }while(--n);
 
     CardType = CT_NONE;
 
     if (cardCmd(CMD0, 0) == 1) {			/* Enter Idle state */
         if (cardCmd(CMD8, 0x1AA) == 1) {	/* SDv2 */
-            memcardGetResponse(ocr, 4);     /* Get trailing return value of R7 resp */
+            for (uint8_t n = 0; n < 4; n++){ ocr[n] = SPI_Send(s_spi, 0xFF); }
             if (ocr[2] == 0x01 && ocr[3] == 0xAA) {				/* The card can work at vdd range of 2.7-3.6V */
+
                 for (tmr = 12000; tmr && cardCmd(ACMD41, 1UL << 30); tmr--) ;	/* Wait for leaving idle state (ACMD41 with HCS bit) */
+
                 if (tmr && cardCmd(CMD58, 0) == 0) {
-                    memcardGetResponse(ocr, 4); /* Check CCS bit in the OCR */
-                    CardType = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* SDv2 (HC or SC) */
+                    for (uint8_t n = 0; n < 4; n++){ ocr[n] = SPI_Send(s_spi, 0xFF); }
+                    CardType = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* Check CCS bit in the OCR, SDv2 (HC or SC) */
                 }
             }
+            // Something else...
         } else {							/* SDv1 or MMCv3 */
             if (cardCmd(ACMD41, 0) <= 1) 	{
                 CardType = CT_SD1; cmd = ACMD41;	/* SDv1 */
@@ -194,12 +180,11 @@ DSTATUS disk_initialize (void){
  * @param buff		: Pointer to the read buffer (NULL:Read uint8_ts are forwarded to the stream)
  * @param lba		: Sector number (LBA)
  * @param ofs		: offset to read from (0..511)
- * @param cnt 		: Number of uint8_ts to read (ofs + cnt mus be <= 512)
+ * @param cnt 		: Number of uint8_ts to read (ofs + cnt must be <= 512)
  * @return DRESULT 	:
  * */ 
 DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
     DRESULT res;
-    uint8_t rc;
     WORD bc;
 
     if (!(CardType & CT_BLOCK)) lba *= 512;		/* Convert to uint8_t address if needed */
@@ -210,32 +195,31 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
     BOARD_CARD_ACTIVE;
 #endif
 
-    if (cardCmd(CMD17, lba) == 0) {		/* READ_SINGLE_BLOCK */
-
+    /* READ_SINGLE_BLOCK */
+    if (cardCmd(CMD17, lba) == 0) {		
         bc = 30000;
-        do {							/* Wait for data packet in timeout of 100ms */
-            rc = SPI_Send(s_spi, 0xFF);
-        } while (rc == 0xFF && --bc);
+        do {/* Wait for data packet with timeout */
+            if (SPI_Send(s_spi, 0xFF) == 0xFE) {
+                /* A data packet arrived */
+                bc = 514 - ofs - cnt; /* Read 512 bytes + 2 CRC bytes */
 
-        if (rc == 0xFE) {				/* A data packet arrived */
-            bc = 514 - ofs - cnt;
+                /* Skip leading uint8_ts */
+                if (ofs) {
+                    do SPI_Send(s_spi, 0xFF); while (--ofs);
+                }
 
-            /* Skip leading uint8_ts */
-            if (ofs) {
-                do SPI_Send(s_spi, 0xFF); while (--ofs);
+                /* Receive a part of the sector */
+                do
+                    *buff++ = SPI_Send(s_spi, 0xFF);
+                while (--cnt);            
+
+                /* Skip trailing uint8_ts and CRC */
+                do SPI_Send(s_spi, 0xFF); while (--bc);
+
+                res = RES_OK;
+                break;
             }
-
-            /* Receive a part of the sector */
-            do
-                *buff++ = SPI_Send(s_spi, 0xFF);
-            while (--cnt);
-        
-
-            /* Skip trailing uint8_ts and CRC */
-            do SPI_Send(s_spi, 0xFF); while (--bc);
-
-            res = RES_OK;
-        }
+        } while (--bc);
     }
 
     BOARD_CARD_DESELECT;
