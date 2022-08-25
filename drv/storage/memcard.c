@@ -228,8 +228,8 @@ DSTATUS disk_initialize (void){
 
     CardType = CT_NONE;
 
-    if (cardCmd(CMD0, 0) == 1) {			/* Enter Idle state */
-        if (cardCmd(CMD8, 0x1AA) == 1) {	/* SDv2 */
+    if (cardCmd(CMD0, 0) == R1_IDLE) {          /* Enter Idle state */
+        if (cardCmd(CMD8, 0x1AA) == R1_IDLE) {  /* SDv2 */
             for (uint8_t n = 0; n < 4; n++){ ocr[n] = SPI_Send(s_spi, 0xFF); }
             if (ocr[2] == 0x01 && ocr[3] == 0xAA) {				/* Check if card supports vdd range of 2.7-3.6V */
             
@@ -247,7 +247,7 @@ DSTATUS disk_initialize (void){
             }
             // Reject card
         } else {							
-            if (cardCmd(ACMD41, 0) <= 1) 	{
+            if (cardCmd(ACMD41, 0) <= R1_IDLE) 	{
                 CardType = CT_SD1; cmd = ACMD41;    /* SDv1 */
             } else {
                 CardType = CT_MMC; cmd = CMD1;	    /* MMCv3 */
