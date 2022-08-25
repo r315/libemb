@@ -44,7 +44,6 @@ void BB_Init(void){
     BB_MAIN_SPI->flags  = SPI_MODE0;
     SPI_Init(BB_MAIN_SPI);
 
-	memcardSetSpi(BB_MAIN_SPI);
 	//ACC_Init();
 }
 

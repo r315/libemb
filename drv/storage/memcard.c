@@ -12,13 +12,17 @@
 /* Definitions for MMC/SDC command */
 #define CMD0				(0x40+0)	/* GO_IDLE_STATE */
 #define CMD1				(0x40+1)	/* SEND_OP_COND (MMC) */
-#define ACMD41              (0xC0+41)	/* SEND_OP_COND (SDC) */
+#define CMD2				(0x40+2)	/* ALL_SEND_CID */
 #define CMD8				(0x40+8)	/* SEND_IF_COND */
+#define CMD10               (0x40+10)   /* SEND_CID */
 #define CMD16				(0x40+16)	/* SET_BLOCKLEN */
 #define CMD17				(0x40+17)	/* READ_SINGLE_BLOCK */
 #define CMD24				(0x40+24)	/* WRITE_BLOCK */
 #define CMD55				(0x40+55)	/* APP_CMD */
 #define CMD58				(0x40+58)	/* READ_OCR */
+#define ACMD41              (0xC0+41)	/* SEND_OP_COND (SDC) */
+
+#define ACMD_FLAG           (1 << 7)
 
 /* Response */
 #define R1_IDLE             (1 << 0)
@@ -30,14 +34,21 @@
 #define R1_PARAM_ERROR      (1 << 6)
 #define R1_MSB              (1 << 7)    /* 1 when busy */
 
-#define ACMD_FLAG           (1 << 7)
+#define SD_START_BLOCK_SINGLE       0xFE
+#define SD_START_BLOCK_MULTIPLE     0xFD
+
+#define SD_OCR_CCS          (1 << 30)   /* Card Capacity Status */
+#define SD_OCR_CPS          (1 << 31)   /* Card Power up Status */
+#define SD_HCS              (1 << 30)   /* Host Capacity Support */
 
 #define ENABLE_SECTOR_WRITE	0
 #define ENABLE_CARD_DETECT	0
 #define ENABLE_DISK_ACTIVITY_LED	1
 
+#define SD_SPI_SLOW         0
+
 /*-----------------------------------------------------------------------
-   Module Private Functions                                              
+   Module Private variables                                              
 -------------------------------------------------------------------------*/
 static uint8_t CardType;
 static spibus_t *s_spi = NULL;
@@ -100,14 +111,82 @@ static uint8_t cardCmd (uint8_t cmd, uint32_t arg){
 
 ---------------------------------------------------------------------------*/
 
-void memcardSetSpi(spibus_t *spi){
-    s_spi = spi;
+/**
+ * @brief Retrieve Card Identification Register. 
+ * 
+ * @param CIDRegister   16-Byte buffer
+ * @return uint8_t      0: Success, otherwise error
+ */
+uint8_t SDGetCID(uint8_t *CIDRegister){
+    uint8_t res = 1;
+
+    if (cardCmd(CMD10, 0) == 0) {
+        uint8_t retry = 32;
+        do {/* Wait for data packet with timeout */
+            if (SPI_Send(s_spi, 0xFF) == SD_START_BLOCK_SINGLE) {
+                for (uint8_t n = 0; n < 16; n++){ 
+                   CIDRegister[n] = SPI_Send(s_spi, 0xFF); 
+                }
+                res = 0;
+                break;
+            }
+        }while(--retry);
+    }
+
+    BOARD_CARD_DESELECT;
+    return res;
 }
 
 /**
- * @brief Initialize Disk Drive
+ * @brief Retrieve Card Specific Data
  * 
- * @return DSTATUS 
+ * @param CSDRegister   16-Byte buffer
+ * @return uint8_t      0: Success, otherwise error
+ */
+uint8_t SDGetCSD(uint8_t *CSDRegister){
+    return 1;
+}
+
+/**
+ * @brief Retrieve Card Specific Data
+ * 
+ * @param SCRRegister   8-Byte buffer
+ * @return uint8_t      0: Success, otherwise error
+ */
+uint8_t SDGetSCR(uint8_t *SCRRegister){
+    return 1;
+}
+
+/**
+ * @brief Retrieve Operation Condition Register
+ * 
+ * @param OCRRegister   4-byte buffer
+ * @return uint8_t      0: Success, otherwise error
+ */
+uint8_t SDGetOCR(uint8_t *OCRRegister){
+    uint8_t retry = 32;
+    uint8_t res = 1;
+
+    do{
+        if (cardCmd(CMD58, 0) == 0) {
+            for (uint8_t n = 0; n < 4; n++){
+                OCRRegister[3 - n] = SPI_Send(s_spi, 0xFF); // store as little-endian
+            }
+
+            if(*(uint32_t*)OCRRegister & SD_OCR_CPS){
+                res = 0;
+                break;
+            }
+        }
+    }while(--retry);
+    
+    BOARD_CARD_DESELECT;
+    return res;
+}
+/**
+ * @brief Initialize Disk Drive in SPI mode
+ * 
+ * @return STA_OK on success, STA_NOINIT otherwise 
  */
 DSTATUS disk_initialize (void){
     uint8_t n, cmd, ocr[4];
@@ -123,11 +202,23 @@ DSTATUS disk_initialize (void){
     if (BOARD_CARD_IS_SELECTED) 
         disk_writep(0, 0);		/* Finalize write process if it is in progress */
 #endif
+
+#if SD_SPI_SLOW
+    if(s_spi == NULL){
+        s_spi = BOARD_SD_GET_SPI;
+        s_spi->freq = 100000;
+        SPI_Init(s_spi);
+    }
+#else
+
+    if(s_spi == NULL){
+        s_spi = BOARD_SD_GET_SPI;
+    }
     
     uint32_t freq = s_spi->freq;
     s_spi->freq = 100000;
     SPI_Init(s_spi);
-
+#endif
     BOARD_CARD_DESELECT;
 
     n = 10;
@@ -140,21 +231,26 @@ DSTATUS disk_initialize (void){
     if (cardCmd(CMD0, 0) == 1) {			/* Enter Idle state */
         if (cardCmd(CMD8, 0x1AA) == 1) {	/* SDv2 */
             for (uint8_t n = 0; n < 4; n++){ ocr[n] = SPI_Send(s_spi, 0xFF); }
-            if (ocr[2] == 0x01 && ocr[3] == 0xAA) {				/* The card can work at vdd range of 2.7-3.6V */
+            if (ocr[2] == 0x01 && ocr[3] == 0xAA) {				/* Check if card supports vdd range of 2.7-3.6V */
+            
+                /* Wait for leaving idle state (ACMD41 with HCS bit) */
+                for (tmr = 12000; tmr; tmr--){
+                    if(cardCmd(ACMD41, SD_HCS) != R1_IDLE){
+                        break;
+                    }
+                }
 
-                for (tmr = 12000; tmr && cardCmd(ACMD41, 1UL << 30); tmr--) ;	/* Wait for leaving idle state (ACMD41 with HCS bit) */
-
-                if (tmr && cardCmd(CMD58, 0) == 0) {
-                    for (uint8_t n = 0; n < 4; n++){ ocr[n] = SPI_Send(s_spi, 0xFF); }
-                    CardType = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;	/* Check CCS bit in the OCR, SDv2 (HC or SC) */
+                if(SDGetOCR(ocr) == 0){
+                    /* SDv2, HC or SC? */
+                    CardType = (*(uint32_t*)ocr & SD_OCR_CCS) ? CT_SD2 | CT_BLOCK : CT_SD2;
                 }
             }
-            // Something else...
-        } else {							/* SDv1 or MMCv3 */
+            // Reject card
+        } else {							
             if (cardCmd(ACMD41, 0) <= 1) 	{
-                CardType = CT_SD1; cmd = ACMD41;	/* SDv1 */
+                CardType = CT_SD1; cmd = ACMD41;    /* SDv1 */
             } else {
-                CardType = CT_MMC; cmd = CMD1;	/* MMCv3 */
+                CardType = CT_MMC; cmd = CMD1;	    /* MMCv3 */
             }
             
             for (tmr = 25000; tmr && cardCmd(cmd, 0); tmr--) ;	/* Wait for leaving idle state */
@@ -167,8 +263,10 @@ DSTATUS disk_initialize (void){
 
     BOARD_CARD_DESELECT;
 
+#if SD_SPI_SLOW == 0
     s_spi->freq = freq;
     SPI_Init(s_spi);
+#endif
 
     return (CardType != CT_NONE) ? STA_OK : STA_NOINIT;
 }
@@ -199,7 +297,7 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
     if (cardCmd(CMD17, lba) == 0) {		
         bc = 30000;
         do {/* Wait for data packet with timeout */
-            if (SPI_Send(s_spi, 0xFF) == 0xFE) {
+            if (SPI_Send(s_spi, 0xFF) == SD_START_BLOCK_SINGLE) {
                 /* A data packet arrived */
                 bc = 514 - ofs - cnt; /* Read 512 bytes + 2 CRC bytes */
 
@@ -265,7 +363,7 @@ DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
             if (!(CardType & CT_BLOCK)) sa *= 512;	/* Convert to uint8_t address if needed */
             if (cardCmd(CMD24, sa) == 0) {			/* WRITE_SINGLE_BLOCK */
                 SPI_Send(s_spi, 0xFF); 
-                SPI_Send(s_spi, 0xFE);		/* Data block header */
+                SPI_Send(s_spi, SD_START_BLOCK_SINGLE);		/* Data block header */
                 wc = 512;							/* Set uint8_t counter */
                 res = RES_OK;
             }

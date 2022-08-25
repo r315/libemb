@@ -80,6 +80,7 @@ extern "C" {
 #define BOARD_CARD_SELECT       LPC_GPIO0->FIOCLR = BOARD_CARD_CS_PIN_MASK		/* MMC CS = L */
 #define	BOARD_CARD_DESELECT     LPC_GPIO0->FIOSET = BOARD_CARD_CS_PIN_MASK		/* MMC CS = H */
 #define	BOARD_CARD_IS_SELECTED  !(LPC_GPIO0->FIOPIN & BOARD_CARD_CS_PIN_MASK)   /* MMC CS status (true:selected) */
+#define BOARD_SD_GET_SPI        BOARD_GetSpiMain()
 
 #define  LCD_CS         (1<<10) //P1.10
 #define  LCD_RS         (1<<9)  //P1.9
@@ -126,7 +127,8 @@ void BB_SPI_WaitEOT(void);
 void BB_SPI_SetFrequency(uint32_t freq);
 spibus_t *BB_SPI_GetMain(void);
 
-void memcardSetSpi(spibus_t *spi);
+uint8_t SDGetCID(uint8_t *CIDRegister);
+
 #ifdef __cplusplus
 }
 #endif
