@@ -43,7 +43,6 @@ function convertBmp(bmpArray, outbpp) {
     let bpp = int16FromArr(bmpArray, 0x1C)
     let Bpp = bpp / 8
     let padding = width & 3
-    let bpl
     
     console.log(`Size: ${width}x${height}, bpp: ${bpp}`)
 
@@ -78,7 +77,7 @@ function convertBmp(bmpArray, outbpp) {
                     }
                 }
             }
-            bpl = Math.floor(width / 8) + ((width % 8) != 0 ? 1 : 0)
+            //bpp = Math.floor(width / 8) + ((width % 8) != 0 ? 1 : 0)
             break;
 
         case BPP.BPP2:
@@ -96,7 +95,7 @@ function convertBmp(bmpArray, outbpp) {
                     pixelcount = 0;
                 }
             }
-            bpl = Math.floor(width * 2 / 8) + ((width * 2 % 8) != 0 ? 1 : 0) 
+            //bpp =  Math.floor(width * 2 / 8) + ((width * 2 % 8) != 0 ? 1 : 0) 
             break;
 
         case BPP.BPP16:
@@ -116,7 +115,7 @@ function convertBmp(bmpArray, outbpp) {
                 }
             }
 
-            bpl = width * 2
+            //bpp = width * 2
             break;
 
         default:
@@ -129,41 +128,94 @@ function convertBmp(bmpArray, outbpp) {
         "width": width,
         "height": height,
         "pixels": pixelByteArray,
-        "bpl": bpl
+        "bpp": outbpp
     }
 }
 
 function flipBmp(bmpdata){
     let pixels = []
 
-    for (let offset = (bmpdata.height * bmpdata.width) - bmpdata.width; offset >= 0; offset -= bmpdata.width) {        
-        pixels = pixels.concat(bmpdata.pixels.slice(offset, offset + bmpdata.width))
+    if(bmpdata.bpp == BPP.BPP1){
+        let width = Math.ceil(bmpdata.width / 8)
+        let offset = (bmpdata.height * width) - width
+        for (; offset >= 0; offset -= width) {
+            pixels = pixels.concat(bmpdata.pixels.slice(offset, offset + width))
+        }
+    }else{
+        for (let offset = (bmpdata.height * bmpdata.width) - bmpdata.width; offset >= 0; offset -= bmpdata.width) {
+            pixels = pixels.concat(bmpdata.pixels.slice(offset, offset + bmpdata.width))
+        }
     }
     
     bmpdata.pixels = pixels
     return bmpdata
 }
 
-function getLine(data, offset, len, suffix = ","){
+function transpose(bmpdata){
+    let pixels = []
+    
+    if(bmpdata.bpp == BPP.BPP1){
+        for(let page = 0; page < bmpdata.height; page += 8){
+            for(let col = 0; col < bmpdata.width; col++){
+                let byte = 0
+                let mask = (0x80 >> (col & 7))
+                let offset = page + (col >> 3)
+
+                for(let i = 0; i < 8; i++){
+                    if((bmpdata.pixels[offset + (i * (bmpdata.width / 8))] & mask) != 0){
+                        byte |= (1 << i)
+                    }
+                }
+
+                pixels.push(byte)
+            }
+        }
+    }
+    bmpdata.pixels = pixels
+    return bmpdata
+}
+
+function getLine(data, offset, len, nbits, suffix = ","){
     return data.slice(offset, offset + len).map((e) => {
-        return (e < 16) ? "0x0" : "0x" + e.toString(16)
+        let mask = (nbits == BPP.BPP16) ? 0xF000 : 0xF0 
+        let str = "0x"  
+        
+        do{
+            if((e & mask) != 0){
+                break
+            }
+            str += '0'
+            mask >>= 4
+        }while( mask != 0xF)
+
+        return str + e.toString(16)
     }) + suffix
 }
 
 function saveToFile(bmpdata, filename, cols){
-    let linecount = 0
-
+    let count = bmpdata.pixels.length
+    let offset = 0
+    
     cols = (cols > 0) ? cols : bmpdata.width
+
+    let line = getLine(bmpdata.pixels, offset, cols, bmpdata.bpp, ',\n')
 
     function nextBlock(err){
         if(err){
             console.log(err)
             return
         }
-        if( (linecount += cols) < (cols * bmpdata.height))
-            fs.appendFile(filename, getLine(bmpdata.pixels, linecount, cols, ',\n'), nextBlock)
-    }   
-    fs.writeFile(filename, getLine(bmpdata.pixels, linecount, cols, ',\n'), nextBlock)
+        
+        count -= cols
+        offset += cols
+        
+        if(count > 0){
+            let line = getLine(bmpdata.pixels, offset, cols, bmpdata.bpp, ',\n')
+            fs.appendFile(filename, line, nextBlock)
+        }
+    }
+    
+    fs.writeFile(filename, line, nextBlock)
 }
 
 function printBmpData(bmpdata, cols) {
@@ -180,7 +232,7 @@ function printBmpData(bmpdata, cols) {
 
 function help(){
     console.log("Bitmap file to data array converter")
-    console.log("bmp2header -f <file.bmp> [-b bpp] [-c columns] [-o file.out]")
+    console.log("bmp2header -f <file.bmp> [-b bpp] [-c columns] [-o file.out] [-k]")
 }
 
 function start() {
@@ -202,12 +254,17 @@ function start() {
             console.log(err)
             return;
         }
+        
         let bmpdata = convertBmp(data, opts.b)
 
         if(bmpdata == null)
             process.exit(-1)
 
         bmpdata = flipBmp(bmpdata);
+
+        if(opts.k){
+            bmpdata = transpose(bmpdata)
+        }
 
         if(opts.o)
             saveToFile(bmpdata, opts.o.trim(), opts.c)
