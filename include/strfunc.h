@@ -33,6 +33,7 @@ extern "C" {
 	void memcpy16(uint16_t *dst, uint16_t *src, uint32_t n);
 	void memset32(uint32_t *dst, uint32_t c, uint32_t n);
 	void memcpy32(uint32_t *dst, uint32_t *src, uint32_t n);
+    void *memmove(void * dst, const void * src, size_t len);
 	char *skipSpaces(char *str);
 	uint32_t strToArray(char *str, char **argv);
 	void xsprintf(char *out, const char* fmt, ...);

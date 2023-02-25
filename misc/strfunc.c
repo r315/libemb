@@ -592,12 +592,31 @@ uint32_t xpftoa(char *dst, float f, uint8_t places){
 //-----------------------------------------------------------
 //
 //-----------------------------------------------------------
-void * memcpy(void * destination, const void * source, size_t num) {
+void *memcpy(void * destination, const void * source, size_t num) {
 	for (size_t i = 0; i < num; i++) {
 		*((uint8_t*)destination + i) = *((uint8_t*)source);
 		source = (uint8_t*)source + 1;
 	}
 	return destination;
+}
+
+void *memmove(void * dst, const void * src, size_t len) {
+    uint8_t *pdst, *psrc;
+   
+    if(dst < src){
+        pdst = (uint8_t*)dst;
+        psrc = (uint8_t*)src;
+        while(len--){
+            *pdst++ = *psrc++;
+        }
+    }else{
+        pdst = (uint8_t*)dst + len;
+        psrc = (uint8_t*)src + len;
+        while(len--){
+            *pdst-- = *psrc--;
+        }
+    }
+    return dst;
 }
 
 void *memset(void * ptr, int value, size_t num) {
