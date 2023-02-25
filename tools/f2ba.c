@@ -23,7 +23,7 @@ const char *data_types[] = {"char", "uint8_t", "uint16_t", "uint32_t", "uint64_t
 
 void help(){
     printf("File to byte array ");
-    printf("Usage: f2ba <if=input file> <of=output file> [ofs=<offset>] [ds=<bytes>] [endian=<little|big>]\n");
+    printf("Usage: f2ba <input file> <output file> [ofs=<offset>] [ds=<bytes>] [endian=<little|big>]\n");
 }
 
 #ifndef _WIN32
@@ -97,22 +97,22 @@ char namecpy[20];
 static void parseCmdl(int argc, char** argv, Arguments* arg){
 
     arg->offset = 0;
-    arg->infile = NULL;
-    arg->outfile = NULL;
+    arg->infile = argv[1];
+    arg->outfile = argv[2];
     arg->data_size = 1;
     arg->endian = 0;
 
      /* parse options in any order */
     for (int pos = 1; pos < argc; pos++)
     {
-        if (strstW(argv[pos], "if=") && arg->infile == NULL){            
+        /*if (strstW(argv[pos], "if=") && arg->infile == NULL){            
             arg->infile = argv[pos] + 3;            
         }
 
         if (strstW(argv[pos], "of=") && arg->outfile == NULL){
             arg->outfile = argv[pos] + 3;
         }
-
+        */
         if (strstW(argv[pos], "ofs=")){
             arg->offset = atoi(argv[pos] + 4);
         }
@@ -147,7 +147,7 @@ Arguments args;
     fp = fopen(args.infile, "rb");
 
     if(fp == NULL){
-        fprintf(stderr,"Unable to open file '%s'\n", filename);
+        fprintf(stderr,"Unable to open input file '%s'\n", args.infile);
         help();
         exit(-1);
     }
