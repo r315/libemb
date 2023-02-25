@@ -3,6 +3,7 @@
 #include "board.h"
 #include "uart.h"
 
+static serialbus_t *serial1, *serial2;
 
 void UART_Init(serialbus_t *serialbus){
 	USART_TypeDef *uart = NULL;
@@ -11,11 +12,13 @@ void UART_Init(serialbus_t *serialbus){
 	switch(serialbus->bus){
 		case UART_BUS1:
 			uart = USART1;
+            serial1 = serialbus;
 			irq = USART1_IRQn;
 			break;
 
 		case UART_BUS2:
 			uart = USART2;
+            serial2 = serialbus;
 			irq = USART2_IRQn;
 			break;
 
@@ -108,4 +111,18 @@ void UART_IRQHandler(void *ptr){
 			}
 		}
 	}
+}
+
+
+/**
+  * @brief This function handles USART2 global interrupt.
+  */
+void USART2_IRQHandler(void)
+{
+    UART_IRQHandler(serial2);
+}
+
+void USART1_IRQHandler(void)
+{
+    UART_IRQHandler(serial1);
 }

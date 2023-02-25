@@ -39,6 +39,8 @@ typedef struct serialhandler {
 }serialhandler_t;
 
 void SERIAL_Config(serialhandler_t *hserial, uint32_t config);
+void SERIAL_Init(void);
+stdout_t *SERIAL_GetStdout(uint8_t);
 
 #ifdef __cplusplus
 }
