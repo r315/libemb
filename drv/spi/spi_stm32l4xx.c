@@ -17,8 +17,6 @@
 
 
 static spibus_t *spi_eot[2];
-static inline void spi1Eot(void){ SPI_DMA_IRQHandler(spi_eot[0]);}
-static inline void spi2Eot(void){ SPI_DMA_IRQHandler(spi_eot[1]);}
 
 /**
  * @brief DMA Interrupt handler
@@ -81,6 +79,10 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
     spi->CR1 &= ~(SPI_CR1_SPE | PCLK_CLK_DIV256);
     spi->CR1 |= (br << SPI_CR1_BR_Pos);
 }
+
+static inline void spi1Eot(void){ SPI_DMA_IRQHandler(spi_eot[0]);}
+static inline void spi2Eot(void){ SPI_DMA_IRQHandler(spi_eot[1]);}
+
 /**
  * Public API
  * */
@@ -142,7 +144,7 @@ void SPI_Init(spibus_t *spidev){
  * \param data  : Pointer to data
  * \param count : total number of bytes to transfer
  * */
-void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
+void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
 
     while(count--){
@@ -157,7 +159,7 @@ void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
-void SPI_WriteDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
+void SPI_TransferDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
     static uint16_t _data;
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.stream;

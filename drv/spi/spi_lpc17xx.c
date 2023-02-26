@@ -123,14 +123,14 @@ void SPI_Transfer(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
 	}
 }
 
-uint16_t SPI_Send(spibus_t *spi, uint16_t data){
+uint16_t SPI_Xchg(spibus_t *spi, uint16_t data){
 	LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 	sspx->DR = data;
 	while((sspx->SR & SSP_SR_BSY)){}
 	return sspx->DR;
 }
 
-void SPI_WriteDMA(spibus_t *spi, uint16_t *data, uint32_t count){
+void SPI_TransferDMA(spibus_t *spi, uint16_t *data, uint32_t count){
 	//LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;	
 }
 

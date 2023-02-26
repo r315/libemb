@@ -4,6 +4,8 @@
 #define GPIO_IN_PU   ((2 << 2)|(0 << 0))  // CNF | MODE
 #define GPIO_OUT_AF  ((2 << 2)|(2 << 0))
 
+static serialbus_t *serial1, *serial2, *serial3;
+
 static void setBaudrate(serialbus_t *huart)
 {
     USART_TypeDef *usart = (USART_TypeDef*)huart->ctrl;
@@ -49,6 +51,7 @@ void UART_Init(serialbus_t *serialbus){
         GPIOA->BSRR = GPIO_PIN_10;
 
         usart = USART1;
+        serial1 = serialbus;
         irq = USART1_IRQn;
         break;
     
@@ -67,6 +70,7 @@ void UART_Init(serialbus_t *serialbus){
         GPIOA->BSRR = GPIO_PIN_3;
 
         usart = USART2;
+        serial2 = serialbus;
         irq = USART1_IRQn;
         break;
 
@@ -84,7 +88,8 @@ void UART_Init(serialbus_t *serialbus){
         GPIOB->CRH = (GPIOB->CRH & ~(0xFF << 8)) | (GPIO_IN_PU << 12) | (GPIO_OUT_AF << 8);
         GPIOB->BSRR = GPIO_PIN_11;
         
-        usart = USART1;
+        usart = USART1; // check this and comment
+        serial3 = serialbus;
         irq = USART1_IRQn;
         break;
     
@@ -167,4 +172,16 @@ void UART_IRQHandler(void *ptr){
             usart->CR1 &= ~USART_CR1_TXEIE;		      // disable TX interrupt if nothing to send
         }
     }    
+}
+
+void USART1_IRQHandler(void){
+    UART_IRQHandler(serial1);
+}
+
+void USART2_IRQHandler(void){
+    UART_IRQHandler(serial2);
+}
+
+void USART3_IRQHandler(void){
+    UART_IRQHandler(serial3);
 }

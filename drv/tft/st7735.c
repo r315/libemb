@@ -150,7 +150,7 @@ const uint8_t InitCmd [] = {
  */
 static void LCD_Command(uint8_t data){
 	LCD_CD0; 
-	SPI_Write(spidev, &data, 1);
+	SPI_Transfer(spidev, &data, 1);
 	LCD_CD1;
 }
 
@@ -167,7 +167,7 @@ static void LCD_EOTHandler(void){
 void LCD_Data(uint16_t data){
 	scratch[0] = data >> 8;
 	scratch[1] = data;
-	SPI_Write(spidev, scratch, 2);
+	SPI_Transfer(spidev, scratch, 2);
 }
 
 /**
@@ -183,7 +183,7 @@ void LCD_Write(uint16_t *data, uint32_t count){
 
 	LCD_CS0;
 	if(spidev->dma.per != NULL){
-		SPI_WriteDMA(spidev, data, count);
+		SPI_TransferDMA(spidev, data, count);
 		//LCD_CS1; // SET by DMA handler
 	}else{
 		while(count--)
@@ -208,7 +208,7 @@ static void LCD_Fill(uint16_t data, uint32_t count){
 	LCD_CS0;
 	if(spidev->dma.per != NULL){
 		spidev->flags |= SPI_DMA_NO_MINC;
-		SPI_WriteDMA(spidev, &data, count);
+		SPI_TransferDMA(spidev, &data, count);
 		//LCD_CS1; // SET by DMA handler	
 	}else{
 		while(count--)
@@ -260,14 +260,14 @@ static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
 	scratch[1] = x1;
 	scratch[2] = x2 >> 8;
 	scratch[3] = x2;
-	SPI_Write(spidev, scratch, 4);	
+	SPI_Transfer(spidev, scratch, 4);	
 
 	LCD_Command(ST7735_RASET);
 	scratch[0] = y1 >> 8;
 	scratch[1] = y1;
 	scratch[2] = y2 >> 8;
 	scratch[3] = y2;
-	SPI_Write(spidev, scratch, 4);
+	SPI_Transfer(spidev, scratch, 4);
 
 	LCD_Command(ST7735_RAMWR);
 }
@@ -323,7 +323,7 @@ static void LCD_CommandList(const uint8_t *addr) {
 		ms       = numArgs & DELAY;            //   If hibit set, delay follows args
 		numArgs &= ~DELAY;                     //   Mask out delay bit
 		while(numArgs--) {                     //   For each argument...
-			SPI_Write(spidev, (uint8_t*)addr++, 1);  	   //   Read, issue argument
+			SPI_Transfer(spidev, (uint8_t*)addr++, 1);  	   //   Read, issue argument
 		}
 
 		if(ms) {
@@ -367,7 +367,7 @@ void LCD_Init(void *spi){
 	LCD_CS0;
 	LCD_CommandList(InitCmd);
 	LCD_Command(ST7735_MADCTL);   // row addr/col addr, bottom to top refresh
-	SPI_Write(spidev, &madd, 1);
+	SPI_Transfer(spidev, &madd, 1);
 	LCD_CS1;
 
 	// Set offset
@@ -435,7 +435,7 @@ void LCD_Rotation(uint8_t m) {
 
 	LCD_CS0;
 	LCD_Command(ST7735_MADCTL);
-	SPI_Write(spidev, &madd, 1);
+	SPI_Transfer(spidev, &madd, 1);
 	LCD_CS1;
 }
 

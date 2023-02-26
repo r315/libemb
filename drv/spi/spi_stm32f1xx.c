@@ -147,14 +147,14 @@ void SPI_Init(spibus_t *spidev){
 }
 
 /**
- * @brief Make single data extange on spi bus
+ * @brief Make single data exchange on spi bus
  *
  * \param spidev : Pointer to spi device to be used
  * \param data  : Data to be transmitted
  *
  * \return Received data
  * */
-uint16_t SPI_Single_Transfer(spibus_t *spidev, uint16_t data){
+uint16_t SPI_Xchg(spibus_t *spidev, uint16_t data){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
 
     *((__IO uint8_t *)&spi->DR) = data;
@@ -170,7 +170,7 @@ uint16_t SPI_Single_Transfer(spibus_t *spidev, uint16_t data){
  * \param src   : Pointer to source data
  * \param count : total number of bytes to transfer
  * */
-void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
+void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     
     while(count--){
@@ -186,7 +186,7 @@ void SPI_Write(spibus_t *spidev, uint8_t *src, uint32_t count){
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
-void SPI_WriteDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
+void SPI_TransferDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
     static uint16_t _data;
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma.stream;
