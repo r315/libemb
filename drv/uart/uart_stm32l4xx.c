@@ -75,11 +75,26 @@ uint8_t UART_Kbhit(serialbus_t *huart){
 }
 
 uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len){
-	return 0;
+	USART_TypeDef *uart = (USART_TypeDef*)huart->ctrl;
+
+	for(uint16_t i = 0; i < len; i++){
+		if(fifo_put(&huart->txfifo, *(uint8_t*)data)){
+			data++;
+		}else{
+			SET_BIT(uart->CR1, USART_CR1_TXEIE);
+			while(fifo_free(&huart->txfifo) == 0);
+		}
+	}	
+	
+	SET_BIT(uart->CR1, USART_CR1_TXEIE);
+    return len;
 }
 
 uint16_t UART_Read(serialbus_t *huart, uint8_t *data, uint16_t len){
-	return 0;
+	while(len--){
+        *data++ = UART_GetChar(huart);
+    }
+    return 1;
 }
 
 void UART_IRQHandler(void *ptr){

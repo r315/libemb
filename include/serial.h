@@ -33,14 +33,24 @@ typedef enum serialx{
     SERIAL4
 }serial_e;
 
+// Arduino style API
+typedef struct serial_s{
+    int(*available)(void);
+    int(*read)(void);
+    int(*readBytes)(uint8_t*, int);
+    int(*write)(uint8_t*, int);
+}serial_t;
+
 typedef struct serialhandler {
     serialbus_t port;
     stdout_t out;
+    serial_t serial;    
 }serialhandler_t;
 
 void SERIAL_Config(serialhandler_t *hserial, uint32_t config);
 void SERIAL_Init(void);
-stdout_t *SERIAL_GetStdout(uint8_t);
+stdout_t *SERIAL_GetStdout(uint8_t nr);
+serial_t *SERIAL_GetSerial(uint8_t nr);
 
 #ifdef __cplusplus
 }
