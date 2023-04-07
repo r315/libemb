@@ -6,8 +6,12 @@
 * @date		3 Nov. 2016
 * @author	Hugo Reis
 **********************************************************************/
-#include <board.h>
-#include <button.h>
+#include "board.h"
+#include "button.h"
+
+extern void DelayMs(uint32_t ms);
+extern uint32_t GetTick(void);
+extern uint32_t ElapsedTicks(uint32_t start_ticks);
 
 static BUTTON_Controller __button;
 
