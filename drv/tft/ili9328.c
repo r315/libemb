@@ -1,6 +1,5 @@
-#include <board.h>
-#include <ili9328.h>
-#include <lcd.h>
+#include "board.h"
+#include "ili9328.h"
 
 static uint16_t _width, _height;
 void (*LCD_WindowRotation)(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
@@ -85,6 +84,12 @@ void LCD_Fill(uint16_t color, uint32_t count){
 	}
 }
 
+void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+{
+    LCD_WindowRotation(x,y,w,h);
+    LCD_Command(LCD_RW_GRAM);
+}
+
 void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color){
 	LCD_Window(x, y, w, h);
 	LCD_Fill(color, w * h);
@@ -109,11 +114,6 @@ void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *dat
 //-------------------------------------------------------------------
 //	 Creates a write window inside GRAM
 //-------------------------------------------------------------------
-void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
-{
-    LCD_WindowRotation(x,y,w,h);
-    LCD_Command(LCD_RW_GRAM);
-}
 
 static void LCD_Window_N(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 	LCD_Command(LCD_HOR_START_AD);
@@ -258,11 +258,11 @@ void LCD_Init(void *param){
 	LCD_Command(START_ADX);
 	LCD_Data(0x0000);
 	LCD_Command(END_ADX);
-	LCD_Data(LCD_W - 1);
+	LCD_Data(TFT_W - 1);
 	LCD_Command(START_ADY);
 	LCD_Data(0x0000);
 	LCD_Command(END_ADY);
-	LCD_Data(LCD_H - 1);
+	LCD_Data(TFT_H - 1);
 
 	LCD_Command(LCD_GATE_SCAN_CTRL1);
 	LCD_Data(VAL_GATE_SCAN);
@@ -300,7 +300,7 @@ void LCD_Init(void *param){
 	LCD_Command(LCD_DISP_CTRL1);
 	LCD_Data(0x0173);
 	DelayMs(500);
-	LCD_Rotation(LCD_PORTRAIT);
+	LCD_SetOrientation(LCD_PORTRAIT);
 }
 
 uint16_t LCD_GetWidth(void){
@@ -315,7 +315,7 @@ uint32_t LCD_GetSize(void){
     return _width * _height;
 }
 
-void LCD_Rotation(uint8_t m) {
+void LCD_SetOrientation(uint8_t m) {
 
     switch (m) {
         case LCD_PORTRAIT:    

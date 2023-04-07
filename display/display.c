@@ -12,8 +12,8 @@ int drawCharSimple(int x, int y, unsigned char *d_char);
 static Display _display = {
 	.xputc = DISPLAY_putc,
 	.xgetchar = (char (*)(void))0, 
-	.forecolor = WHITE,
-	.backcolor = BLACK,
+	.forecolor = LCD_WHITE,
+	.backcolor = LCD_BLACK,
 	.font = &defaultFont,
 	.vspace = 0,
 	.cx = 0,
@@ -334,8 +334,8 @@ void *DISPLAY_GetReference(void){
 void DISPLAY_Init(uint8_t initlcd){
 
 	_display.font = &defaultFont;
-	_display.forecolor = WHITE;
-	_display.backcolor = BLACK;
+	_display.forecolor = LCD_WHITE;
+	_display.backcolor = LCD_BLACK;
 	_display.vspace = 0;
 	_display.cx = 0;
 	_display.cy = 0;

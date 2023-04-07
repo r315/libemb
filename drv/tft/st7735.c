@@ -1,7 +1,6 @@
-#include <board.h>
-#include <st7735.h>
-#include <lcd.h>
-#include <spi.h>
+#include "board.h"
+#include "st7735.h"
+#include "spi.h"
 
 //--------------------------------
 // Offset may be related with GM configuration
@@ -143,6 +142,8 @@ const uint8_t InitCmd [] = {
 	ST7735_DISPON ,    DELAY, // 18: Main screen turn on, no args w/delay
 	100						  //     100 ms delay
 };
+#else
+#error Define TFT_W and TFT_H
 #endif
 
 /**
@@ -395,7 +396,7 @@ void LCD_Scroll(uint16_t sc){
 /**
  * @brief
  * */
-void LCD_Rotation(uint8_t m) {
+void LCD_SetOrientation(uint8_t m) {
 
 	madd &= ~(MADCTL_MY | MADCTL_MX | MADCTL_MV);
 
@@ -432,6 +433,8 @@ void LCD_Rotation(uint8_t m) {
 		_width  = TFT_W;
 		_height = TFT_H;
 	}
+
+	SPI_WaitEOT(spidev);
 
 	LCD_CS0;
 	LCD_Command(ST7735_MADCTL);

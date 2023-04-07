@@ -17,13 +17,13 @@ extern "C" {
 #define BOARD_BLUEBOARD
 #endif
 
-#include "lpc17xx_hal.h"
-#include "display.h"
-#include "spi.h"
+#include "LPC17xx.h"
+#include "ili9328.h"
 
-#define GetTick         CLOCK_GetTicks
-#define DelayMs         CLOCK_DelayMs
-#define ElapsedTicks    CLOCK_ElapsedTicks
+#define PLL48   0
+#define PLL72   1
+#define PLL80   2
+#define PLL100  3
 
 /* Watchdog */
 #define WDMOD_WDEN    (1 << 0)
@@ -51,10 +51,10 @@ extern "C" {
 #define BUTTON_HW_INIT  (LPC_GPIO1->FIODIR &= ~(BUTTON_MASK))
 
 #define BUTTON_MASK     (BUTTON_UP | BUTTON_DOWN | BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A )
-
 //-----------------------------------------------------
 //
 //-----------------------------------------------------
+
 #define LED1            (1<<29) //P1.29 (D8 BLUE)
 #define LED1_ON         LPC_GPIO1->FIOSET = LED1
 #define LED1_OFF        LPC_GPIO1->FIOCLR = LED1
@@ -68,19 +68,22 @@ extern "C" {
 #define LED3_OFF        LPC_GPIO2->FIOSET = LED3
 #define LED3_ON         LPC_GPIO2->FIOCLR = LED3
 
-#define LEDS_CFG
+#define LEDS_INIT       \
+        LPC_GPIO1->FIODIR |= LED1|LED2; \
+	    LPC_GPIO2->FIODIR |= LED3; \
+    	LED1_OFF;   \
+	    LED2_OFF;   \
+	    LED3_OFF;
 
-#define BOARD_ACCEL_CS_PIN    P0_6
-#define BOARD_ACCEL_CS_PIN_MASK (1 << 6)
-#define BOARD_ACCEL_SELECT    LPC_GPIO0->FIOCLR = BOARD_ACCEL_CS_PIN_MASK
-#define BOARD_ACCEL_DESELECT  LPC_GPIO0->FIOSET = BOARD_ACCEL_CS_PIN_MASK
 
-#define BOARD_CARD_CS_PIN       P0_16
-#define BOARD_CARD_CS_PIN_MASK  (1 << 16)
-#define BOARD_CARD_SELECT       LPC_GPIO0->FIOCLR = BOARD_CARD_CS_PIN_MASK		/* MMC CS = L */
-#define	BOARD_CARD_DESELECT     LPC_GPIO0->FIOSET = BOARD_CARD_CS_PIN_MASK		/* MMC CS = H */
-#define	BOARD_CARD_IS_SELECTED  !(LPC_GPIO0->FIOPIN & BOARD_CARD_CS_PIN_MASK)   /* MMC CS status (true:selected) */
-#define BOARD_SD_GET_SPI        BOARD_GetSpiMain()
+#define ACCEL_CS_PIN    (1<<6)
+#define SELECT_ACCEL    LPC_GPIO0->FIOCLR = ACCEL_CS_PIM
+#define DESELECT_ACCEL  LPC_GPIO0->FIOSET = ACCEL_CS_PIN
+
+#define MMC_CS_PIN      (1<<16)
+#define SELECT_CARD     LPC_GPIO0->FIOCLR = MMC_CS_PIN		/* MMC CS = L */
+#define	DESELECT_CARD	LPC_GPIO0->FIOSET = MMC_CS_PIN		/* MMC CS = H */
+#define	MMC_SEL         !(LPC_GPIO0->FIOPIN & MMC_CS_PIN)	/* MMC CS status (true:selected) */
 
 #define  LCD_CS         (1<<10) //P1.10
 #define  LCD_RS         (1<<9)  //P1.9
@@ -113,6 +116,8 @@ extern "C" {
 #define RAM_FUNC        __attribute__ ((section(".ram_code")))
 #define RAM_CODE        RAM_FUNC
 
+enum {false = 0, true, OFF = false, ON = true};
+
 //-----------------------------------------------------
 void BB_Init(void);
 void BB_SW_Reset(void);
@@ -121,13 +126,9 @@ void BB_RitTimeBase_Init(void);
 void BB_RitDelay(uint32_t ms);
 uint32_t BB_RitTicks(void);
 
-void BB_SPI_Init(void);
-void BB_SPI_Write(uint8_t *src, uint32_t count);
-void BB_SPI_WaitEOT(void);
-void BB_SPI_SetFrequency(uint32_t freq);
-spibus_t *BB_SPI_GetMain(void);
-
-uint8_t SDGetCID(uint8_t *CIDRegister);
+void DelayMs(uint32_t ms);
+uint32_t ElapsedTicks(uint32_t start_ticks);
+uint32_t GetTick(void);
 
 #ifdef __cplusplus
 }

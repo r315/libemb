@@ -77,22 +77,24 @@
 // For JD-T1800 GM is 0
 #define ST7753_GM       0 // 0: 132 x 18-bits x 162, 3: 128 x 18-bits x 160
 
+enum {
+    LCD_PORTRAIT = 0,
+    LCD_LANDSCAPE,
+    LCD_REVERSE_PORTRAIT,
+    LCD_REVERSE_LANDSCAPE
+};
+
 void LCD_Init(void *ptr);
 void LCD_Write(uint16_t *data, uint32_t count);
 void LCD_Scroll(uint16_t sc);
 void LCD_Data(uint16_t data);
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color);
 void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-void LCD_Rotation(uint8_t m);
+void LCD_SetOrientation(uint8_t m);
 void LCD_Bkl(uint8_t state);
 uint16_t LCD_GetWidth(void);
 uint16_t LCD_GetHeight(void);
 uint32_t LCD_GetSize(void);
-
-/**
- * @brief Not tested for this driver
- *
- */
 
 #endif
 

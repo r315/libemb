@@ -22,32 +22,26 @@ extern "C" {
 // color names
 // http://www.w3schools.com/html/html_colornames.asp
 *****************************************************/
-#define RED         RGB565(255,0,0)
-#define GREEN       RGB565(0,255,0)
-#define BLUE        RGB565(0,0,255)
-#define BLACK       RGB565(0,0,0)
-#define WHITE       RGB565(255,255,255)
-#define GRAY        RGB565(128,128,128)
-#define YELLOW      RGB565(255,255,0)
-#define ORANGE      RGB565(255,128,0)
-#define CYAN        RGB565(0,255,255)
-#define PINK        RGB565(255,0,255)
-#define FBBLUE      RGB565(56,88,152)
-#define SILVER      0xC618
-#define SKYBLUE     0x867D
-#define ROYALBLUE   0x435C
-#define TOMATO      0xFB08
-#define GOLD        0xFEA0
-#define GREENYELLOW 0xAFE5
-#define DIMGRAY     0x6B4D
-#define DARKORANGE  0xFC60
-#define TEAL        0x0410
-
-// General symbols
-#define LCD_PORTRAIT  			0
-#define LCD_LANDSCAPE 			1
-#define LCD_REVERSE_PORTRAIT  	2
-#define LCD_REVERSE_LANDSCAPE 	3
+#define LCD_RED         RGB565(255,0,0)
+#define LCD_GREEN       RGB565(0,255,0)
+#define LCD_BLUE        RGB565(0,0,255)
+#define LCD_BLACK       RGB565(0,0,0)
+#define LCD_WHITE       RGB565(255,255,255)
+#define LCD_GRAY        RGB565(128,128,128)
+#define LCD_YELLOW      RGB565(255,255,0)
+#define LCD_ORANGE      RGB565(255,128,0)
+#define LCD_CYAN        RGB565(0,255,255)
+#define LCD_PINK        RGB565(255,0,255)
+#define LCD_FBBLUE      RGB565(56,88,152)
+#define LCD_SILVER      0xC618
+#define LCD_SKYBLUE     0x867D
+#define LCD_ROYALBLUE   0x435C
+#define LCD_TOMATO      0xFB08
+#define LCD_GOLD        0xFEA0
+#define LCD_GREENYELLOW 0xAFE5
+#define LCD_DIMGRAY     0x6B4D
+#define LCD_DARKORANGE  0xFC60
+#define LCD_TEAL        0x0410
 
 
 /**
