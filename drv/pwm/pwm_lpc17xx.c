@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "board.h"
 #include "pwm.h"
+#include "clock_lpc17xx.h"
 
 #define PCONP_PCPWM1 (1<<6)
 

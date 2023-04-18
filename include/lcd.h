@@ -135,7 +135,7 @@ uint32_t LCD_GetSize(void);
 /**
  * @brief Change display orientation
  */
-void LCD_Rotation(uint8_t m);
+void LCD_SetOrientation(uint8_t m);
 
 
 #ifdef __cplusplus
