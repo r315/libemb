@@ -82,11 +82,12 @@ void UART_Init(serialbus_t *serialbus){
 
 void UART_PutChar(serialbus_t *huart, char c){
     USART_Type *uart = (USART_Type*)huart->ctrl;
-    if(fifo_free(&huart->txfifo) == 0){
+
+    while(fifo_put(&huart->txfifo, (uint8_t)c) == 0){
         uart->CTRL1 |= USART_CTRL1_TDEIEN;
         while(fifo_free(&huart->txfifo) == 0);
     }
-    fifo_put(&huart->txfifo, (uint8_t)c);
+    
     uart->CTRL1 |= USART_CTRL1_TDEIEN;
 }
 
@@ -94,12 +95,11 @@ void UART_Puts(serialbus_t *huart, const char *str){
     USART_Type *uart = (USART_Type*)huart->ctrl;
 
     while(*str){
-        if(fifo_put(&huart->txfifo, *(uint8_t*)str)){
-            str++;
-        }else{
+        while(fifo_put(&huart->txfifo, *(uint8_t*)str)){        
             uart->CTRL1 |= USART_CTRL1_TDEIEN;
             while(fifo_free(&huart->txfifo) == 0);
         }
+        str++;
     }	
     
     uart->CTRL1 |= USART_CTRL1_TDEIEN;
@@ -109,12 +109,11 @@ uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len){
     USART_Type *uart = (USART_Type*)huart->ctrl;
 
     for(uint16_t i = 0; i < len; i++){
-        if(fifo_put(&huart->txfifo, *(uint8_t*)data)){
-            data++;
-        }else{
+        while(fifo_put(&huart->txfifo, *(uint8_t*)data) == 0){        
             uart->CTRL1 |= USART_CTRL1_TDEIEN;
             while(fifo_free(&huart->txfifo) == 0);
         }
+        data++;
     }	
     
     uart->CTRL1 |= USART_CTRL1_TDEIEN;
@@ -154,9 +153,11 @@ void UART_IRQHandler(void *ptr){
 
     uint32_t isrflags = usart->STS;
     uint32_t ctrl = usart->CTRL1;
+    uint32_t errorflags = isrflags & (uint32_t)(USART_STS_PERR | USART_STS_FERR | USART_STS_ORERR | USART_STS_NERR);
 
-    if (isrflags & (uint32_t)(USART_STS_PERR | USART_STS_FERR | USART_STS_ORERR | USART_STS_NERR)){
-        
+    if (errorflags){
+        usart->STS = ~(errorflags & (uint32_t)(USART_STS_CTSF | USART_STS_LBDF | USART_STS_TRAC | USART_STS_RDNE));
+        return;
     }
 
     if (((ctrl & USART_CTRL1_REN) != 0U) && ((isrflags & USART_STS_RDNE) != 0U))	{
@@ -170,7 +171,6 @@ void UART_IRQHandler(void *ptr){
             usart->STS &= ~USART_STS_TRAC;         // Clear Completion bit since no write to DT ocurred
         }
     }
-
 }
 
 
