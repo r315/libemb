@@ -15,7 +15,8 @@ extern "C" {
 typedef struct {
 	volatile uint32_t head;
 	volatile uint32_t tail;
-	uint32_t size;
+    volatile uint32_t size;
+	uint32_t capacity;
 	uint8_t	buf[FIFO_SIZE];
 } fifo_t;
 

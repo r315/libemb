@@ -9,7 +9,8 @@ void fifo_init(fifo_t *fifo)
 {
 	fifo->head = 0;
 	fifo->tail = 0;
-	fifo->size = sizeof(fifo->buf);
+    fifo->size = 0;
+	fifo->capacity = sizeof(fifo->buf);
 }
 
 /**
@@ -22,23 +23,21 @@ void fifo_init(fifo_t *fifo)
  * */
 uint32_t fifo_put(fifo_t *fifo, uint8_t c)
 {
-	uint32_t next;
-
 	// check if FIFO has room
-	next = (fifo->head + 1) % fifo->size;
-	if (next == fifo->tail) {
+	if (fifo->size == fifo->capacity) {
 		// full
 		return 0;
 	}
 
 	fifo->buf[fifo->head] = c;
-	fifo->head = next;
+    fifo->size++;
+	fifo->head = (fifo->head + 1) % fifo->capacity;
 
 	return 1;
 }
 
 /**
- *  retrives one character from the given fifo if fifo
+ *  retrieves one character from the given fifo if fifo
  *  is not empty
  *
  * @param fifo:		pointer to target fifo
@@ -47,17 +46,15 @@ uint32_t fifo_put(fifo_t *fifo, uint8_t c)
  * */
 uint32_t fifo_get(fifo_t *fifo, uint8_t *pc)
 {
-	int next;
-
 	// check if FIFO has data
-	if (fifo->head == fifo->tail) {
+	if (fifo->size == 0) {
+        // Empty
 		return 0;
 	}
 
-	next = (fifo->tail + 1) % fifo->size;
-
 	*pc = fifo->buf[fifo->tail];
-	fifo->tail = next;
+    fifo->size--;
+	fifo->tail = (fifo->tail + 1) % fifo->capacity;
 
 	return 1;
 }
@@ -70,7 +67,7 @@ uint32_t fifo_get(fifo_t *fifo, uint8_t *pc)
  * */
 uint32_t fifo_avail(fifo_t *fifo)
 {
-	return (fifo->size + fifo->head - fifo->tail) % fifo->size;
+	return fifo->size;
 }
 
 /**
@@ -81,7 +78,7 @@ uint32_t fifo_avail(fifo_t *fifo)
  * */
 uint32_t fifo_free(fifo_t *fifo)
 {
-	return (fifo->size - 1 - fifo_avail(fifo));
+	return fifo->capacity - fifo->size;
 }
 
 /**
