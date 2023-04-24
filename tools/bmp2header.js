@@ -275,3 +275,37 @@ function start() {
 }
 
 start()
+
+/*
+2x2 8bit image bmp data
+
+    BMP Header
+00: 42 4D 
+02: 4E 00 00 00    4E = 78 = 14 + 40 + (4 * 4) + 8
+06: 00 00 
+08: 00 00 
+0A: 46 00 00 00    46 = 70 = 14 + 40 + (4 * 4)
+
+    DIB
+0E: 28 00 00 00   size (40)
+12: 02 00 00 00   w
+16: 02 00 00 00   h
+1A: 01 00         plane
+1C: 08 00         bpp
+1E: 00 00 00 00   compression
+22: 00 00 00 00   imagesize
+26: C4 0E 00 00   xres
+2A: C4 0E 00 00   yres
+2E: 04 00 00 00   number of colors in palette
+32: 04 00 00 00   Important colors
+
+    Palette         16
+36: 00 00 FF FF     BGRA
+3A: FF 00 00 FF 
+3E: 00 FF 00 FF 
+42: 00 00 00 FF 
+
+    Pixel data
+46: 02 03 00 00 
+4A: 00 01 00 00
+*/
