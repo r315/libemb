@@ -619,10 +619,10 @@ void *memmove(void * dst, const void * src, size_t len) {
     return dst;
 }
 
-void *memset(void * ptr, int value, size_t num) {
-	for (size_t i = 0; i < num; i++) {
-		*((uint8_t*)ptr + i) = (uint8_t)value;
-	}
+void *memset(void * ptr, int value, size_t count) {
+    for (size_t i = 0; i < count; i++) {
+	    *((volatile uint8_t*)ptr + i) = (uint8_t)value;
+    }
 	return ptr;
 }
 
