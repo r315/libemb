@@ -89,7 +89,7 @@ static const FdrPair _frdivTab[] = {
 	{1933, DIVADDVAL_MULVAL(14, 15)},
 };
 
-static void frdivLookup(uint32_t *fdr, uint32_t *dlm, uint32_t *dll, uint32_t baudrate, uint32_t pclk)
+static void frdivLookup(volatile uint32_t *fdr, volatile uint32_t *dlm, volatile uint32_t *dll, uint32_t baudrate, uint32_t pclk)
 {
 	uint32_t DLest, FRest;
 	const FdrPair *pfrdvtab = _frdivTab;

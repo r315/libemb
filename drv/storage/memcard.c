@@ -1,5 +1,6 @@
 #include "board.h"
 #include "diskio.h"
+#include "memcard.h"
 
 /* Card type flags (CardType) */
 #define CT_NONE				0x00
@@ -9,17 +10,24 @@
 #define CT_SDC				(CT_SD1|CT_SD2)	/* SD */
 #define CT_BLOCK			0x08	/* Block addressing */
 
-/* Definitions for MMC/SDC command */
+/* Definitions for MMC/SDC commands (supported on SPI mode) */
 #define CMD0				(0x40+0)	/* GO_IDLE_STATE */
 #define CMD1				(0x40+1)	/* SEND_OP_COND (MMC) */
-#define CMD2				(0x40+2)	/* ALL_SEND_CID */
+#define CMD6				(0x40+6)	/* SWITCH_FUNC */
 #define CMD8				(0x40+8)	/* SEND_IF_COND */
+#define CMD9                (0x40+9)    /* SEND_CSD */
 #define CMD10               (0x40+10)   /* SEND_CID */
+#define CMD12               (0x40+12)	/* STOP_TRANSMISSION */
+#define CMD13               (0x40+13)	/* SEND_STATUS */
 #define CMD16				(0x40+16)	/* SET_BLOCKLEN */
 #define CMD17				(0x40+17)	/* READ_SINGLE_BLOCK */
+#define CMD18				(0x40+18)	/* READ_MULTIPLE_BLOCK */
 #define CMD24				(0x40+24)	/* WRITE_BLOCK */
+#define CMD25				(0x40+25)	/* WRITE_MULTIPLE_BLOCK */
+#define CMD27				(0x40+27)	/* PROGRAM_CSD */
 #define CMD55				(0x40+55)	/* APP_CMD */
 #define CMD58				(0x40+58)	/* READ_OCR */
+#define CMD59				(0x40+59)	/* CRC_ON_OFF */
 #define ACMD41              (0xC0+41)	/* SEND_OP_COND (SDC) */
 
 #define ACMD_FLAG           (1 << 7)
@@ -32,7 +40,7 @@
 #define R1_ERASE_ERROR      (1 << 4)
 #define R1_ADDR_ERROR       (1 << 5)
 #define R1_PARAM_ERROR      (1 << 6)
-#define R1_MSB              (1 << 7)    /* 1 when busy */
+#define R1_MSB              (1 << 7)
 
 #define SD_START_BLOCK_SINGLE       0xFE
 #define SD_START_BLOCK_MULTIPLE     0xFD
@@ -52,6 +60,7 @@
 -------------------------------------------------------------------------*/
 static uint8_t CardType;
 static spibus_t *s_spi = NULL;
+static uint8_t spi_dummy;
 /*-----------------------------------------------------------------------*/
 /* Send a command packet to MMC                                          */
 /*-----------------------------------------------------------------------*/	
@@ -73,7 +82,7 @@ static uint8_t cardCmd (uint8_t cmd, uint32_t arg){
         cmd = cmd & ~ACMD_FLAG;
     }
 
-    BOARD_CARD_DESELECT;
+    BOARD_SDCARD_DESELECT;
 
     /* Form command packet */
     data_packet[0] = cmd;
@@ -90,14 +99,14 @@ static uint8_t cardCmd (uint8_t cmd, uint32_t arg){
         data_packet[5] = 0x01;			/* Dummy CRC + Stop */
     }
 
-    BOARD_CARD_SELECT;
-    SPI_Send(s_spi, 0xFF);
+    BOARD_SDCARD_SELECT;
+    SPI_Xchg(s_spi, &spi_dummy);
     SPI_Transfer(s_spi, data_packet, sizeof(data_packet));
 
     /* Receive a command response */
     /* Wait for a valid response within timeout, responses are not fixed to index*/
     for (uint8_t n = 0; n < sizeof(data_packet); n++){
-        r1 = SPI_Send(s_spi, 0xFF);
+        r1 = SPI_Xchg(s_spi, &spi_dummy);
         if((r1 & R1_MSB) == 0){ /* MSB is cleared, a valid response was received */
             break;
         }
@@ -112,6 +121,32 @@ static uint8_t cardCmd (uint8_t cmd, uint32_t arg){
 ---------------------------------------------------------------------------*/
 
 /**
+ * @brief Retrieve Card Specific Data
+ * 
+ * @param CSDRegister   16-Byte buffer
+ * @return uint8_t      0: Success, otherwise error
+ */
+uint8_t SDGetCSD(uint8_t *CSDRegister){
+    uint8_t res = 1;
+
+    if (cardCmd(CMD9, 0) == 0) {
+        uint8_t retry = 32;
+        do {/* Wait for data packet with timeout */
+            if (SPI_Xchg(s_spi, &spi_dummy) == SD_START_BLOCK_SINGLE) {
+                for (uint8_t n = 0; n < 16; n++){ 
+                   CSDRegister[n] = SPI_Xchg(s_spi, &spi_dummy); 
+                }
+                res = 0;
+                break;
+            }
+        }while(--retry);
+    }
+
+    BOARD_SDCARD_DESELECT;
+    return res;
+}
+
+/**
  * @brief Retrieve Card Identification Register. 
  * 
  * @param CIDRegister   16-Byte buffer
@@ -123,9 +158,9 @@ uint8_t SDGetCID(uint8_t *CIDRegister){
     if (cardCmd(CMD10, 0) == 0) {
         uint8_t retry = 32;
         do {/* Wait for data packet with timeout */
-            if (SPI_Send(s_spi, 0xFF) == SD_START_BLOCK_SINGLE) {
+            if (SPI_Xchg(s_spi, &spi_dummy) == SD_START_BLOCK_SINGLE) {
                 for (uint8_t n = 0; n < 16; n++){ 
-                   CIDRegister[n] = SPI_Send(s_spi, 0xFF); 
+                   CIDRegister[n] = SPI_Xchg(s_spi, &spi_dummy); 
                 }
                 res = 0;
                 break;
@@ -133,22 +168,12 @@ uint8_t SDGetCID(uint8_t *CIDRegister){
         }while(--retry);
     }
 
-    BOARD_CARD_DESELECT;
+    BOARD_SDCARD_DESELECT;
     return res;
 }
 
 /**
- * @brief Retrieve Card Specific Data
- * 
- * @param CSDRegister   16-Byte buffer
- * @return uint8_t      0: Success, otherwise error
- */
-uint8_t SDGetCSD(uint8_t *CSDRegister){
-    return 1;
-}
-
-/**
- * @brief Retrieve Card Specific Data
+ * @brief Retrieve SD Card Configuration Register
  * 
  * @param SCRRegister   8-Byte buffer
  * @return uint8_t      0: Success, otherwise error
@@ -170,7 +195,7 @@ uint8_t SDGetOCR(uint8_t *OCRRegister){
     do{
         if (cardCmd(CMD58, 0) == 0) {
             for (uint8_t n = 0; n < 4; n++){
-                OCRRegister[3 - n] = SPI_Send(s_spi, 0xFF); // store as little-endian
+                OCRRegister[3 - n] = SPI_Xchg(s_spi, &spi_dummy); // store as little-endian
             }
 
             if(*(uint32_t*)OCRRegister & SD_OCR_CPS){
@@ -180,7 +205,7 @@ uint8_t SDGetOCR(uint8_t *OCRRegister){
         }
     }while(--retry);
     
-    BOARD_CARD_DESELECT;
+    BOARD_SDCARD_DESELECT;
     return res;
 }
 /**
@@ -217,20 +242,26 @@ DSTATUS disk_initialize (void){
     
     uint32_t freq = s_spi->freq;
     s_spi->freq = 100000;
+    spi_dummy = 0xFF;     // Dummy variable for single transfers
     SPI_Init(s_spi);
 #endif
-    BOARD_CARD_DESELECT;
+    BOARD_SDCARD_DESELECT;
 
     n = 10;
     do{ /* Dummy clocks for enter SPI mode */
-        SPI_Send(s_spi, 0xFF);
+        SPI_Xchg(s_spi, &spi_dummy);
     }while(--n);
 
     CardType = CT_NONE;
 
     if (cardCmd(CMD0, 0) == R1_IDLE) {          /* Enter Idle state */
-        if (cardCmd(CMD8, 0x1AA) == R1_IDLE) {  /* SDv2 */
-            for (uint8_t n = 0; n < 4; n++){ ocr[n] = SPI_Send(s_spi, 0xFF); }
+        if (cardCmd(CMD8, 0x1AA) == R1_IDLE) {  
+            /* Card is SDv2 */
+            /* Read R7 remaining 4-bytes */
+            for (uint8_t n = 0; n < 4; n++){ 
+                ocr[n] = SPI_Xchg(s_spi, &spi_dummy); 
+            }
+
             if (ocr[2] == 0x01 && ocr[3] == 0xAA) {				/* Check if card supports vdd range of 2.7-3.6V */
             
                 /* Wait for leaving idle state (ACMD41 with HCS bit) */
@@ -261,7 +292,7 @@ DSTATUS disk_initialize (void){
         }
     }
 
-    BOARD_CARD_DESELECT;
+    BOARD_SDCARD_DESELECT;
 
 #if SD_SPI_SLOW == 0
     s_spi->freq = freq;
@@ -285,7 +316,13 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
     DRESULT res;
     WORD bc;
 
-    if (!(CardType & CT_BLOCK)) lba *= 512;		/* Convert to uint8_t address if needed */
+    if(CardType == CT_NONE){
+        return RES_NOTRDY;
+    }
+
+    if (!(CardType & CT_BLOCK)){
+        lba *= 512;		/* Convert to uint8_t address if needed */
+    }
 
     res = RES_ERROR;
 
@@ -297,22 +334,22 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
     if (cardCmd(CMD17, lba) == 0) {		
         bc = 30000;
         do {/* Wait for data packet with timeout */
-            if (SPI_Send(s_spi, 0xFF) == SD_START_BLOCK_SINGLE) {
+            if (SPI_Xchg(s_spi, &spi_dummy) == SD_START_BLOCK_SINGLE) {
                 /* A data packet arrived */
                 bc = 514 - ofs - cnt; /* Read 512 bytes + 2 CRC bytes */
 
                 /* Skip leading uint8_ts */
                 if (ofs) {
-                    do SPI_Send(s_spi, 0xFF); while (--ofs);
+                    do SPI_Xchg(s_spi, &spi_dummy); while (--ofs);
                 }
 
                 /* Receive a part of the sector */
                 do
-                    *buff++ = SPI_Send(s_spi, 0xFF);
+                    *buff++ = SPI_Xchg(s_spi, &spi_dummy);
                 while (--cnt);            
 
                 /* Skip trailing uint8_ts and CRC */
-                do SPI_Send(s_spi, 0xFF); while (--bc);
+                do SPI_Xchg(s_spi, &spi_dummy); while (--bc);
 
                 res = RES_OK;
                 break;
@@ -320,7 +357,7 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
         } while (--bc);
     }
 
-    BOARD_CARD_DESELECT;
+    BOARD_SDCARD_DESELECT;
 
 #if ENABLE_DISK_ACTIVITY_LED
     BOARD_CARD_NOT_ACTIVE;
@@ -346,6 +383,10 @@ DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
     static WORD wc;
 
     res = RES_ERROR;
+
+    if(CardType == CT_NONE){
+        return RES_NOTRDY;
+    }
 
 #if ENABLE_DISK_ACTIVITY_LED
     BOARD_CARD_ACTIVE;
@@ -374,7 +415,7 @@ DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
                 for (bc = 65000; SPI_Send(s_spi, 0xFF) != 0xFF && bc; bc--) ;	/* Wait ready */
                 if (bc) res = RES_OK;
             }
-            BOARD_CARD_DESELECT;
+            BOARD_SDCARD_DESELECT;
         }
     }
 

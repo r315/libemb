@@ -26,12 +26,12 @@ extern "C" {
 		 * \returns   - 1 if a char was received and placed on parameter c,
 		 *              0 no char received and param c is anchanged
 		 * */
-		uint8_t(*getCharNonBlocking)(char *c);
+		int(*getCharNonBlocking)(char *c);
 
 		/**
 		 * Test if a char is available for reading
 		 * */
-		uint8_t(*kbhit)(void);
+		int(*kbhit)(void);
 
 		/**
 		 * User context, for extra parameters
