@@ -11,6 +11,7 @@
 ISR void *vector_table[];
 extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _stack, _estack;
 
+extern void  __libc_init_array();
 WEAK int main(void){}
 
 NORETURN void Reset_Handler(void)
@@ -28,6 +29,8 @@ NORETURN void Reset_Handler(void)
     while (dest < &_ebss)
         *dest++ = 0;
 
+    __libc_init_array();
+    
     main();
 
     while(1){}
