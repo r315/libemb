@@ -31,20 +31,18 @@ void SPI_DMA_IRQHandler(spibus_t *spidev){
         spidev->trf_counter -= 0x10000UL;
         dma_channel->CNDTR = (spidev->trf_counter > 0x10000UL) ? 0xFFFFUL : spidev->trf_counter;
         dma_channel->CCR |= DMA_CCR_EN;
-    }else{
-        // wait for the last byte to be transmitted
-        while(spi->SR & SPI_SR_BSY){
-            if(spi->SR & SPI_SR_OVR){
-                //dummy read for clearing OVR flag
-                spidev->trf_counter = spi->DR;
-            }
+    }else{        
+        if(spi->SR & SPI_SR_OVR){
+            //dummy read for clearing OVR flag
+            spidev->trf_counter = spi->DR;
         }
-        /* Restore 8bit Spi */        
-        spi->CR2 &= ~(SPI_CR2_DS_3);       // 8-bit
+        
         spidev->trf_counter = 0;
+
         if(spidev->eot_cb){
             spidev->eot_cb();
         }
+        
         SPIDEV_CLR_FLAG(spidev, SPI_BUSY | SPI_DMA_NO_MINC);
     }
 }
@@ -147,10 +145,19 @@ void SPI_Init(spibus_t *spidev){
 void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
 
-    while(count--){
-        *((__IO uint8_t *)&spi->DR) = *src++;
-        while((spi->SR & SPI_SR_BSY) != 0);
-    }
+    if(spidev->flags & SPI_16BIT){
+        spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
+        while(count--){
+            *((__IO uint16_t *)&spi->DR) = *(uint16_t*)src++;
+            while((spi->SR & SPI_SR_BSY) != 0);
+        }
+    }else{
+         spi->CR2 &= ~SPI_CR2_DS;        // Invalid forced 8-bit
+        while(count--){
+            *((__IO uint8_t *)&spi->DR) = *src++;
+            while((spi->SR & SPI_SR_BSY) != 0);
+        }
+    } 
 }
 
 /**
@@ -159,16 +166,21 @@ void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
-void SPI_TransferDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
+void SPI_TransferDMA(spibus_t *spidev, uint8_t *src, uint32_t count){
     static uint16_t _data;
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.stream;
 
-    spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
+    if(spidev->flags & SPI_16BIT){
+        spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
+        _data = *(uint16_t*)src;
+    }else{
+        spi->CR2 &= ~SPI_CR2_DS;        // Invalid forced 8-bit
+        _data = *(uint8_t*)src;
+    }
 
     if(spidev->flags & SPI_DMA_NO_MINC){
-        _data = src[0];
-        src = &_data;
+        src = (uint8_t*)&_data;
         dma_channel->CCR &= ~(DMA_CCR_MINC);
     }else{
         dma_channel->CCR |= DMA_CCR_MINC;
@@ -186,12 +198,12 @@ void SPI_TransferDMA(spibus_t *spidev, uint16_t *src, uint32_t count){
  * @brief Wait for end of DMA transfer
  * */
 void SPI_WaitEOT(spibus_t *spidev){    
-    #if 1
+#if 1
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     while(spi->SR & SPI_SR_BSY){
-    #else
+#else
     while(SPIDEV_GET_FLAG(spidev, SPI_BUSY)){
-    #endif
-        //LED_TOGGLE;
+#endif
+    //LED_TOGGLE;
     }
 }
