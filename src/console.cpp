@@ -88,8 +88,8 @@ void Console::process(void) {
 		return;
 	}
 #if defined(CONSOLE_BLOCKING)
-	line_len = 0;
-	line_len = getLine(line, COMMAND_MAX_LEN);	
+	m_line_len = 0;
+	m_line_len = getLine(m_line, CONSOLE_COMMAND_MAX_LEN);	
 #else
 	if (getLineNonBlocking(m_line, &m_line_len, CONSOLE_COMMAND_MAX_LEN)) 
 #endif

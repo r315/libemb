@@ -1,5 +1,7 @@
-#include <pinName.h>
+#include "stm32f103xb.h"
+#include "gpio_stm32f1xx.h"
 
+static const uint32_t ports[] = {GPIOA_BASE, GPIOB_BASE, GPIOC_BASE, GPIOD_BASE, GPIOE_BASE};
 
 /**
  * @brief Configure GPIO pin
@@ -17,7 +19,10 @@
  *                  GPI_PD
  *                  GPI_PU
  * */
-void PIN_Init(pinName_e name, uint8_t mode) {
+void GPIO_Config(pinName_e name, uint8_t mode) {
+    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[GPIO_GET_PORT(name)];
+    uint8_t pin = GPIO_GET_PIN(name);
+    
     
     if(mode == GPI_PD){
         port->BRR = (1 << pin);
@@ -36,13 +41,30 @@ void PIN_Init(pinName_e name, uint8_t mode) {
     }
 }
 
-void PIN_Write(pinName_e name, uint8_t state){
+uint32_t GPIO_Read(uint32_t name){
+    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[GPIO_GET_PORT(name)];
+    uint8_t pin = GPIO_GET_PIN(name);
+
+    return !!(port->IDR & (1 << pin));
 }
 
-void PIN_Toggle(pinName_e name){
+void GPIO_Write(pinName_e name, uint8_t state){
+    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[GPIO_GET_PORT(name)];
+    uint8_t pin = GPIO_GET_PIN(name);
+    port->BSRR = (state != 0)? (1<<pin) : (1<<(pin+16));
 }
 
-void PIN_PORT_Write(pinName_e name, uint32_t value){
+void GPIO_Toggle(pinName_e name){
+    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[GPIO_GET_PORT(name)];
+    uint8_t pin = GPIO_GET_PIN(name);
+    port->ODR = port->IDR ^ (1<<pin);
 }
-uint32_t PIN_Read(pinName_e name){
+
+void GPIO_PORT_Write(pinName_e name, uint32_t value){
+    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[GPIO_GET_PORT(name)];
+    port->ODR = value;
+}
+uint32_t GPIO_PORT_Read(pinName_e name){
+    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[GPIO_GET_PORT(name)];
+    return port->IDR;
 }
