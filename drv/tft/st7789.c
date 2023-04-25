@@ -4,11 +4,11 @@
 
 #define ST_CMD_DELAY 		0x80
 
-static uint16_t _width, _height;
+static uint16_t _width, _height, _offsetx, _offsety;
 static uint8_t scratch[4];
 static spibus_t *spidev;
 
-#if TFT_W == 240
+#if TFT_H == 240
 const uint8_t st7789_240x240[] = {
     8,
     ST7789_SLPOUT, ST_CMD_DELAY, 120,
@@ -100,6 +100,11 @@ static void LCD_EOTHandler(void){
  * \param color :
  */
 static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
+    x1 += _offsetx;
+    x2 += _offsetx;
+    y1 += _offsety;
+    y2 += _offsety;
+
     LCD_Command(ST7789_CASET);
     scratch[0] = x1 >> 8;
     scratch[1] = x1;
@@ -235,6 +240,8 @@ void LCD_Init(void *spi){
 
     _width  = TFT_W;
     _height = TFT_H;
+    _offsetx = 0;
+    _offsety = 0;
 }
 
 /**
@@ -244,24 +251,30 @@ void LCD_SetOrientation(uint8_t m) {
 
     switch (m) {
     case LCD_PORTRAIT:
-        m = (ST7789_MADCTL_MX | ST7789_MADCTL_MY);
+        m = 0;
         _width  = TFT_W;
         _height = TFT_H;
+        _offsetx = 0;
+        _offsety = 0;
         break;
     case LCD_LANDSCAPE:
-        m = (ST7789_MADCTL_MV | ST7789_MADCTL_MY);
+        m = (ST7789_MADCTL_MV | ST7789_MADCTL_MX);
         _width  = TFT_H;
         _height = TFT_W;
         break;
     case LCD_REVERSE_PORTRAIT:
-        m = (ST7789_MADCTL_MY);
+        m = (ST7789_MADCTL_MY | ST7789_MADCTL_MX);
         _width  = TFT_W;
         _height = TFT_H;
+        _offsetx = 0;
+        _offsety = 320 - 240;
         break;
     case LCD_REVERSE_LANDSCAPE:
-        m = (ST7789_MADCTL_MV | ST7789_MADCTL_MX);
+        m = (ST7789_MADCTL_MV | ST7789_MADCTL_MY);
         _width  = TFT_H;
         _height = TFT_W;
+        _offsetx = 320 - 240;
+        _offsety = 0;
         break;
 
     default:
