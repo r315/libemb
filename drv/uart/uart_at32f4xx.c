@@ -95,7 +95,7 @@ void UART_Puts(serialbus_t *huart, const char *str){
     USART_Type *uart = (USART_Type*)huart->ctrl;
 
     while(*str){
-        while(fifo_put(&huart->txfifo, *(uint8_t*)str)){        
+        while(fifo_put(&huart->txfifo, *(uint8_t*)str) == 0){        
             uart->CTRL1 |= USART_CTRL1_TDEIEN;
             while(fifo_free(&huart->txfifo) == 0);
         }
