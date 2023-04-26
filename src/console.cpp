@@ -227,7 +227,7 @@ char Console::getLine(char *dst, uint8_t maxLen)
 		case '\n':
 		case '\r':
 			hasLine = 1;
-			m_out->xputchar(c);
+			m_out->xputchar('\n');
 			break;
 
 		case 0x1b:

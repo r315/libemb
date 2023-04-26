@@ -13,8 +13,8 @@ void dummy_init(void){ }
 char dummy_getchar(void){ return 255; }
 void dummy_putchar(char c){ }
 void dummy_puts(const char *str){ }
-uint8_t dummy_nb(char *c){ return 0; }
-uint8_t dummy_kbhit(void){ return 0;}
+int dummy_nb(char *c){ return 0; }
+int dummy_kbhit(void){ return 0;}
 
 stdout_t dummy_out = {
 	dummy_init,
