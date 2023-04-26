@@ -1,5 +1,7 @@
 #include "board.h"
 #include "spi.h"
+#include "dma.h"
+#include "dma_stm32f1xx.h"
 
 #define PCLK_CLK_DIV2           (0)
 #define PCLK_CLK_DIV4           (1 << 3)
@@ -12,6 +14,8 @@
 #define SPIDEV_SET_FLAG(_D, _F) _D->flags |= _F
 #define SPIDEV_CLR_FLAG(_D, _F) _D->flags &= ~(_F)
 #define SPIDEV_GET_FLAG(_D, _F) !!(_D->flags & _F)
+
+static spibus_t *spi_eot[2];
 
 /**
  * @brief DMA Interrupt handler
@@ -44,6 +48,8 @@ void SPI_DMA_IRQHandler(spibus_t *spidev){
     }
 }
 
+static inline void spi1Eot(void){ SPI_DMA_IRQHandler(spi_eot[0]);}
+static inline void spi2Eot(void){ SPI_DMA_IRQHandler(spi_eot[1]);}
 /**
  * @brief Configures baud rate by dividing Fpckl
  * by 2, 4, 8, 16, 32, 64, 128 or 256.
@@ -83,8 +89,7 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
  * */
 void SPI_Init(spibus_t *spidev){
     SPI_TypeDef *spi;
-    DMA_Channel_TypeDef *dma_channel;
-    uint8_t irq;
+    uint8_t dma_req;
 
     switch(spidev->bus){
         case SPI_BUS0:
@@ -92,9 +97,8 @@ void SPI_Init(spibus_t *spidev){
             __HAL_RCC_SPI1_FORCE_RESET();
             __HAL_RCC_SPI1_RELEASE_RESET();
             spi = SPI1;
-            spidev->dma.per = DMA1;
-            dma_channel = DMA1_Channel3;
-            irq = DMA1_Channel3_IRQn;
+            dma_req = DMA1_REQ_SPI1_TX;
+            spi_eot[0] = spidev;
             break;
 
         case SPI_BUS1:
@@ -102,9 +106,8 @@ void SPI_Init(spibus_t *spidev){
             __HAL_RCC_SPI2_FORCE_RESET();
             __HAL_RCC_SPI2_RELEASE_RESET();
             spi = SPI2;
-            spidev->dma.per = DMA1;
-            dma_channel = DMA1_Channel5;
-            irq = DMA1_Channel5_IRQn;
+            dma_req = DMA1_REQ_SPI2_TX;
+            spi_eot[1] = spidev;
             break;
 
         default : return;
@@ -116,28 +119,24 @@ void SPI_Init(spibus_t *spidev){
     
     SPI_SetFreq(spi, spidev->freq);
 
-    if((spidev->flags & SPI_HW_CS) != 0){
+    if((spidev->flags & SPI_HW_CS) == 0){
+        // In master mode SSOE must be enable for NSS
+        // software control
         spi->CR2 |=  SPI_CR2_SSOE;
     }            
 
     spi->CR1 |= SPI_CR1_SPE;
     
-    spidev->trf_counter = 0;
-
-    dma_channel->CPAR = (uint32_t)&spi->DR;     // Peripheral source
-
-    dma_channel->CCR =
-            DMA_CCR_PL_0 |              // Medium priority
-            DMA_CCR_MSIZE_0 |           // 16bit Dst size
-			DMA_CCR_PSIZE_0 |           // 16bit src size
-            DMA_CCR_MINC |              // Enable memory increment
-            DMA_CCR_DIR |               // Write to peripheral
-			DMA_CCR_TCIE;               // Enable Transfer Complete interrupt
-
-    NVIC_EnableIRQ(irq);
-
+    spidev->dma.dst = (void*)&spi->DR;
+    spidev->dma.dsize = DMA_CCR_PSIZE_16;
+    spidev->dma.src = NULL;
+    spidev->dma.ssize = DMA_CCR_MSIZE_16;
+    spidev->dma.dir = DMA_DIR_M2P;
+    spidev->dma.eot = (spi == SPI1) ? spi1Eot : spi2Eot;
+    
+    DMA_Config(&spidev->dma, dma_req);
+  
     spidev->ctrl = spi;
-    spidev->dma.stream = dma_channel;
     spidev->flags |= SPI_ENABLED;
 }
 
