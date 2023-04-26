@@ -66,16 +66,12 @@
 
 // -----------------------------
 
-#define ST7735_MADCTL_MY  (1<<7)
-#define ST7735_MADCTL_MX  (1<<6)
-#define ST7735_MADCTL_MV  (1<<5)
-#define ST7735_MADCTL_ML  (1<<4)
-#define ST7735_MADCTL_RGB (1<<3)
-#define ST7735_MADCTL_MH  (1<<2)
-
-// Display Memory settings
-// For JD-T1800 GM is 0
-#define ST7753_GM       0 // 0: 132 x 18-bits x 162, 3: 128 x 18-bits x 160
+#define ST7735_MADCTL_MY  (1<<7)    // Row order
+#define ST7735_MADCTL_MX  (1<<6)    // Column order
+#define ST7735_MADCTL_MV  (1<<5)    // Exchange row/col order
+#define ST7735_MADCTL_ML  (1<<4)    // v-refresh order
+#define ST7735_MADCTL_RGB (1<<3)    // RGB-BGR order
+#define ST7735_MADCTL_MH  (1<<2)    // h-refresh order
 
 enum {
     LCD_PORTRAIT = 0,

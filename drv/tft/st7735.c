@@ -3,6 +3,16 @@
 #include "spi.h"
 
 //--------------------------------
+// HW Display Memory settings
+// GM[2:0] = 0: 132 x 18-bits x 162
+// GM[2:0] = 3: 128 x 18-bits x 160
+
+#if (TFT_W == 80) && (TFT_H == 160)
+#define TFT_OFFSET          1
+#define TFT_OFFSET_SOURCE	((132 - TFT_W) / 2) // Visible area is centered on controller memory
+#define TFT_OFFSET_GATE		((162 - TFT_H) / 2)
+#define TFT_BGR_FILTER
+#else
 // Offset may be related with GM configuration
 #ifndef TFT_OFFSET_SOURCE
 #define TFT_OFFSET_SOURCE	0
@@ -11,10 +21,12 @@
 #ifndef TFT_OFFSET_GATE
 #define TFT_OFFSET_GATE		0
 #endif
+#endif
+
 
 #ifdef TFT_BGR_FILTER
 // Applys for TFT's with BGR filter or IPS
-#define DEFAULT_MADCTL		0x08
+#define DEFAULT_MADCTL		ST7735_MADCTL_RGB
 #else
 #define DEFAULT_MADCTL		0x00
 #endif
@@ -23,12 +35,13 @@
 #define ST_CMD_DELAY		0x80
 
 static uint16_t _width, _height;
+#if TFT_OFFSET
 static uint8_t start_x, start_y;
+#endif
 static uint8_t scratch[4];
 static spibus_t *spidev;
 
 static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
-
 
 #if (TFT_W == 128) && (TFT_H == 160)
 #define st7735_init_seq st7735_128x160
@@ -91,7 +104,7 @@ static const uint8_t st7735_128x160[] = {
  * Looks good on small 80x160 IPS display
  */
 static const uint8_t st7735_80x160 [] = {
-	17,                       //  18 commands in list:
+	18,                       //  18 commands in list:
 	//ST7735_SWRESET,   ST_CMD_DELAY,  //  1: Software reset, 0 args, w/delay
 	//120,                      //     120ms delay
 	ST7735_SLPOUT ,   ST_CMD_DELAY,  //  2: Out of sleep mode, 0 args, w/delay
@@ -134,6 +147,8 @@ static const uint8_t st7735_80x160 [] = {
 	0x00, 0x01, 0x04, 0x13,
 	ST7735_COLMOD , 1      ,  // 15: set color mode, 1 arg, no delay:
 	0x05,                     //     16-bit/pixel
+    ST7735_MADCTL, 1      ,
+	DEFAULT_MADCTL,
 	ST7735_NORON  ,    ST_CMD_DELAY, // 16: Normal display on, no args, w/delay
 	10,                       //     10 ms delay
 #ifdef TFT_BGR_FILTER
@@ -226,7 +241,7 @@ static void LCD_EOTHandler(void){
  * \param y2 :  End y
  * \param color :
  */
-static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
+static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){    
 	LCD_Command(ST7735_CASET);
 	scratch[0] = x1 >> 8;
 	scratch[1] = x1;
@@ -253,9 +268,10 @@ static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
  * \param h : Height
  */
 void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
-	x += start_x;
+    #if TFT_OFFSET
+    x += start_x;
 	y += start_y;
-
+    #endif
 	LCD_CasRasSet(x, y, x + (w - 1), y + (h - 1));
 }
 
@@ -319,9 +335,10 @@ void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *dat
  *
  */
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
-	x += start_x;
+    #if TFT_OFFSET
+    x += start_x;
 	y += start_y;
-	
+    #endif
 	SPI_WaitEOT(spidev);
 
 	LCD_CS0;
@@ -358,9 +375,11 @@ void LCD_Init(void *spi){
 	LCD_InitSequence(st7735_init_seq);
 	LCD_CS1;
 
+    #if TFT_OFFSET
 	// Set offset
 	start_x = TFT_OFFSET_SOURCE;
 	start_y = TFT_OFFSET_GATE;
+    #endif
 	_width  = TFT_W;
 	_height = TFT_H;
 }
@@ -372,29 +391,48 @@ void LCD_SetOrientation(uint8_t m) {
 
 	switch (m) {
     case LCD_PORTRAIT:
-        m = (ST7735_MADCTL_MX | ST7735_MADCTL_MY);
+        m = DEFAULT_MADCTL;
+        #if TFT_OFFSET
+	    start_x = TFT_OFFSET_SOURCE;
+	    start_y = TFT_OFFSET_GATE;
+        #endif
         _width  = TFT_W;
         _height = TFT_H;
         break;
+        
     case LCD_LANDSCAPE:
-        m = (ST7735_MADCTL_MV | ST7735_MADCTL_MY);
+        m = (DEFAULT_MADCTL | ST7735_MADCTL_MV | ST7735_MADCTL_MX);
+        #if TFT_OFFSET
+        start_x = TFT_OFFSET_GATE;
+        start_y = TFT_OFFSET_SOURCE;
+        #endif
         _width  = TFT_H;
         _height = TFT_W;
         break;
+
     case LCD_REVERSE_PORTRAIT:
-        m = (ST7735_MADCTL_MY);
+        m = (DEFAULT_MADCTL | ST7735_MADCTL_MX | ST7735_MADCTL_MY);
+        #if TFT_OFFSET
+        start_x = TFT_OFFSET_SOURCE;
+        start_y = TFT_OFFSET_GATE;
+        #endif
         _width  = TFT_W;
-        _height = TFT_H;
+        _height = TFT_H;        
         break;
+
     case LCD_REVERSE_LANDSCAPE:
-        m = (ST7735_MADCTL_MV | ST7735_MADCTL_MX);
+        m = (DEFAULT_MADCTL | ST7735_MADCTL_MV | ST7735_MADCTL_MY);
+        #if TFT_OFFSET
+	    start_x = TFT_OFFSET_GATE;
+	    start_y = TFT_OFFSET_SOURCE;
+        #endif
         _width  = TFT_H;
         _height = TFT_W;
         break;
 
     default:
         return;
-    }
+    }    
 
 	SPI_WaitEOT(spidev);
 
