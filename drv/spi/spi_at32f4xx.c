@@ -227,7 +227,7 @@ void SPI_TransferDMA(spibus_t *spidev, uint8_t *src, uint32_t count){
     }
 
     if(spidev->flags & SPI_DMA_NO_MINC){
-        sdata = *(uint8_t*)src;
+        sdata = *(uint16_t*)src;
         src = (uint8_t*)&sdata;
         dma->CHCTRL &= ~(DMA_CHCTRL1_MINC);
     }else{
