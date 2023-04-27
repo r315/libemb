@@ -1,6 +1,6 @@
 
-#include <strfunc.h>
 #include <stdarg.h>
+#include "strfunc.h"
 
 /**
  * @brief Find next character in a string
@@ -114,7 +114,7 @@ char *nextWord(char *line) {
  * \return 1 if success and increments line pointer, 0 on failure no parameters are affected
  * */
 uint8_t nextHex(char **line, uint32_t *value) {
-	if (hatoi(*line, value)) {
+	if (ha2i(*line, value)) {
 		*line = nextWord(*line);
 		return 1;
 	}
@@ -129,7 +129,7 @@ uint8_t nextHex(char **line, uint32_t *value) {
  * \return 1 - if success and move to next substring, 0 - on failure no parameters are affected
  * */
 uint8_t nextInt(char **line, int32_t *value) {
-	if (yatoi(*line, value)) {
+	if (ia2i(*line, value)) {
 		*line = nextWord(*line);
 		return 1;
 	}
@@ -144,7 +144,7 @@ uint8_t nextInt(char **line, int32_t *value) {
  * \return 1:if success and move to next substring, 0:on failure no parameters are affected
  * */
 uint8_t nextDouble(char **line, double *value) {
-	if (fatoi(*line, value)) {
+	if (da2d(*line, value)) {
 		*line = nextWord(*line);
 		return 1;
 	}
@@ -265,13 +265,13 @@ void xstrcpy(char *dst, const char *src, uint8_t maxLen) {
 }
 
 /**
- * Try to parse a string representing a integer
+ * Try to parse a string representing a integer to integer value
  *
  * \param  str - pointer to input string
  * \param  value - pointer to output value
  * \return number of converted digits
  * */
-uint8_t yatoi(char *str, int32_t *value) {
+uint8_t ia2i(char *str, int32_t *value) {
 	int val = 0;
 	char c = *str;
 	uint8_t s = 0;
@@ -305,12 +305,13 @@ uint8_t yatoi(char *str, int32_t *value) {
 }
 
 /**
- * Try to parse a string representing a hex number to integer
+ * Try to parse a string representing a hex number to integer value
+ * 
  * \param  str	pointer to input string
  * \param  value  pointer to output value
  * \return 1 if success, 0 if failed
  * */
-uint8_t hatoi(char *str, uint32_t *value) {
+uint8_t ha2i(char *str, uint32_t *value) {
 	uint32_t val = 0;
 	char c = *str;
 
@@ -343,13 +344,13 @@ uint8_t hatoi(char *str, uint32_t *value) {
 }
 
 /**
- * Try to parse a string representing a double
+ * Try to parse a string representing a double to double value
  *
  * \param  str - pointer to input string
  * \param  value - pointer to output value
  * \return 1:success, 0:failed
  * */
-uint8_t fatoi(char *str, double *value) {
+uint8_t da2d(char *str, double *value) {
 	uint8_t s = 0;
 	double val = 0;
 	char c = *str;
@@ -386,6 +387,107 @@ uint8_t fatoi(char *str, double *value) {
 	*value = (s & (1 << 7)) ? -val : val;
 
 	return s & 0x3F;
+}
+
+
+/**
+ * @brief Convert 32-bit integer number to string
+ *
+ * \param dst 	:	pointer to destination buffer
+ * \param val	:	value to be converted
+ * \param radix	:	base of convertion [-10, 10, 16]
+ * \param ndig 	:	minimum number of digits, ndig > 0 pad with ' ', ndig < 0 pad with '0'
+ * \return 		:	number of digits written to dst
+ * */
+
+uint32_t i2ia(char *dst, int32_t val, int radix, int ndig){
+	char buf[XPITOA_BUF_SIZE];
+	uint8_t i, c, r, sgn = 0, pad = ' ';
+	uint32_t v;
+
+	if (radix < 0) {
+		radix = -radix;
+		if (val < 0) {
+			val = -val;
+			sgn = '-';
+		}
+	}
+
+	v = val;
+	r = radix;
+
+	if (ndig < 0) {
+		ndig = -ndig;
+		pad = '0';
+	}
+
+	if (ndig > XPITOA_BUF_SIZE) {
+		ndig = XPITOA_BUF_SIZE;
+	}
+
+	ndig = XPITOA_BUF_SIZE - 1 - ndig;
+	i = XPITOA_BUF_SIZE;
+	buf[--i] = '\0';
+
+	do {
+		c = (uint8_t)(v % r);
+		if (c >= 10) c += 7;
+		c += '0';
+		buf[--i] = c;
+		v /= r;
+	} while (v);
+
+	if (sgn) buf[--i] = sgn;
+
+	while (i > ndig) {
+		buf[--i] = pad;
+	}
+
+	ndig = XPITOA_BUF_SIZE - 1 - i;
+
+	while(buf[i]){
+		*dst++ = buf[i++];
+	}
+
+	*dst = '\0';
+
+	return ndig;
+}
+
+/**
+ * @brief Convert double number to string
+ *
+ * https://en.wikipedia.org/wiki/Single-precision_floating-point_format
+ * https://wirejungle.wordpress.com/2011/08/06/displaying-floating-point-numbers
+ *
+ * \param dst 		: pointer to destination buffer
+ * \param f			: value to be converted
+ * \param places	: number of decimal places
+ * \return 			: number of digits written to dst
+ * */
+uint32_t d2da(char *dst, double f, uint8_t places){
+	int32_t int_part, frac_part;
+	uint8_t prec;
+	char *s = dst;
+
+	int_part = (long)(f);
+
+	if (places > FLOAT_MAX_PRECISION)
+		places = FLOAT_MAX_PRECISION;
+
+	frac_part = 0;
+	prec = 0;
+
+	while ((prec++) < places) {
+		f *= 10;
+		frac_part = (frac_part * 10) + (long)f - ((long)f / 10) * 10;  //((long)f%10);			
+	}
+
+	dst += i2ia(dst, int_part, -10, 0);
+	*dst++ = '.';
+	dst += i2ia(dst, abs(frac_part), 10, -places);
+
+	return (dst - s);
 }
 
 /**
@@ -453,7 +555,7 @@ uint32_t strformater(char *dst, const char* fmt, va_list arp){
 		if (d == 'f') {
 			if (!f)
 				w = FLOAT_MAX_PRECISION;
-			dst += xpftoa(dst, va_arg(arp, double), w);
+			dst += d2da(dst, va_arg(arp, double), w); // Note: float is promoted to double for varargs
 			continue;
 		}
 		
@@ -464,13 +566,13 @@ uint32_t strformater(char *dst, const char* fmt, va_list arp){
 		if (s) w = -w;
 
 		if (l) {
-			dst += xpitoa(dst, (long)va_arg(arp, long), r, w);
+			dst += i2ia(dst, (long)va_arg(arp, long), r, w);
 		}
 		else {
 			if (r > 0)
-				dst += xpitoa(dst, (unsigned long)va_arg(arp, int), r, w);
+				dst += i2ia(dst, (unsigned long)va_arg(arp, int), r, w);
 			else
-				dst += xpitoa(dst, (long)va_arg(arp, int), r, w);
+				dst += i2ia(dst, (long)va_arg(arp, int), r, w);
 		}
 	}
 
@@ -486,107 +588,6 @@ void xsprintf(char *out, const char* fmt, ...){
 	va_start(arp, fmt);
 	strformater(out, fmt, arp);
 	va_end(arp);
-}
-
-
-/**
- * @brief Convert 32-bit integer number to string string
- *
- * \param dst 	:	pointer to destination buffer
- * \param val	:	value to be converted
- * \param radix	:	base of convertion [-10,10,16]
- * \param ndig 	:	minimum number of digits, ndig > 0 pad with ' ', ndig < 0 pad with '0'
- * \return 		:	number of digits written to dst
- * */
-
-uint32_t xpitoa(char *dst, int32_t val, int radix, int ndig){
-	char buf[XPITOA_BUF_SIZE];
-	uint8_t i, c, r, sgn = 0, pad = ' ';
-	uint32_t v;
-
-	if (radix < 0) {
-		radix = -radix;
-		if (val < 0) {
-			val = -val;
-			sgn = '-';
-		}
-	}
-
-	v = val;
-	r = radix;
-
-	if (ndig < 0) {
-		ndig = -ndig;
-		pad = '0';
-	}
-
-	if (ndig > XPITOA_BUF_SIZE) {
-		ndig = XPITOA_BUF_SIZE;
-	}
-
-	ndig = XPITOA_BUF_SIZE - 1 - ndig;
-	i = XPITOA_BUF_SIZE;
-	buf[--i] = '\0';
-
-	do {
-		c = (uint8_t)(v % r);
-		if (c >= 10) c += 7;
-		c += '0';
-		buf[--i] = c;
-		v /= r;
-	} while (v);
-
-	if (sgn) buf[--i] = sgn;
-
-	while (i > ndig) {
-		buf[--i] = pad;
-	}
-
-	ndig = XPITOA_BUF_SIZE - 1 - i;
-
-	while(buf[i]){
-		*dst++ = buf[i++];
-	}
-
-	*dst = '\0';
-
-	return ndig;
-}
-
-/**
- * @brief Convert float to string
- *
- * https://en.wikipedia.org/wiki/Single-precision_floating-point_format
- * https://wirejungle.wordpress.com/2011/08/06/displaying-floating-point-numbers
- *
- * \param dst 		: pointer to destination buffer
- * \param f			: value to be converted
- * \param places	: number of decimal places
- * \return 			: number of digits written to dst
- * */
-uint32_t xpftoa(char *dst, float f, uint8_t places){
-	int32_t int_part, frac_part;
-	uint8_t prec;
-	char *s = dst;
-
-	int_part = (long)(f);
-
-	if (places > FLOAT_MAX_PRECISION)
-		places = FLOAT_MAX_PRECISION;
-
-	frac_part = 0;
-	prec = 0;
-
-	while ((prec++) < places) {
-		f *= 10;
-		frac_part = (frac_part * 10) + (long)f - ((long)f / 10) * 10;  //((long)f%10);			
-	}
-
-	dst += xpitoa(dst, int_part, -10, 0);
-	*dst++ = '.';
-	dst += xpitoa(dst, abs(frac_part), 10, -places);
-
-	return (dst - s);
 }
 
 //-----------------------------------------------------------
