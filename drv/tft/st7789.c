@@ -3,6 +3,7 @@
 #include "spi.h"
 
 #define ST_CMD_DELAY 		0x80
+#define DEFAULT_MADCTL      ST7789_MADCTL_RGB
 
 static uint16_t _width, _height, _offsetx, _offsety;
 static uint8_t scratch[4];
@@ -13,7 +14,7 @@ const uint8_t st7789_240x240[] = {
     8,
     ST7789_SLPOUT, ST_CMD_DELAY, 120,
     ST7789_COLMOD, 1, COLOR_MODE_65K | COLOR_MODE_16BIT,
-    ST7789_MADCTL, 1, ST7789_MADCTL_RGB,
+    ST7789_MADCTL, 1, DEFAULT_MADCTL,
     ST7789_CASET, 4, 0,0,0, TFT_W,
     ST7789_RASET, 4, 0,0,0, TFT_H,
     ST7789_INVON, ST_CMD_DELAY, 10,      // Inversion ON
@@ -237,6 +238,8 @@ void LCD_Init(void *spi){
     LCD_CS0;
     LCD_InitSequence(st7789_240x240);
     LCD_CS1;
+
+    LCD_Scroll(0);
 
     _width  = TFT_W;
     _height = TFT_H;
