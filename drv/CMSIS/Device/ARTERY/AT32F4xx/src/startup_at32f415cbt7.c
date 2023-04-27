@@ -23,10 +23,10 @@ NORETURN void Reset_Handler(void)
         *dest = *src;
     }
 
-    /* Clear .bss */
+    /* Clear ram remaining ram to stack top */
     dest = &_sbss;
 
-    while (dest < &_ebss)
+    while (dest < &_estack)
         *dest++ = 0;
 
     __libc_init_array();
