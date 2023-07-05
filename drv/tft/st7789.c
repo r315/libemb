@@ -9,7 +9,7 @@ static uint16_t _width, _height, _offsetx, _offsety;
 static uint8_t scratch[4];
 static spibus_t *spidev;
 
-#if TFT_H == 240
+#if (TFT_W == 240) && (TFT_H== 240)
 const uint8_t st7789_240x240[] = {
     8,
     ST7789_SLPOUT, ST_CMD_DELAY, 120,
@@ -21,6 +21,8 @@ const uint8_t st7789_240x240[] = {
     ST7789_NORON, ST_CMD_DELAY, 10,      // Normal display on, no args, w/delay
     ST7789_DISPON, ST_CMD_DELAY, 100,    // Main screen turn on, no args, w/delay
 };
+#else
+#error "missing init sequence"
 #endif
 
 /**
@@ -254,26 +256,26 @@ void LCD_SetOrientation(uint8_t m) {
 
     switch (m) {
     case LCD_PORTRAIT:
-        m = 0;
+        m = DEFAULT_MADCTL;
         _width  = TFT_W;
         _height = TFT_H;
         _offsetx = 0;
         _offsety = 0;
         break;
     case LCD_LANDSCAPE:
-        m = (ST7789_MADCTL_MV | ST7789_MADCTL_MX);
+        m = DEFAULT_MADCTL | (ST7789_MADCTL_MV | ST7789_MADCTL_MX);
         _width  = TFT_H;
         _height = TFT_W;
         break;
     case LCD_REVERSE_PORTRAIT:
-        m = (ST7789_MADCTL_MY | ST7789_MADCTL_MX);
+        m = DEFAULT_MADCTL | (ST7789_MADCTL_MY | ST7789_MADCTL_MX);
         _width  = TFT_W;
         _height = TFT_H;
         _offsetx = 0;
         _offsety = 320 - 240;
         break;
     case LCD_REVERSE_LANDSCAPE:
-        m = (ST7789_MADCTL_MV | ST7789_MADCTL_MY);
+        m = DEFAULT_MADCTL | (ST7789_MADCTL_MV | ST7789_MADCTL_MY);
         _width  = TFT_H;
         _height = TFT_W;
         _offsetx = 320 - 240;
