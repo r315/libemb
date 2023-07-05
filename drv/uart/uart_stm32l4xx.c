@@ -114,18 +114,22 @@ void UART_IRQHandler(void *ptr){
 	uint32_t errorflags = (isrflags & (uint32_t)(USART_ISR_PE |
 			USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE | USART_ISR_RTOF));
 
-	if (errorflags == 0U){
-		if (((isrflags & USART_ISR_RXNE) != 0U)	&& ((cr1its & USART_CR1_RXNEIE) != 0U))	{
-			fifo_put(&serialbus->rxfifo, (uint8_t)READ_REG(usart->RDR));
-		}
+	if (errorflags != 0U){
+        usart->ICR = errorflags;
+        return;
+    }
 
-		if (((isrflags & USART_ISR_TXE) != 0U)	&& ((cr1its & USART_CR1_TXEIE) != 0U)){
-			if(fifo_get(&serialbus->txfifo, (uint8_t*)&usart->TDR) == 0U){
-				/* No data transmitted, disable TXE interrupt */
-				CLEAR_BIT(usart->CR1, USART_CR1_TXEIE);
-			}
-		}
-	}
+    if (((isrflags & USART_ISR_RXNE) != 0U)	&& ((cr1its & USART_CR1_RXNEIE) != 0U))	{
+        fifo_put(&serialbus->rxfifo, (uint8_t)READ_REG(usart->RDR));
+    }
+
+    if (((isrflags & USART_ISR_TXE) != 0U)	&& ((cr1its & USART_CR1_TXEIE) != 0U)){
+        if(fifo_get(&serialbus->txfifo, (uint8_t*)&usart->TDR) == 0U){
+            /* No data transmitted, disable TXE interrupt */
+            CLEAR_BIT(usart->CR1, USART_CR1_TXEIE);
+        }
+    }
+	
 }
 
 
