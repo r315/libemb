@@ -57,9 +57,9 @@ static inline void spi2Eot(void){ SPI_DMA_IRQHandler(spi_eot[1]);}
  * spi peripheral must be enabled afterwards 
  * 
  * */
-static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
+static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t pclk, uint32_t freq){
 
-    uint32_t div = (SystemCoreClock/1000)/freq;
+    uint32_t div = (pclk/1000)/freq;
     uint32_t br = 8;
 
     if(div > 256){
@@ -70,12 +70,12 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
         div = 2;
     }
 
-    while(br){
-        if((div & (1 << br)) != 0){
+    do{
+        if(div >= (2 << br)){
             break;
         }
-        br--;
-    }    
+        br--;        
+    }while(br);
 
     spi->CR1 &= ~(SPI_CR1_SPE | PCLK_CLK_DIV256);
     spi->CR1 |= (br << SPI_CR1_BR_Pos);
@@ -90,12 +90,14 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
 void SPI_Init(spibus_t *spidev){
     SPI_TypeDef *spi;
     uint8_t dma_req;
+    uint32_t pclk;
 
     switch(spidev->bus){
         case SPI_BUS0:
             __HAL_RCC_SPI1_CLK_ENABLE();
             __HAL_RCC_SPI1_FORCE_RESET();
             __HAL_RCC_SPI1_RELEASE_RESET();
+            pclk = HAL_RCC_GetPCLK2Freq();
             spi = SPI1;
             dma_req = DMA1_REQ_SPI1_TX;
             spi_eot[0] = spidev;
@@ -105,6 +107,7 @@ void SPI_Init(spibus_t *spidev){
             __HAL_RCC_SPI2_CLK_ENABLE();
             __HAL_RCC_SPI2_FORCE_RESET();
             __HAL_RCC_SPI2_RELEASE_RESET();
+            pclk = HAL_RCC_GetPCLK1Freq();
             spi = SPI2;
             dma_req = DMA1_REQ_SPI2_TX;
             spi_eot[1] = spidev;
@@ -117,7 +120,7 @@ void SPI_Init(spibus_t *spidev){
 
     spi->CR1 = SPI_CR1_MSTR;
     
-    SPI_SetFreq(spi, spidev->freq);
+    SPI_SetFreq(spi, pclk, spidev->freq);
 
     if((spidev->flags & SPI_HW_CS) == 0){
         // In master mode SSOE must be enable for NSS
