@@ -102,7 +102,7 @@ void UART_Puts(serialbus_t *huart, const char *str){
         str++;
     }	
     
-    UART_PutChar('\n');
+    UART_PutChar(huart, '\n');
     //uart->CTRL1 |= USART_CTRL1_TDEIEN;
 }
 

@@ -122,7 +122,8 @@ void UART_Puts(serialbus_t *huart, const char* str){
         fifo_put(&huart->txfifo, *(uint8_t*)str++);
     }
     
-    usart->CR1 |= USART_CR1_TXEIE;
+    UART_Puts(huart, '\n');
+    //usart->CR1 |= USART_CR1_TXEIE;
 }  
 
 char UART_GetChar(serialbus_t *huart){

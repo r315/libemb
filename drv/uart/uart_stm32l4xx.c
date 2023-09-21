@@ -57,7 +57,8 @@ void UART_Puts(serialbus_t *huart, const char *str){
 		}
 	}	
 	
-	SET_BIT(uart->CR1, USART_CR1_TXEIE);
+	UART_Puts(huart, '\n');
+	//SET_BIT(uart->CR1, USART_CR1_TXEIE);
 }
 
 uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c){

@@ -235,8 +235,9 @@ void UART_Puts(serialbus_t *huart, const char *str)
 		}
 	}
 	
-	while(!(uart->LSR & UART_LSR_TEMT));
-	fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
+	UART_Puts(huart, '\n');
+	//while(!(uart->LSR & UART_LSR_TEMT));
+	//fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
 }
 
 uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c)
