@@ -224,20 +224,23 @@ void UART_PutChar(serialbus_t *huart, char c)
 	fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
 }
 
-void UART_Puts(serialbus_t *huart, const char *str)
+int UART_Puts(serialbus_t *huart, const char *str)
 {
-	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
+    int len = 0;
 
-	while (*str)
-	{
+	//LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
+
+	while (*str){
 		if(fifo_put(&huart->txfifo, (uint8_t)*str++) == 0){
 			break;
 		}
+        len++;
 	}
 	
-	UART_Puts(huart, '\n');
+	UART_PutChar(huart, '\n');
 	//while(!(uart->LSR & UART_LSR_TEMT));
 	//fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
+    return len + 1;
 }
 
 uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c)

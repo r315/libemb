@@ -91,7 +91,8 @@ void UART_PutChar(serialbus_t *huart, char c){
     uart->CTRL1 |= USART_CTRL1_TDEIEN;
 }
 
-void UART_Puts(serialbus_t *huart, const char *str){
+int UART_Puts(serialbus_t *huart, const char *str){
+    int len = 0;
     USART_Type *uart = (USART_Type*)huart->ctrl;
 
     while(*str){
@@ -100,10 +101,11 @@ void UART_Puts(serialbus_t *huart, const char *str){
             while(fifo_free(&huart->txfifo) == 0);
         }
         str++;
+        len++;
     }	
     
     UART_PutChar(huart, '\n');
-    //uart->CTRL1 |= USART_CTRL1_TDEIEN;
+    return len + 1;
 }
 
 uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len){

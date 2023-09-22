@@ -79,12 +79,14 @@ extern "C" {
 		void registerCommandList(ConsoleCommand **list);
 		char parseCommand(char *line);
 		char executeCommand(void *ptr);
-		int putChar(int c);
-		int putString(const char* str);
+
 		int getChar(void);
 		uint8_t getCharNonBlocking(char *c);
 		char *getString(char* str);
-		void print(const char* str, ...);
+		int print(const char* str);
+        int println(const char* str);
+		int printf(const char* str, ...);
+        int printchar(int c);
 		uint8_t kbhit(void);
 
 		uint8_t getCmdListSize(void) { return m_cmdListSize; }

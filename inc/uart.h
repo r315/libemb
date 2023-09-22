@@ -29,7 +29,7 @@ typedef struct serialbus {
 
 void UART_Init(serialbus_t *huart);
 void UART_PutChar(serialbus_t *huart, char c);
-void UART_Puts(serialbus_t *huart, const char *str);
+int UART_Puts(serialbus_t *huart, const char *str);
 char UART_GetChar(serialbus_t *huart);
 uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c);
 uint8_t UART_Kbhit(serialbus_t *huart);

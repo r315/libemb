@@ -29,7 +29,7 @@ void Console::init(StdOut *sp, const char *prompt) {
 void Console::addCommand(ConsoleCommand *cmd) {
 	if (cmd == NULL || m_cmdListSize == CONSOLE_MAX_COMMANDS)
 	{
-		putString("Invalid command or command list full!");
+		print("Invalid command or command list full!\n");
 		return;
 	}
 
@@ -71,11 +71,11 @@ char Console::parseCommand(char *line) {
 	memset(line, '\0', CONSOLE_COMMAND_MAX_LEN);
 
 	if (res == CMD_NOT_FOUND) {
-		putString("Command not found\r");
+		print("Command not found\n");
 	}else if (res == CMD_BAD_PARAM) {
-		putString("Bad parameter ");
+		print("Bad parameter\n");
 	}else if(res == CMD_OK_LF){
-		putChar('\n');
+		printchar('\n');
 	}
 
 	return res;
@@ -84,7 +84,7 @@ char Console::parseCommand(char *line) {
 void Console::process(void) {
 	if(m_active == NO){
 		m_active = YES;
-		m_out->xputs(m_prompt);
+		print(m_prompt);
 		return;
 	}
 #if defined(CONSOLE_BLOCKING)
@@ -96,13 +96,13 @@ void Console::process(void) {
 	{
 		historyAdd(m_line);
 		if(parseCommand(m_line) != CMD_OK_NO_PRT){
-			m_out->xputs(m_prompt);
+			print(m_prompt);
 		}
 	}
 }
 
 void Console::cls(void){
-	m_out->xputs("\e[2J\r");	
+	print("\e[2J\r");	
 }
 
 /**
@@ -112,13 +112,23 @@ void Console::setOutput(StdOut *sp){
 }
 
 /**
- * libc compatible functions *
+ * 
  * */
-int Console::putString(const char* str)
+int Console::print(const char* str)
 {
-	m_out->xputs(str);
-	m_out->xputchar('\n');
-	return 1;
+    int len = 0;
+
+    while(*str){
+	    m_out->xputchar(*str++);
+        len++;
+    }
+	
+    return len;
+}
+
+int Console::println(const char* str)
+{
+    return m_out->xputs(str);
 }
 
 char *Console::getString(char* str)
@@ -138,7 +148,7 @@ char *Console::getString(char* str)
 	return str;
 }
 
-int Console::putChar(int c) {
+int Console::printchar(int c) {
 	m_out->xputchar(c);
 	return (int)c;
 }
@@ -175,7 +185,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 		}
 		else if (c == '\b') {
 			if (len > 0) {
-				m_out->xputs("\b \b");
+				print("\b \b");
 				(*cur_len)--;
 			}
 		}
@@ -264,12 +274,12 @@ char Console::getLine(char *dst, uint8_t maxLen)
 	return len;
 }
 
-void Console::print(const char* fmt, ...){
+int Console::printf(const char* fmt, ...){
 	va_list arp;
 	va_start(arp, fmt);
 	strformater(m_buf, fmt, arp);
 	va_end(arp);
-	m_out->xputs(m_buf);
+	return print(m_buf);
 }
 
 uint8_t Console::kbhit(void) {
@@ -283,7 +293,7 @@ char *Console::historyGet(void) {
 void Console::historyDump(void) {
 	for (uint8_t i = 0; i < CONSOLE_HISTORY_SIZE; i++)
 	{
-		print("\n %u %s", i, m_history[i]);
+		printf("\n %u %s", i, m_history[i]);
 	}
 	m_out->xputchar('\n');
 }
@@ -344,12 +354,12 @@ void Console::historyClear(void) {
 
 uint8_t Console::changeLine(char *old_line, char *new_line, uint8_t old_line_len) {
 	uint8_t new_line_len;
-	while (old_line_len--) {
-		m_out->xputs("\b \b");
-	}
 
-	m_out->xputs(new_line);
-	new_line_len = strlen(new_line);
+	while (old_line_len--) {
+		print("\b \b");
+	}
+	
+	new_line_len = print(new_line);
 
 	memcpy(old_line, new_line, new_line_len);
 

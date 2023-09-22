@@ -10,13 +10,13 @@ extern "C" {
 	typedef struct _StdOut {
 
 
-		void(*init)(void);
+		void (*init)(void);
 		/**
 		 * C library stdio functions
 		 * */
-		char(*xgetchar)(void);
-		void(*xputchar)(char c);
-		void(*xputs)(const char* str);
+		char (*xgetchar)(void);
+		void (*xputchar)(char c);
+		int (*xputs)(const char* str);
 
 		/**
 		 * Checks if any char was received and return it on parameter c,
@@ -26,12 +26,12 @@ extern "C" {
 		 * \returns   - 1 if a char was received and placed on parameter c,
 		 *              0 no char received and param c is anchanged
 		 * */
-		int(*getCharNonBlocking)(char *c);
+		int (*getCharNonBlocking)(char *c);
 
 		/**
 		 * Test if a char is available for reading
 		 * */
-		int(*kbhit)(void);
+		int (*kbhit)(void);
 
 		/**
 		 * User context, for extra parameters

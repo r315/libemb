@@ -111,19 +111,31 @@ void UART_Init(serialbus_t *serialbus){
 void UART_PutChar(serialbus_t *huart, char c){
     USART_TypeDef *usart = (USART_TypeDef*)huart->ctrl;
 
-    if(fifo_put(&huart->txfifo, c))
+    if(fifo_free(&huart->txfifo) == 0){
+        usart->CR1 |= USART_CR1_TXEIE;
+        while(fifo_free(&huart->txfifo) == 0);
+    }
+
+    fifo_put(&huart->txfifo, (uint8_t)c);
     usart->CR1 |= USART_CR1_TXEIE;
 }
 
-void UART_Puts(serialbus_t *huart, const char* str){
+int UART_Puts(serialbus_t *huart, const char* str){
+    int len = 0;
     USART_TypeDef *usart = (USART_TypeDef*)huart->ctrl;
 
     while(*str){
-        fifo_put(&huart->txfifo, *(uint8_t*)str++);
+        if(fifo_put(&huart->txfifo, *(uint8_t*)str)){
+            str++;
+            len++;
+        }else{
+            usart->CR1 |= USART_CR1_TXEIE;
+            while(fifo_free(&huart->txfifo) == 0);
+        }        
     }
     
-    UART_Puts(huart, '\n');
-    //usart->CR1 |= USART_CR1_TXEIE;
+    UART_PutChar(huart, '\n');
+    return len + 1;
 }  
 
 char UART_GetChar(serialbus_t *huart){
