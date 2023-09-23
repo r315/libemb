@@ -10,6 +10,10 @@
 #ifndef _I2C_H_
 #define _I2C_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 typedef struct {
@@ -22,4 +26,9 @@ typedef struct {
 void I2C_Init(i2cbus_t *i2c);
 uint32_t I2C_Write(i2cbus_t *i2c, uint8_t *data, uint32_t size);
 uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
