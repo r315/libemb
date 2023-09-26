@@ -7,40 +7,14 @@
 extern "C" {
 #endif
 
-	typedef struct _StdOut {
-
-
-		void (*init)(void);
-		/**
-		 * C library stdio functions
-		 * */
-		char (*xgetchar)(void);
-		void (*xputchar)(char c);
-		int (*xputs)(const char* str);
-
-		/**
-		 * Checks if any char was received and return it on parameter c,
-		 * this function is non blocking
-		 *
-		 * \param  c  - Pointer to put the received char
-		 * \returns   - 1 if a char was received and placed on parameter c,
-		 *              0 no char received and param c is anchanged
-		 * */
-		int (*getCharNonBlocking)(char *c);
-
-		/**
-		 * Test if a char is available for reading
-		 * */
-		int (*kbhit)(void);
-
-		/**
-		 * User context, for extra parameters
-		 */
-		void *user_ctx;
-
-	}StdOut;
+typedef struct stdout_s {
+    int (*available)(void);
+    char (*readchar)(void);
+    int (*read)(const char* str, int len);
+    void (*writechar)(char c);
+    int (*write)(const char* str, int len);
+}stdout_t;
 	
-typedef StdOut stdout_t;
 
 #ifdef __cplusplus
 }

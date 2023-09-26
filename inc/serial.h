@@ -25,32 +25,30 @@ extern "C" {
 #define SERIAL_CONFIG_GET_PARITY(cfg)   ((cfg >> 28) & 3)   // 2 bit
 #define SERIAL_CONFIG_GET_STOP(cfg)     ((cfg >> 30) & 3)   // 2 bit
 
-typedef enum serialx{
+typedef enum serial_e{
     SERIAL0 = 0,
     SERIAL1,
     SERIAL2,
     SERIAL3,
     SERIAL4
-}serial_e;
+}serial_t;
 
-// Arduino style API
-typedef struct serial_s{
+typedef struct serialops_s{
     int(*available)(void);
     int(*read)(void);
     int(*readBytes)(uint8_t*, int);
-    int(*write)(uint8_t*, int);
-}serial_t;
+    int(*write)(uint8_t);
+    int(*writeBytes)(const uint8_t*, int);
+}serialops_t;
 
-typedef struct serialhandler {
+typedef struct serialport_s {
     serialbus_t port;
-    stdout_t out;
-    serial_t serial;    
-}serialhandler_t;
+    serialops_t serial;    
+}serialport_t;
 
-void SERIAL_Config(serialhandler_t *hserial, uint32_t config);
 void SERIAL_Init(void);
-stdout_t *SERIAL_GetStdout(int32_t nr);
-serial_t *SERIAL_GetSerial(int32_t nr);
+void SERIAL_Config(serialport_t *hserial, uint32_t config);
+serialops_t *SERIAL_GetSerialOps(int32_t nr);
 serialbus_t *SERIAL_GetSerialBus(int32_t nr);
 
 #ifdef __cplusplus

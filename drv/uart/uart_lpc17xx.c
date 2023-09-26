@@ -206,7 +206,7 @@ void UART_Init(serialbus_t *serialbus)
 	SET_BIT(puart->IER, UART_IER_RBR | UART_IER_THRE);
 }
 
-char UART_GetChar(serialbus_t *huart)
+/*char UART_GetChar(serialbus_t *huart)
 {
 	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
 	while ((uart->LSR & UART_LSR_RDR) == 0)
@@ -214,51 +214,14 @@ char UART_GetChar(serialbus_t *huart)
 	return uart->RBR; // Read Receiver buffer register
 }
 
-void UART_PutChar(serialbus_t *huart, char c)
-{
-	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
-	
-	fifo_put(&huart->txfifo, (uint8_t)c);
-	
-	while(!(uart->LSR & UART_LSR_TEMT));
-	fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
-}
+*/
 
-int UART_Puts(serialbus_t *huart, const char *str)
-{
-    int len = 0;
-
-	//LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
-
-	while (*str){
-		if(fifo_put(&huart->txfifo, (uint8_t)*str++) == 0){
-			break;
-		}
-        len++;
-	}
-	
-	UART_PutChar(huart, '\n');
-	//while(!(uart->LSR & UART_LSR_TEMT));
-	//fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
-    return len + 1;
-}
-
-uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c)
-{
-	return fifo_get(&huart->rxfifo, (uint8_t *)c);
-}
-
-uint8_t UART_Kbhit(serialbus_t *huart)
+uint32_t UART_Available(serialbus_t *huart)
 {
 	return fifo_avail(&huart->rxfifo);
 }
 
-void UART_Attach(serialbus_t *huart, void (*fptr)(void))
-{
-	huart->cb = fptr;
-}
-
-uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len)
+uint32_t UART_Write(serialbus_t *huart, const uint8_t *data, uint32_t len)
 {
 	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
 	uint16_t count = len;
@@ -273,9 +236,14 @@ uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len)
 	return len - count;
 }
 
-uint16_t UART_Read(serialbus_t *huart, uint8_t *data, uint16_t len)
+uint32_t UART_Read(serialbus_t *huart, uint8_t *buf, uint32_t len)
 {
-	return 0;
+    uint32_t count = len;
+	while(count--){        
+        while(!fifo_get(&huart->rxfifo, buf));
+        buf++;
+    }
+    return len;
 }
 
 static void UART_IRQHandler(void *ptr)

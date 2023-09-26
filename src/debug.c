@@ -17,12 +17,8 @@ int dummy_nb(char *c){ return 0; }
 int dummy_kbhit(void){ return 0;}
 
 stdout_t dummy_out = {
-	dummy_init,
-	dummy_getchar,
-	dummy_putchar,
-	dummy_puts,
-	dummy_nb,
-	dummy_kbhit
+	.readchar = dummy_getchar,
+	.writechar = dummy_putchar,
 };
 
 static stdout_t *sto = &dummy_out;
@@ -48,11 +44,11 @@ int i;
 		if(*mem > (' '-1) && *mem < 0x7F)
 			dbg_printf("%c", *mem);
 		else{
-			sto->xputchar('.');
+			sto->writechar('.');
 		}
 		mem++;
 	}
-	sto->xputchar('\n');
+	sto->writechar('\n');
 }
 
 
@@ -65,16 +61,24 @@ void dbg_HexDump(uint8_t *mem, uint32_t len){
 	}
 }
 
-void dbg_puts(char *str){	
-	sto->xputs(str);
+int dbg_puts(const char *str){
+    int len = 0;
+    char dbg_out[DBG_PRINT_MAX_LEN];
+
+    while(*str){
+        dbg_out[len++] = *str++;
+    }
+    
+    dbg_out[len++] ='\n';
+	return sto->write(dbg_out, len);
 }
 
-void dbg_printf(const char* fmt, ...){
+int dbg_printf(const char* fmt, ...){
 	char dbg_out[DBG_PRINT_MAX_LEN];
 	va_list arp;
 	va_start(arp, fmt);
-	strformater(dbg_out, fmt, arp);
+	int len = strformater(dbg_out, fmt, arp);
 	va_end(arp);
-	sto->xputs(dbg_out);
+	return sto->write(dbg_out, len);
 }
 #endif

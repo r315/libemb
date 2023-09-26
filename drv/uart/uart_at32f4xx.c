@@ -80,35 +80,11 @@ void UART_Init(serialbus_t *serialbus){
     NVIC_EnableIRQ(irq);
 }   
 
-void UART_PutChar(serialbus_t *huart, char c){
-    USART_Type *uart = (USART_Type*)huart->ctrl;
-
-    while(fifo_put(&huart->txfifo, (uint8_t)c) == 0){
-        uart->CTRL1 |= USART_CTRL1_TDEIEN;
-        while(fifo_free(&huart->txfifo) == 0);
-    }
-    
-    uart->CTRL1 |= USART_CTRL1_TDEIEN;
+uint32_t UART_Available(serialbus_t *huart){
+    return fifo_avail(&huart->rxfifo);
 }
 
-int UART_Puts(serialbus_t *huart, const char *str){
-    int len = 0;
-    USART_Type *uart = (USART_Type*)huart->ctrl;
-
-    while(*str){
-        while(fifo_put(&huart->txfifo, *(uint8_t*)str) == 0){        
-            uart->CTRL1 |= USART_CTRL1_TDEIEN;
-            while(fifo_free(&huart->txfifo) == 0);
-        }
-        str++;
-        len++;
-    }	
-    
-    UART_PutChar(huart, '\n');
-    return len + 1;
-}
-
-uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len){
+uint32_t UART_Write(serialbus_t *huart, const uint8_t *data, uint32_t len){
     USART_Type *uart = (USART_Type*)huart->ctrl;
 
     for(uint16_t i = 0; i < len; i++){
@@ -123,25 +99,13 @@ uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len){
     return len;
 }
 
-uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c){
-   return fifo_get(&huart->rxfifo, (uint8_t*)c);
-}
-
-char UART_GetChar(serialbus_t *huart){
-    char c;
-    while(!fifo_get(&huart->rxfifo, (uint8_t*)&c));
-    return c;	
-}
-
-uint8_t UART_Kbhit(serialbus_t *huart){
-    return fifo_avail(&huart->rxfifo);
-}
-
-uint16_t UART_Read(serialbus_t *huart, uint8_t *data, uint16_t len){
-    while(len--){
-        *data++ = UART_GetChar(huart);
+uint32_t UART_Read(serialbus_t *huart, uint8_t *data, uint32_t len){
+    uint32_t count = len;
+	while(count--){        
+        while(!fifo_get(&huart->rxfifo, data));
+        data++;
     }
-    return 1;
+    return len;
 }
 
 void UART_IRQHandler(void *ptr){

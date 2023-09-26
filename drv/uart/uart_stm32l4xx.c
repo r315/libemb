@@ -35,51 +35,7 @@ void UART_Init(serialbus_t *serialbus){
 	HAL_NVIC_EnableIRQ(irq);
 }   
 
-void UART_PutChar(serialbus_t *huart, char c){
-	USART_TypeDef *uart = (USART_TypeDef*)huart->ctrl;
-
-	if(fifo_free(&huart->txfifo) == 0){
-		SET_BIT(uart->CR1, USART_CR1_TXEIE);
-		while(fifo_free(&huart->txfifo) == 0);
-	}
-
-    fifo_put(&huart->txfifo, (uint8_t)c);
-	SET_BIT(uart->CR1, USART_CR1_TXEIE);
-}
-
-int UART_Puts(serialbus_t *huart, const char *str){
-    int len = 0;
-	USART_TypeDef *uart = (USART_TypeDef*)huart->ctrl;
-
-	while(*str){
-		if(fifo_put(&huart->txfifo, *(uint8_t*)str)){
-			str++;
-            len++;
-		}else{
-			SET_BIT(uart->CR1, USART_CR1_TXEIE);
-			while(fifo_free(&huart->txfifo) == 0);
-		}
-	}	
-	
-	UART_PutChar(huart, '\n');
-    return len + 1;
-}
-
-uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c){
-   return fifo_get(&huart->rxfifo, (uint8_t*)c);
-}
-
-char UART_GetChar(serialbus_t *huart){
-	char c;
-    while(!fifo_get(&huart->rxfifo, (uint8_t*)&c));
-    return c;	
-}
-
-uint8_t UART_Kbhit(serialbus_t *huart){
-	return fifo_avail(&huart->rxfifo);
-}
-
-uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len){
+uint32_t UART_Write(serialbus_t *huart, const uint8_t *data, uint32_t len){
 	USART_TypeDef *uart = (USART_TypeDef*)huart->ctrl;
 
 	for(uint16_t i = 0; i < len; i++){
@@ -95,11 +51,17 @@ uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len){
     return len;
 }
 
-uint16_t UART_Read(serialbus_t *huart, uint8_t *data, uint16_t len){
-	while(len--){
-        *data++ = UART_GetChar(huart);
+uint32_t UART_Read(serialbus_t *huart, uint8_t *data, uint32_t len){
+    uint32_t count = len;
+	while(count--){        
+        while(!fifo_get(&huart->rxfifo, data));
+        data++;
     }
-    return 1;
+    return len;
+}
+
+uint32_t UART_Available(serialbus_t *huart){
+	return fifo_avail(&huart->rxfifo);
 }
 
 void UART_IRQHandler(void *ptr){

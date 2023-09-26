@@ -10,11 +10,11 @@ Console::Console(void) {
 
 }
 
-Console::Console(StdOut *sp, const char *prompt) {
+Console::Console(stdout_t *sp, const char *prompt) {
 	init(sp, prompt);
 }
 
-void Console::init(StdOut *sp, const char *prompt) {
+void Console::init(stdout_t *sp, const char *prompt) {
 	memset(m_cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
 	memset(m_line, '\0', CONSOLE_COMMAND_MAX_LEN);
 	m_cmdListSize = 0;
@@ -107,7 +107,7 @@ void Console::cls(void){
 
 /**
  * */
-void Console::setOutput(StdOut *sp){
+void Console::setOutput(stdout_t *sp){
 	m_out = sp;	
 }
 
@@ -119,16 +119,25 @@ int Console::print(const char* str)
     int len = 0;
 
     while(*str){
-	    m_out->xputchar(*str++);
+        m_buf[len] = *str++;
         len++;
     }
-	
-    return len;
+
+    return m_out->write(m_buf, len);
 }
 
 int Console::println(const char* str)
 {
-    return m_out->xputs(str);
+    int len = 0;
+
+    while(*str){
+        m_buf[len] = *str++;
+        len++;
+    }
+
+    m_buf[len++] = '\n';
+
+    return m_out->write(m_buf, len);
 }
 
 char *Console::getString(char* str)
@@ -136,12 +145,12 @@ char *Console::getString(char* str)
 	uint8_t i = 0;
 	char c;
 
-	c = m_out->xgetchar();
+	c = m_out->readchar();
 
 	while ((c != '\n') && (c != '\r'))
 	{
 		*(str + i++) = c;		
-		c = m_out->xgetchar();
+		c = m_out->readchar();
 	}
 	*(str + i) = '\0';
 
@@ -149,20 +158,29 @@ char *Console::getString(char* str)
 }
 
 int Console::printchar(int c) {
-	m_out->xputchar(c);
+	m_out->writechar(c);
 	return (int)c;
 }
 
 int Console::getChar(void)
 {
-	char c = m_out->xgetchar();
-	m_out->xputchar(c);
+	char c = m_out->readchar();
+	m_out->writechar(c);
 	return (int)c;
 }
 
-uint8_t Console::getCharNonBlocking(char *c)
+char Console::getch(void)
 {
-	return m_out->getCharNonBlocking(c);
+	return m_out->readchar();
+}
+
+uint8_t Console::getchNonBlocking(char *c)
+{
+    if(m_out->available()){
+        *c = m_out->readchar();
+        return 1;
+    }
+    return 0;
 }
 
 /**
@@ -173,13 +191,14 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 	char c;
 	uint8_t len;
 
-	while (m_out->getCharNonBlocking(&c)) {
+	while (m_out->available()) {
+        c = m_out->readchar();
 		len = *cur_len;
 		
 		if ((c == '\n') || (c == '\r')) {			
 			//Remove all extra text from previous commands
 			memset(dst + len, '\0', maxLen - len);
-			m_out->xputchar('\n');
+			m_out->writechar('\n');
 			*cur_len = 0;
 			return len + 1;
 		}
@@ -192,8 +211,9 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 		else if (c == 0x1b) {
 			uint16_t count = 1000; // counter to ensure that escape sequences are received
 			do{
-				//print("%X ", c);				
-			}while (m_out->getCharNonBlocking(&c) || count--);
+				if(m_out->available())
+                    c = m_out->readchar();
+			}while (count--);
 			
 
 			switch (c) {
@@ -209,7 +229,7 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 			historyDump();
 #endif
 		}else if (len < maxLen) {
-			m_out->xputchar(c);
+			m_out->writechar(c);
 			*(dst + len) = c;
 			(*cur_len)++;
 		}	
@@ -223,13 +243,11 @@ char Console::getLine(char *dst, uint8_t maxLen)
 	char c;
 
 	while (!hasLine) {
-		c = m_out->xgetchar();
+		c = m_out->readchar();
 		switch (c) {
 		case '\b':
 			if (len != 0) {
-				m_out->xputchar(c);
-				m_out->xputchar(' ');
-				m_out->xputchar(c);
+				m_out->write("\b \b", 3);				
 				len--;
 			}
 			break;
@@ -237,12 +255,12 @@ char Console::getLine(char *dst, uint8_t maxLen)
 		case '\n':
 		case '\r':
 			hasLine = 1;
-			m_out->xputchar('\n');
+			m_out->writechar('\n');
 			break;
 
 		case 0x1b:
-			c = m_out->xgetchar();
-			c = m_out->xgetchar();
+			c = m_out->readchar();
+			c = m_out->readchar();
 			//print("%X ", c);
 			switch (c) {
 			case 0x41:  // [1B, 5B, 41] UP arrow
@@ -262,7 +280,7 @@ char Console::getLine(char *dst, uint8_t maxLen)
 
 		default:
 			if (len < maxLen) {
-				m_out->xputchar(c);
+				m_out->writechar(c);
 				dst[len] = c;
 				len++;
 			}
@@ -276,14 +294,16 @@ char Console::getLine(char *dst, uint8_t maxLen)
 
 int Console::printf(const char* fmt, ...){
 	va_list arp;
+    int len;
 	va_start(arp, fmt);
-	strformater(m_buf, fmt, arp);
+	len = strformater(m_buf, fmt, arp);
 	va_end(arp);
-	return print(m_buf);
+
+	return m_out->write(m_buf, len);
 }
 
-uint8_t Console::kbhit(void) {
-	return m_out->kbhit();
+uint8_t Console::available(void) {
+	return m_out->available();
 }
 
 char *Console::historyGet(void) {
@@ -295,7 +315,7 @@ void Console::historyDump(void) {
 	{
 		printf("\n %u %s", i, m_history[i]);
 	}
-	m_out->xputchar('\n');
+	m_out->writechar('\n');
 }
 
 void Console::historyAdd(char *entry) {

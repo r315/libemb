@@ -24,17 +24,11 @@ typedef struct serialbus {
     };
     fifo_t rxfifo;
     fifo_t txfifo;
-    void (*cb)(void);     // TODO: implement callback for Read
 }serialbus_t;
 
 void UART_Init(serialbus_t *huart);
-void UART_PutChar(serialbus_t *huart, char c);
-int UART_Puts(serialbus_t *huart, const char *str);
-char UART_GetChar(serialbus_t *huart);
-uint8_t UART_GetCharNonBlocking(serialbus_t *huart, char *c);
-uint8_t UART_Kbhit(serialbus_t *huart);
+uint32_t UART_Write(serialbus_t *huart, const uint8_t *data, uint32_t len);
+uint32_t UART_Read(serialbus_t *huart, uint8_t *data, uint32_t len);
+uint32_t UART_Available(serialbus_t *huart);
 
-uint16_t UART_Write(serialbus_t *huart, uint8_t *data, uint16_t len);
-uint16_t UART_Read(serialbus_t *huart, uint8_t *data, uint16_t len);
-void UART_Attach(serialbus_t *huart, void (*fptr)(void));
 #endif /* _usart_h_ */

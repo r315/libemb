@@ -53,7 +53,7 @@ extern "C" {
 		uint8_t m_hist_idx;
 		uint8_t m_hist_cur;
 		uint8_t m_hist_size;
-		StdOut *m_out;
+		stdout_t *m_out;
 
 		void historyDump(void);
 		void historyAdd(char *entry);
@@ -65,15 +65,15 @@ extern "C" {
 
 	public:
 		Console(void);
-		Console(StdOut *sp, const char *prt);
+		Console(stdout_t *sp, const char *prt);
 
-		void init(StdOut *sp, const char *prt);
+		void init(stdout_t *sp, const char *prt);
 
 		char getLine(char *line, uint8_t max);
 		char getLineNonBlocking(char *line, uint8_t *cur_len, uint8_t max);
 		void process(void);
 		void cls(void);
-		void setOutput(StdOut *sp);
+		void setOutput(stdout_t *sp);
 
 		void addCommand(ConsoleCommand *cmd);
 		void registerCommandList(ConsoleCommand **list);
@@ -81,13 +81,14 @@ extern "C" {
 		char executeCommand(void *ptr);
 
 		int getChar(void);
-		uint8_t getCharNonBlocking(char *c);
+        char getch(void);
 		char *getString(char* str);
 		int print(const char* str);
         int println(const char* str);
 		int printf(const char* str, ...);
         int printchar(int c);
-		uint8_t kbhit(void);
+		uint8_t available(void);
+        uint8_t getchNonBlocking(char *);
 
 		uint8_t getCmdListSize(void) { return m_cmdListSize; }
 		ConsoleCommand *getCmdIndexed(uint8_t idx) { return m_cmdList[idx]; } // security issues??
