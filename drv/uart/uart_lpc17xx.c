@@ -221,23 +221,24 @@ uint32_t UART_Available(serialbus_t *huart)
 	return fifo_avail(&huart->rxfifo);
 }
 
-uint32_t UART_Write(serialbus_t *huart, const uint8_t *data, uint32_t len)
-{
+uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
 	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
-	uint16_t count = len;
-	while (--count)
-	{
-		if (fifo_put(&huart->txfifo, (uint8_t)*data++) == 0){
-			// Fifo full, break and return bytes pushed to fifo
-			break;
-		}
+    const uint8_t *end = buf + len;
+
+	while(buf < end){	
+		if (fifo_put(&huart->txfifo, *buf)){
+			buf++;
+		}else{
+            fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
+            while(fifo_free(&huart->txfifo) == 0);
+        }
 	}
+
 	fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
-	return len - count;
+	return len;
 }
 
-uint32_t UART_Read(serialbus_t *huart, uint8_t *buf, uint32_t len)
-{
+uint32_t UART_Read(serialbus_t *huart, uint8_t *buf, uint32_t len){
     uint32_t count = len;
 	while(count--){        
         while(!fifo_get(&huart->rxfifo, buf));

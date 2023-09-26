@@ -109,10 +109,10 @@ void UART_Init(serialbus_t *serialbus){
 }
 
 uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
-    int count = len;
     USART_TypeDef *usart = (USART_TypeDef*)huart->ctrl;
+    const uint8_t *end = buf + len;
 
-    while(count--){
+    while(buf < end){
         if(fifo_put(&huart->txfifo, *buf)){
             buf++;
         }else{
@@ -121,6 +121,7 @@ uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
         }        
     }
     
+    usart->CR1 |= USART_CR1_TXEIE;
     return len;
 }  
 

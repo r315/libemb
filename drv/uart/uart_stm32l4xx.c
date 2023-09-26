@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
-#include "board.h"
+#include "stm32l4xx.h"
 #include "uart.h"
 
 static serialbus_t *serial1, *serial2;
@@ -35,12 +35,13 @@ void UART_Init(serialbus_t *serialbus){
 	HAL_NVIC_EnableIRQ(irq);
 }   
 
-uint32_t UART_Write(serialbus_t *huart, const uint8_t *data, uint32_t len){
+uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
 	USART_TypeDef *uart = (USART_TypeDef*)huart->ctrl;
+    const uint8_t *end = buf + len;
 
-	for(uint16_t i = 0; i < len; i++){
-		if(fifo_put(&huart->txfifo, *(uint8_t*)data)){
-			data++;
+	while(buf < end){
+		if(fifo_put(&huart->txfifo, *buf)){
+			buf++;
 		}else{
 			SET_BIT(uart->CR1, USART_CR1_TXEIE);
 			while(fifo_free(&huart->txfifo) == 0);

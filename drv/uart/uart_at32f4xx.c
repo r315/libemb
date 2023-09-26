@@ -84,17 +84,19 @@ uint32_t UART_Available(serialbus_t *huart){
     return fifo_avail(&huart->rxfifo);
 }
 
-uint32_t UART_Write(serialbus_t *huart, const uint8_t *data, uint32_t len){
+uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
     USART_Type *uart = (USART_Type*)huart->ctrl;
+    const uint8_t *end = buf + len;
 
-    for(uint16_t i = 0; i < len; i++){
-        while(fifo_put(&huart->txfifo, *(uint8_t*)data) == 0){        
+    while(buf < end){
+        if(fifo_put(&huart->txfifo, *buf)){
+            buf++;
+        }else{
             uart->CTRL1 |= USART_CTRL1_TDEIEN;
             while(fifo_free(&huart->txfifo) == 0);
-        }
-        data++;
-    }	
-    
+        }        
+    }
+
     uart->CTRL1 |= USART_CTRL1_TDEIEN;
     return len;
 }
