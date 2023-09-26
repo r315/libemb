@@ -30,12 +30,20 @@ uint32_t fifo_put(fifo_t *fifo, uint8_t c)
 	}
 
 	fifo->buf[fifo->head] = c;
-    fifo->size++;
 	fifo->head = (fifo->head + 1) % fifo->capacity;
+
+#if FIFO_INTERRUPT_SAFE
+    uint32_t size;
+    do{
+        size = fifo->size;
+    }while(!__sync_bool_compare_and_swap(&fifo->size, size, size + 1));
+#else
+    fifo->size++;
+#endif
 
 	return 1;
 }
-
+#include <assert.h>
 /**
  *  retrieves one character from the given fifo if fifo
  *  is not empty
@@ -53,10 +61,18 @@ uint32_t fifo_get(fifo_t *fifo, uint8_t *pc)
 	}
 
 	*pc = fifo->buf[fifo->tail];
-    fifo->size--;
 	fifo->tail = (fifo->tail + 1) % fifo->capacity;
 
-	return 1;
+#if FIFO_INTERRUPT_SAFE
+    uint32_t size;
+    do{
+        size = fifo->size;
+    }while(!__sync_bool_compare_and_swap(&fifo->size, size, size - 1));
+#else
+    fifo->size--;
+#endif
+	
+    return 1;
 }
 
 /**
