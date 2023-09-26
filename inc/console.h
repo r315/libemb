@@ -24,75 +24,80 @@ extern "C" {
 #define TRUE    (1)
 #endif
 
-#define CONSOLE_MAX_COMMANDS 	64
-#ifndef CONSOLE_COMMAND_MAX_LEN
-#define CONSOLE_COMMAND_MAX_LEN	64
-#endif
+#define CONSOLE_WIDTH 	                32      // Width in chars
+#define CONSOLE_MAX_COMMANDS            16
+#define CONSOLE_COMMAND_PARAMS		    10
+#define HISTORY_MAX_SIZE 	            5
 
-#define CONSOLE_HISTORY_SIZE 	5
-#define CONSOLE_MAX_PARAMS		10
-
-#ifndef CONSOLE_PRINT_MAX_LEN
-#define CONSOLE_PRINT_MAX_LEN	64
+#ifndef CONSOLE_WIDTH
+#define CONSOLE_WIDTH	                16
 #endif
 
 
-	class Console {
-
-		ConsoleCommand *m_cmdList[CONSOLE_MAX_COMMANDS];
-		uint8_t m_cmdListSize;
-		uint8_t m_active;
-		char m_line[CONSOLE_COMMAND_MAX_LEN];
-		char m_buf[CONSOLE_PRINT_MAX_LEN];
-		uint8_t m_line_len;
-		const char *m_prompt;
-		char *m_argv[CONSOLE_MAX_PARAMS];
-    	int m_argc;
-		
-		char m_history[CONSOLE_HISTORY_SIZE][CONSOLE_COMMAND_MAX_LEN];
-		uint8_t m_hist_idx;
-		uint8_t m_hist_cur;
-		uint8_t m_hist_size;
+class History {
+    public:
+        History(void);
+        History(stdout_t *);
+        void init(stdout_t *);
+        void dump(void);
+		void push(const char *);
+		char *pop(void);
+		char *back(void);
+		char *forward(void);
+		void clear(void);
+    private:
+        char m_history[HISTORY_MAX_SIZE][CONSOLE_WIDTH];
+		uint8_t m_top;
+		uint8_t m_idx;
+		uint8_t m_size;
 		stdout_t *m_out;
+};
 
-		void historyDump(void);
-		void historyAdd(char *entry);
-		char *historyBack(void);
-		char *historyForward(void);
-		char *historyGet(void);
-		void historyClear(void);
-		uint8_t changeLine(char *old_line, char *new_line, uint8_t old_line_len);
-
+class Console {
 	public:
 		Console(void);
-		Console(stdout_t *sp, const char *prt);
-
-		void init(stdout_t *sp, const char *prt);
-
-		char getLine(char *line, uint8_t max);
-		char getLineNonBlocking(char *line, uint8_t *cur_len, uint8_t max);
+		Console(stdout_t *, const char *);
+		void init(stdout_t *, const char *);
+		char getLine(char *, uint8_t);
+		char getLineNonBlocking(char *, uint8_t *, uint8_t);
 		void process(void);
 		void cls(void);
-		void setOutput(stdout_t *sp);
+		void setOutput(stdout_t *);
 
-		void addCommand(ConsoleCommand *cmd);
-		void registerCommandList(ConsoleCommand **list);
-		char parseCommand(char *line);
-		char executeCommand(void *ptr);
+		void addCommand(ConsoleCommand *);
+		void registerCommandList(ConsoleCommand **);
+		char parseCommand(char *);
+		char executeCommand(void *);
 
 		int getChar(void);
         char getch(void);
-		char *getString(char* str);
-		int print(const char* str);
-        int println(const char* str);
-		int printf(const char* str, ...);
+		char *getString(char*);
+		int print(const char* );
+        int println(const char*);
+		int printf(const char*, ...);
         int printchar(int c);
 		uint8_t available(void);
         uint8_t getchNonBlocking(char *);
 
 		uint8_t getCmdListSize(void) { return m_cmdListSize; }
 		ConsoleCommand *getCmdIndexed(uint8_t idx) { return m_cmdList[idx]; } // security issues??
-	};
+
+    private:
+        ConsoleCommand *m_cmdList[CONSOLE_MAX_COMMANDS];
+		char m_line[CONSOLE_WIDTH];
+		char m_buf[CONSOLE_WIDTH];
+		char *m_argv[CONSOLE_COMMAND_PARAMS];
+    	int m_argc;
+		const char *m_prompt;
+        stdout_t *m_out;
+		uint8_t m_cmdListSize;
+		uint8_t m_active;
+		uint8_t m_line_len;
+        History m_hist;
+		uint8_t replaceCommandLine(char *, char *, uint8_t);
+};
+
+
 }
 #endif
 

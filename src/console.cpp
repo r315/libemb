@@ -6,23 +6,28 @@
 
 #include "console.h"
 
+#define CONSOLE_ENABLE_HISTORY_DUMP 1
+#define CONSOLE_HISTORY_LIST_KEY    '>'
+
 Console::Console(void) {
 
 }
 
-Console::Console(stdout_t *sp, const char *prompt) {
-	init(sp, prompt);
+Console::Console(stdout_t *out, const char *prompt) {
+	init(out, prompt);
 }
 
-void Console::init(stdout_t *sp, const char *prompt) {
+void Console::init(stdout_t *out, const char *prompt) {
 	memset(m_cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
-	memset(m_line, '\0', CONSOLE_COMMAND_MAX_LEN);
+	memset(m_line, '\0', CONSOLE_WIDTH);
 	m_cmdListSize = 0;
 	m_active = NO;
-	m_out = sp;
+	m_out = out;
 	m_prompt = prompt;
-	historyClear();	
 	m_line_len = 0;
+
+    m_hist.init(out);
+	m_hist.clear();	
 	//addCommand(&help); // since all cpp support is disabled, classes on .data section are not initialized
 }
 
@@ -48,13 +53,13 @@ char Console::parseCommand(char *line) {
 	ConsoleCommand **cmd = m_cmdList;
 
 	// check if empty line
-	if (*line == '\n' || *line == '\r' || *line == '\0')
+	if (*line == '\n' || *line == '\r' || *line == '\0')    
 		return CMD_OK;
 
 	// Convert command line into string array
 	m_argc = strToArray((char*)line, m_argv);
 
-	if(m_argc < CONSOLE_MAX_PARAMS && m_argv[0] != NULL){
+	if(m_argc < CONSOLE_COMMAND_PARAMS && m_argv[0] != NULL){
 		cmdname = m_argv[0];
 		for (uint8_t i = 0; i < m_cmdListSize; i++, cmd++) {
 			if (*cmd == NULL) {
@@ -68,7 +73,7 @@ char Console::parseCommand(char *line) {
 	}
 	
 	// Clear command line
-	memset(line, '\0', CONSOLE_COMMAND_MAX_LEN);
+	memset(line, '\0', CONSOLE_WIDTH);
 
 	if (res == CMD_NOT_FOUND) {
 		print("Command not found\n");
@@ -89,12 +94,12 @@ void Console::process(void) {
 	}
 #if defined(CONSOLE_BLOCKING)
 	m_line_len = 0;
-	m_line_len = getLine(m_line, CONSOLE_COMMAND_MAX_LEN);	
+	m_line_len = getLine(m_line, CONSOLE_WIDTH);	
 #else
-	if (getLineNonBlocking(m_line, &m_line_len, CONSOLE_COMMAND_MAX_LEN)) 
+	if (getLineNonBlocking(m_line, &m_line_len, CONSOLE_WIDTH)) 
 #endif
 	{
-		historyAdd(m_line);
+		m_hist.push(m_line);
 		if(parseCommand(m_line) != CMD_OK_NO_PRT){
 			print(m_prompt);
 		}
@@ -218,17 +223,19 @@ char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
 
 			switch (c) {
 				case 0x41:  // UP arrow
-					*cur_len = changeLine(dst, historyBack(), *cur_len);
+					*cur_len = replaceCommandLine(dst, m_hist.back(), *cur_len);
 					break;
 				case 0x42:  // Down arrow
-					*cur_len = changeLine(dst, historyForward(), *cur_len);
+					*cur_len = replaceCommandLine(dst, m_hist.forward(), *cur_len);
 					break;
 			}
 #if CONSOLE_ENABLE_HISTORY_DUMP
-		}else if (c == CONSOLE_HISTORY_LIST_KEY) {
-			historyDump();
+		}else if (c == CONSOLE_HISTORY_LIST_KEY && *cur_len == 0) {
+            *dst = '\0';
+			m_hist.dump();
+            return 1;
 #endif
-		}else if (len < maxLen) {
+		}else if (len < (maxLen - 1)) {
 			m_out->writechar(c);
 			*(dst + len) = c;
 			(*cur_len)++;
@@ -264,17 +271,17 @@ char Console::getLine(char *dst, uint8_t maxLen)
 			//print("%X ", c);
 			switch (c) {
 			case 0x41:  // [1B, 5B, 41] UP arrow
-				len = changeLine(dst, historyBack(), len);
+				len = replaceCommandLine(dst, m_hist.back(), len);
 				break;
 			case 0x42:  // [1B, 5B, 42] Down arrow
-				len = changeLine(dst, historyForward(), len);
+				len = replaceCommandLine(dst, m_hist.forward(), len);
 			default:
 				break;
 			}
 			break;
 
 		case '<':
-			historyDump();
+			m_hist.dump();
 			hasLine = 1;
 			break;
 
@@ -306,73 +313,102 @@ uint8_t Console::available(void) {
 	return m_out->available();
 }
 
-char *Console::historyGet(void) {
-	return &m_history[m_hist_cur][0];
+
+History::History(void)
+{
 }
 
-void Console::historyDump(void) {
-	for (uint8_t i = 0; i < CONSOLE_HISTORY_SIZE; i++)
-	{
-		printf("\n %u %s", i, m_history[i]);
-	}
-	m_out->writechar('\n');
+History::History(stdout_t *out)
+{
+    init(out);
 }
 
-void Console::historyAdd(char *entry) {
-	if (*m_line != '\n' && *m_line != '\r' && *m_line != '\0') {
+void History::init(stdout_t *out)
+{
+    m_out = out;
+}
+
+char *History::pop(void) {
+	return &m_history[m_top][0];
+}
+
+void History::push(const char *entry) {
+	if (*entry != '\n' && *entry != '\r' && *entry != '\0') {
 		
-		memcpy(m_history[m_hist_cur], entry, CONSOLE_COMMAND_MAX_LEN);
+		memcpy(m_history[m_top], entry, CONSOLE_WIDTH);
 
-		if (++m_hist_cur == CONSOLE_HISTORY_SIZE)
-			m_hist_cur = 0;		
-		m_hist_idx = m_hist_cur;
+		if (++m_top == HISTORY_MAX_SIZE)
+			m_top = 0;
 
-		if (m_hist_size < CONSOLE_HISTORY_SIZE) {
-			m_hist_size++;
+		m_idx = m_top;
+
+		if (m_size < HISTORY_MAX_SIZE) {
+			m_size++;
 		}
 	}
 }
 
-char *Console::historyBack(void) {
-	uint8_t new_idx = m_hist_idx;
+char *History::back(void) {
+	uint8_t new_idx = m_idx;
 
-	if (m_hist_size == CONSOLE_HISTORY_SIZE) {
+	if (m_size == HISTORY_MAX_SIZE) {
 		// History is full, wrap arround is allowed
-		if (--new_idx > CONSOLE_HISTORY_SIZE)
-			new_idx = CONSOLE_HISTORY_SIZE - 1;
-		if (new_idx != m_hist_cur) {
-			m_hist_idx = new_idx;
+		if (--new_idx > HISTORY_MAX_SIZE)
+			new_idx = HISTORY_MAX_SIZE - 1;
+		if (new_idx != m_top) {
+			m_idx = new_idx;
 		}
 	}
-	else if(m_hist_idx > 0){
-		m_hist_idx--;
+	else if(m_idx > 0){
+		m_idx--;
 	}
 
-	return &m_history[m_hist_idx][0];
+	return &m_history[m_idx][0];
 }
 
-char *Console::historyForward(void) {
-	if (m_hist_idx != m_hist_cur) {
-		if (++m_hist_idx == CONSOLE_HISTORY_SIZE)
-			m_hist_idx = 0;
+char *History::forward(void) {
+	if (m_idx != m_top) {
+		if (++m_idx == HISTORY_MAX_SIZE)
+			m_idx = 0;
 	}
 	
-	if(m_hist_idx == m_hist_cur){
+	if(m_idx == m_top){
 		// Clear current line to avoid duplicating m_history navigation
-		memset(m_history[m_hist_cur], '\0', CONSOLE_COMMAND_MAX_LEN);
+		memset(m_history[m_top], '\0', CONSOLE_WIDTH);
 	}
-	return &m_history[m_hist_idx][0];
+	return &m_history[m_idx][0];
 }
 
-void Console::historyClear(void) {
-	for (uint8_t i = 0; i < CONSOLE_HISTORY_SIZE; i++)
+void History::clear(void) {
+	for (uint8_t i = 0; i < HISTORY_MAX_SIZE; i++)
 	{
-		memset(m_history[i], '\0', CONSOLE_COMMAND_MAX_LEN);
+		memset(m_history[i], '\0', CONSOLE_WIDTH);
 	}
-	m_hist_idx = m_hist_cur = m_hist_size = 0;
+	m_idx = m_top = m_size = 0;
 }
 
-uint8_t Console::changeLine(char *old_line, char *new_line, uint8_t old_line_len) {
+void History::dump(void) {
+    m_out->writechar('\n');
+
+	for (uint8_t i = 0; i < HISTORY_MAX_SIZE; i++)
+	{
+        //printf("\n%c %u %s", (i == m_top) ? '>' : ' ', i, m_history[i]);
+        m_out->writechar('\n');
+        m_out->writechar((i == m_top) ? '>' : ' ');
+        m_out->writechar(' ');
+        m_out->writechar('0' + i);
+        m_out->writechar(' ');
+        char *ptr = m_history[i];
+        while(*ptr){
+            m_out->writechar(*ptr++);
+        }
+	}
+	
+    m_out->writechar('\n');
+    m_out->writechar('\n');
+}
+
+uint8_t Console::replaceCommandLine(char *old_line, char *new_line, uint8_t old_line_len) {
 	uint8_t new_line_len;
 
 	while (old_line_len--) {
