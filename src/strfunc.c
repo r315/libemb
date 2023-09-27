@@ -280,6 +280,10 @@ uint8_t ia2i(char *str, int32_t *value) {
 		return 0;
 	}
 
+    if(*str == '\0'){
+        return 0;
+    }
+
 	if (c == '-') {
 		s = (1 << 7); // Set signal flag
 		str++;
@@ -318,6 +322,10 @@ uint8_t ha2i(char *str, uint32_t *value) {
 	if(str == NULL){
 		return 0;
 	}
+
+    if(*str == '\0'){
+        return 0;
+    }
 
 	do {
 		val <<= 4;
@@ -359,6 +367,10 @@ uint8_t da2d(char *str, double *value) {
 	if(str == NULL){
 		return 0;
 	}
+
+    if(*str == '\0'){
+        return 0;
+    }
 
 	if (c == '-') {
 		s = (1 << 7); // Set signal flag
