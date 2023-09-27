@@ -49,11 +49,14 @@ void I2C_Init (i2cbus_t *i2c){
 			__HAL_RCC_I2C1_CLK_ENABLE();
             __HAL_RCC_GPIOB_CLK_ENABLE();
 
+            __HAL_RCC_I2C1_FORCE_RESET();
+            __HAL_RCC_I2C1_RELEASE_RESET();
+
             GPIO_InitStruct.Pin       = GPIO_PIN_7 | GPIO_PIN_6;
-            GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
+            GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
             GPIO_InitStruct.Pull      = GPIO_PULLUP;
             GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-            GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+            GPIO_InitStruct.Alternate = 0;
             HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 			break;
 	}
@@ -62,6 +65,10 @@ void I2C_Init (i2cbus_t *i2c){
     {
         return;
     }
+    
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     HAL_I2CEx_ConfigAnalogFilter(hi2cx, I2C_ANALOGFILTER_ENABLE);
 }
