@@ -1,10 +1,5 @@
 
-#if defined(__NUCLEO_L412KB__)
-#include "main.h"
-#else
-#include <stm32f1xx.h>
-#endif
-
+#include "board.h"
 #include "buzzer.h"
 
 #define BUZ_DEFAULT_VOLUME     	1
@@ -162,8 +157,11 @@ static void buzStartTone(tone_t *tone){
  */
 static inline void initPwmPin(void){
 #if defined(__NUCLEO_L412KB__)
-	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
-	
+#define GPIOB_PIN6_AF           (2 << GPIO_MODER_MODE6_Pos)
+#define GPIOB_PIN6_TIM16_CH1N   (14 << GPIO_AFRH_AFSEL14_Pos)
+
+	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
+/*	
 	GPIO_InitTypeDef GPIO_InitStruct = {
 		.Pin = GPIO_PIN_6,
 		.Mode = GPIO_MODE_AF_PP,
@@ -172,6 +170,12 @@ static inline void initPwmPin(void){
 		.Alternate = GPIO_AF14_TIM16
 	};
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+*/
+    uint32_t tmp = GPIOB->MODER & ~(GPIO_MODER_MODE6);
+    GPIOB->MODER = tmp | GPIOB_PIN6_AF;
+    tmp = GPIOB->AFR[0] & ~(GPIO_AFRL_AFSEL6);
+    GPIOB->AFR[0] = tmp | GPIOB_PIN6_TIM16_CH1N;
+       
 #else
 	//gpioInit(GPIOA, 8, GPO_AF | GPO_2MHZ);
 	GPIOA->CRH = (GPIOA->CRH & ~(0x0F)) | (2 << 2) | (2 << 0);
