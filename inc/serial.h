@@ -7,7 +7,6 @@ extern "C" {
 
 #include <stdint.h>
 #include "uart.h"
-#include "stdout.h"
 
 #define SERIAL_DATA_8B      (8 << 24)
 #define SERIAL_PARITY_NONE  (0 << 28)
@@ -46,10 +45,50 @@ typedef struct serialport_s {
     serialops_t serial;    
 }serialport_t;
 
+/**
+ * @brief Initializes serial ports available on board
+ * 
+ * This function implementation is board specific 
+ * and can be called on system startup
+ * 
+ */
 void SERIAL_Init(void);
+
+/**
+ * @brief Configures serial port with given parameters
+ * 
+ * Used by SERIAL_Init, also can be used to reconfigure 
+ * serial port by user
+ * 
+ * @param hserial   pointer to serial handler structure
+ *                  obtained by SERIAL_GetSerialBus()
+ * 
+ * @param config    New configuration bit mask
+ */
 void SERIAL_Config(serialport_t *hserial, uint32_t config);
-serialops_t *SERIAL_GetSerialOps(int32_t nr);
+
+/**
+ * @brief Get serial bus handler.
+ * The returned pointer points to a serialport_t struct
+ * containing HW controller configuration and fifos
+ * 
+ * @param nr            Number of bus starting from 0.
+ *                      -1 returns default port operations
+ * 
+ * @return serialops_t* 
+ */
 serialbus_t *SERIAL_GetSerialBus(int32_t nr);
+
+/**
+ * @brief Get serial operation for a given bus.
+ * 
+ * @param nr            Number of bus starting from 0.
+ *                      -1 returns default port operations
+ * 
+ * @return serialops_t* 
+ */
+serialops_t *SERIAL_GetSerialOps(int32_t nr);
+
 
 #ifdef __cplusplus
 }
