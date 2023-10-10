@@ -56,7 +56,7 @@ void I2C_Init (i2cbus_t *i2c){
             GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
             GPIO_InitStruct.Pull      = GPIO_PULLUP;
             GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-            GPIO_InitStruct.Alternate = 0;
+            GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
             HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 			break;
 	}
@@ -67,7 +67,6 @@ void I2C_Init (i2cbus_t *i2c){
     }
     
     GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     HAL_I2CEx_ConfigAnalogFilter(hi2cx, I2C_ANALOGFILTER_ENABLE);
