@@ -20,7 +20,7 @@ typedef enum cli_result_e
    CLI_CMD_NOT_FOUND
 }cli_result_t;
 
-typedef int (*cli_func) (int argc, const char **argv);
+typedef int (*cli_func) (int argc, char **argv);
 
 typedef struct cli_command_s 
 {
@@ -42,6 +42,11 @@ cli_result_t CLI_ReadLine (void);
 void CLI_RegisterCommand (const cli_command_t *Commands, uint8_t Count);
 int CLI_Commands(void);
 int CLI_History(void);
+int CLI_Run(void *);
+void CLI_Clear(void);
+
+uint8_t CLI_Ia2i(char *str, int32_t *value);
+uint8_t CLI_Ha2i(char *str, uint32_t *value);
 
 #ifdef __cplusplus
 }

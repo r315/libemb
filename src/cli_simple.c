@@ -14,7 +14,7 @@ static uint16_t CliCommandsCount;
 
 static cli_history_t History;
 
-extern int kbhit (void);
+extern int getavl (void);
 
 // =============================================================================
 // CLI_SkipSpaces
@@ -371,16 +371,20 @@ void CLI_Init (const char *prompt)
       return;
    }
 
-   memset (CliLineBuffer, 0xAA, sizeof (CliLineBuffer));
+   memset (CliLineBuffer, 0x0, sizeof (CliLineBuffer));
    CliLineLen = 0;
 
    Prompt = prompt;
 
    setvbuf(stdout, NULL, _IONBF, 0); // make stdout non-buffered, so that printf always calls __io_putchar
    
-   CLI_Prompt ();
-
    CLI_HistoryInit(&History);
+
+   CLI_Clear();
+
+   printf("\e[?25h\r");
+   
+   CLI_Prompt ();
 }
 
 // =============================================================================
@@ -460,7 +464,7 @@ cli_result_t CLI_HandleLine (void)
    const cli_command_t *Cmd = CLI_GetCommand(CliArgv[0]);
 
    if(Cmd != NULL){
-      Res = Cmd->exec(CliArgc, (const char**)CliArgv);
+      Res = Cmd->exec(CliArgc, (char**)CliArgv);
    }
 
    switch(Res){
@@ -506,7 +510,7 @@ cli_result_t CLI_ReadLine (void)
 {
    static uint8_t EscSeq = 0;
 
-   if (kbhit ())
+   if (getavl ())
    {
       uint8_t Data = getchar ();
 
@@ -589,4 +593,128 @@ cli_result_t CLI_ReadLine (void)
       }
    }
    return CLI_OK;
+}
+
+// =============================================================================
+// CLI_Run ()
+// =============================================================================
+/*!
+ *
+ * Continuously processes cli, this is intended to be used by a thread from OS
+ * 
+ * \param - Prt
+ * 
+ * \return - exit status
+ *
+ */
+// =============================================================================
+int CLI_Run(void *ptr)
+{
+    while(1)
+    {
+        do{
+
+        }while(CLI_ReadLine() != CLI_LINE_READ);
+
+        if(CLI_HandleLine() == CLI_EXIT)
+        {
+            break;
+        }
+    }
+
+    return 0;
+}
+
+void CLI_Clear(void)
+{
+    printf("\e[2J\r");
+}
+
+
+/**
+ * Try to parse a string representing a integer to integer value
+ *
+ * \param  str - pointer to input string
+ * \param  value - pointer to output value
+ * \return number of converted digits
+ * */
+uint8_t CLI_Ia2i(char *str, int32_t *value) {
+	int val = 0;
+	char c = *str;
+	uint8_t s = 0;
+
+	if(str == NULL){
+		return 0;
+	}
+
+    if(*str == '\0'){
+        return 0;
+    }
+
+	if (c == '-') {
+		s = (1 << 7); // Set signal flag
+		str++;
+		c = *str;
+	}
+
+	do{
+		if (c > '/' && c < ':') {
+			c -= '0';
+			val = val * 10 + c;
+			s++;
+		}
+		else {
+			return 0;
+		}
+		c = *(++str);
+	}while (c != ' ' && c != '\n' && c != '\r' && c != '\0');
+		
+	// check signal flag
+	*value = (s & (1 << 7)) ? -val : val;
+
+	return s & 0x7F;
+}
+
+
+/**
+ * Try to parse a string representing a hex number to integer value
+ * 
+ * \param  str	pointer to input string
+ * \param  value  pointer to output value
+ * \return 1 if success, 0 if failed
+ * */
+uint8_t CLI_Ha2i(char *str, uint32_t *value) {
+	uint32_t val = 0;
+	char c = *str;
+
+	if(str == NULL){
+		return 0;
+	}
+
+    if(*str == '\0'){
+        return 0;
+    }
+
+	do {
+		val <<= 4;
+		if (c > '`' && c < 'g') {
+			c -= 'W';
+		}
+		else if ((c > '@' && c < 'G')) {
+			c -= '7';
+		}
+		else if (c > '/' && c < ':') {
+			c -= '0';
+		}
+		else {
+			return 0;
+		}
+
+		val |= c;
+		c = *(++str);
+
+	} while (c != '\0' && c != ' ' && c != '\n' && c != '\r');
+
+	*value = val;
+	return 1;
 }
