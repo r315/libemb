@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "stm32l4xx.h"
 #include "dma_stm32l4xx.h"
 #include "spi.h"
@@ -93,13 +94,15 @@ void SPI_Init(spibus_t *spidev){
     
     switch(spidev->bus){
         case SPI_BUS0:
-            __HAL_RCC_SPI1_CLK_ENABLE();
+            //__HAL_RCC_SPI1_CLK_ENABLE();
+            RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
             spi = SPI1;
             spi_eot[0] = spidev;
             break;
 
         case SPI_BUS1:
-            __HAL_RCC_SPI2_CLK_ENABLE();
+            //__HAL_RCC_SPI2_CLK_ENABLE();
+            RCC->APB1ENR1 |= RCC_APB1ENR1_SPI2EN;
             spi = SPI2;
             spi_eot[1] = spidev;
             break;

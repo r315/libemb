@@ -1,5 +1,6 @@
 
-#include "board.h"
+#include <stddef.h>
+#include "stm32l4xx.h"
 #include "buzzer.h"
 
 #define BUZ_DEFAULT_VOLUME     	1
@@ -195,7 +196,7 @@ static inline void initDMA(void){
 		DMA_CCR_DIR |                           // Read from memory
 		DMA_CCR_TCIE;                           // Enable end of transfer interrupt
 	
-	DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~(DMA_CSELR_C1S)) | (DMA_REQUEST_4 << DMA_CSELR_C3S_Pos);
+	DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~(DMA_CSELR_C1S)) | (4 << DMA_CSELR_C3S_Pos);
 	NVIC_EnableIRQ(BZ_DMA_IRQ);
 #else
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;               // Enable DMA1

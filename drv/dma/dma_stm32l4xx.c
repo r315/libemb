@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 #include "stm32l4xx.h"
 #include "dma_stm32l4xx.h"
 #include "dma.h"
@@ -24,13 +25,15 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
 
     if(dma->stream == NULL){    
         if(request == 0){
-            __HAL_RCC_DMA1_CLK_ENABLE();
+            //__HAL_RCC_DMA1_CLK_ENABLE();
+            RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
             dma->per = DMA1;
             stream = (DMA_Channel_TypeDef*)((uint32_t)DMA1_Channel1 + (ch_num * 0x14));
             irq = DMA1_Channel1_IRQn + ch_num;
             DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~(15 << (ch_num << 2))) | (source << (ch_num << 2));
         }else{
-            __HAL_RCC_DMA2_CLK_ENABLE();
+            //__HAL_RCC_DMA2_CLK_ENABLE();
+            RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
             dma->per = DMA2;
             stream = (DMA_Channel_TypeDef*)((uint32_t)DMA2_Channel1 + (ch_num * 0x14));
             irq = (ch_num < 5) ? DMA2_Channel1_IRQn + ch_num : DMA2_Channel6_IRQn + ch_num;
@@ -65,7 +68,7 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
 
         if(dma->eot){
             config |= DMA_CCR_TCIE;  // enable terminal count
-            HAL_NVIC_EnableIRQ(irq);
+            NVIC_EnableIRQ(irq);
         }
 
         stream->CCR = config;
