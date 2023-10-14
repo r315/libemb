@@ -1,9 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "at32f4xx.h"
-#include "gpio_at32f4xx.h"
 #include "uart.h"
-#include "gpio.h"
 
 static serialbus_t *serial1, *serial2, *serial3;
 
@@ -27,9 +25,6 @@ void UART_Init(serialbus_t *serialbus){
             uart = USART1;
             serial1 = serialbus;
             irq = USART1_IRQn;
-
-            GPIO_Config(PA_9, GPIO_USART_TX);
-            GPIO_Config(PA_10, GPIO_USART_RX);
             break;
 
         case UART_BUS1:
@@ -42,9 +37,6 @@ void UART_Init(serialbus_t *serialbus){
             uart = USART2;
             serial2 = serialbus;
             irq = USART2_IRQn;
-
-            GPIO_Config(PA_2, GPIO_USART_TX);
-            GPIO_Config(PA_3, GPIO_USART_RX);  
             break;
 
         case UART_BUS2:
@@ -57,9 +49,6 @@ void UART_Init(serialbus_t *serialbus){
             uart = USART3;
             serial3 = serialbus;
             irq = USART3_IRQn;
-
-            GPIO_Config(PB_10, GPIO_USART_TX);
-            GPIO_Config(PB_11, GPIO_USART_RX);  
             break;
 
         default:

@@ -1,9 +1,7 @@
 #include <stddef.h>
 #include "at32f4xx.h"
 #include "dma_at32f4xx.h"
-#include "gpio_at32f4xx.h"
 #include "spi.h"
-#include "gpio.h"
 
 #define SPI_CTRL1_MDIV_Pos          3
 #define SPI_CTRL1_MDIV_DIV2         (0 << SPI_CTRL1_MDIV_Pos)
@@ -132,27 +130,35 @@ void SPI_Init(spibus_t *spidev){
     spidev->dma.src = NULL;
     spidev->dma.ssize = DMA_CCR_MSIZE_16;
     spidev->dma.dir = DMA_DIR_M2P;
-    spidev->dma.eot = (spi == SPI1) ? spi1Eot : spi2Eot;
-    DMA_Config(&spidev->dma, DMA1_REQ_SPI1_TX);
+
+    if(spi == SPI1){
+        spidev->dma.eot = spi1Eot;
+        DMA_Config(&spidev->dma, DMA1_REQ_SPI1_TX);
+    }else{
+        spidev->dma.eot = spi2Eot;
+        DMA_Config(&spidev->dma, DMA1_REQ_SPI2_TX);
+    }
+
+#if 0 /* in conclusion, to use full pin remaping pins have to be configured at board level */
 
     // Configure default pins, 
     // remapped or sw cs pin must be configure manually
     if(spi == SPI1){
-        GPIO_Config(PA_5, GPIO_SPI_SCK);
-        GPIO_Config(PA_6, GPIO_SPI_MISO);
-        GPIO_Config(PA_7, GPIO_SPI_MOSI);
+        GPIO_Config(PA_5, GPIO_SPI1_SCK);
+        GPIO_Config(PA_6, GPIO_SPI1_MISO);
+        GPIO_Config(PA_7, GPIO_SPI1_MOSI);
         if((spidev->flags & SPI_HW_CS) != 0){
-            GPIO_Config(PA_4, GPIO_SPI_CS);
+            GPIO_Config(PA_4, GPIO_SPI1_CS);
         }
     }else{
-        GPIO_Config(PB_13, GPIO_SPI_SCK);
-        GPIO_Config(PB_14, GPIO_SPI_MISO);
-        GPIO_Config(PB_15, GPIO_SPI_MOSI);
+        GPIO_Config(PB_13, GPIO_SPI2_SCK);
+        GPIO_Config(PB_14, GPIO_SPI2_MISO);
+        GPIO_Config(PB_15, GPIO_SPI2_MOSI);
         if((spidev->flags & SPI_HW_CS) != 0){
-            GPIO_Config(PA_12, GPIO_SPI_CS);
+            GPIO_Config(PA_12, GPIO_SPI2_CS);
         }
     }
-
+#endif
     spidev->ctrl = spi;
     spidev->flags |= SPI_ENABLED;
 }
