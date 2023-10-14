@@ -74,10 +74,58 @@ static inline void dma_irq_handler(uint8_t ch_num)
     }
 }
 
+void DMA1_Channel1_IRQHandler(void)
+{ 
+    if(DMA1->ISTS & DMA_ISTS_GIF1){
+        dma_irq_handler(0);
+        DMA1->ICLR = (DMA_ICLR_CGIF1 | DMA_ICLR_CTCIF1 | DMA_ICLR_CERRIF1);
+    }
+}
+
+void DMA1_Channel2_IRQHandler(void)
+{ 
+    if(DMA1->ISTS & DMA_ISTS_GIF2){
+        dma_irq_handler(1);
+        DMA1->ICLR = (DMA_ICLR_CGIF2 | DMA_ICLR_CTCIF2 | DMA_ICLR_CERRIF2);
+    }
+}
+
 void DMA1_Channel3_IRQHandler(void)
 { 
     if(DMA1->ISTS & DMA_ISTS_GIF3){
         dma_irq_handler(2);
         DMA1->ICLR = (DMA_ICLR_CGIF3 | DMA_ICLR_CTCIF3 | DMA_ICLR_CERRIF3);
+    }
+}
+
+void DMA1_Channel4_IRQHandler(void)
+{ 
+    if(DMA1->ISTS & DMA_ISTS_GIF4){
+        dma_irq_handler(3);
+        DMA1->ICLR = (DMA_ICLR_CGIF4 | DMA_ICLR_CTCIF4 | DMA_ICLR_CERRIF4);
+    }
+}
+
+void DMA1_Channel5_IRQHandler(void)
+{ 
+    if(DMA1->ISTS & DMA_ISTS_GIF5){
+        dma_irq_handler(4);
+        DMA1->ICLR = (DMA_ICLR_CGIF5 | DMA_ICLR_CTCIF5 | DMA_ICLR_CERRIF5);
+    }
+}
+
+void DMA1_Channel6_IRQHandler(void)
+{ 
+    if(DMA1->ISTS & DMA_ISTS_GIF6){
+        dma_irq_handler(5);
+        DMA1->ICLR = (DMA_ICLR_CGIF6 | DMA_ICLR_CTCIF6 | DMA_ICLR_CERRIF6);
+    }
+}
+
+void DMA1_Channel7_IRQHandler(void)
+{ 
+    if(DMA1->ISTS & DMA_ISTS_GIF7){
+        dma_irq_handler(6);
+        DMA1->ICLR = (DMA_ICLR_CGIF7 | DMA_ICLR_CTCIF7 | DMA_ICLR_CERRIF7);
     }
 }
