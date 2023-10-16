@@ -119,7 +119,10 @@ void SPI_Init(spibus_t *spidev){
 
     if((spidev->flags & SPI_HW_CS) != 0){
         spi->CTRL2 |=  SPI_CTRL2_NSSOE;
-    }            
+    }else{
+        // in master mode if not using HW CS, CS pin must keeped high
+        spi->CTRL1 |= SPI_CTRL1_ISS | SPI_CTRL1_SWNSSEN;
+    }
 
     spi->CTRL1 |= SPI_CTRL1_SPIEN;
     
