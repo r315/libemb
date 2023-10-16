@@ -10,7 +10,12 @@
 #ifndef _st7735_h_
 #define _st7735_h_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
+#include "drvlcd.h"
 
 #define TFT_ST7735S
 
@@ -73,25 +78,24 @@
 #define ST7735_MADCTL_RGB (1<<3)    // RGB-BGR order
 #define ST7735_MADCTL_MH  (1<<2)    // h-refresh order
 
-enum {
-    LCD_PORTRAIT = 0,
-    LCD_LANDSCAPE,
-    LCD_REVERSE_PORTRAIT,
-    LCD_REVERSE_LANDSCAPE
-};
+extern const drvlcd_t st7735_drv;
 
-void LCD_Init(void *ptr);
+void LCD_Init(void *parm);
 void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
 void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data);
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color);
 void LCD_Scroll(uint16_t sc);
-void LCD_SetOrientation(uint8_t m);
+void LCD_SetOrientation(orientation_t m);
 void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 void LCD_Data(uint16_t data);
 void LCD_Bkl(uint8_t state);
 uint16_t LCD_GetWidth(void);
 uint16_t LCD_GetHeight(void);
 uint32_t LCD_GetSize(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

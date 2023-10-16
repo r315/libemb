@@ -1,6 +1,9 @@
-#include "board.h"
+
+#include <stddef.h>
 #include "st7735.h"
 #include "spi.h"
+#include "gpio.h"
+#include "drvlcd.h"
 
 //--------------------------------
 // HW Display Memory settings
@@ -23,6 +26,7 @@
 #endif
 #endif
 
+#define ST7735_SPI_FREQ     4000    //4000kHz
 
 #ifdef TFT_BGR_FILTER
 // Applys for TFT's with BGR filter or IPS
@@ -31,20 +35,46 @@
 #define DEFAULT_MADCTL		0x00
 #endif
 
-#define pgm_read_byte(x) 	*((uint8_t*)(x))
 #define ST_CMD_DELAY		0x80
 
 static uint16_t _width, _height;
 #if TFT_OFFSET
 static uint8_t start_x, start_y;
 #endif
-static uint8_t scratch[4];
+
+#define LCD_CS1     GPIO_Write(drvlcd->cs, GPIO_PIN_HIGH)
+#define LCD_CS0     GPIO_Write(drvlcd->cs, GPIO_PIN_LOW)
+#define LCD_CD1     GPIO_Write(drvlcd->cd, GPIO_PIN_HIGH)
+#define LCD_CD0     GPIO_Write(drvlcd->cd, GPIO_PIN_LOW)
+#define LCD_BKL1    GPIO_Write(drvlcd->bkl, GPIO_PIN_HIGH)
+#define LCD_BKL0    GPIO_Write(drvlcd->bkl, GPIO_PIN_LOW)
+#define LCD_RST1    GPIO_Write(drvlcd->rst, GPIO_PIN_HIGH)        
+#define LCD_RST0    GPIO_Write(drvlcd->rst, GPIO_PIN_LOW)         
+
+const drvlcd_t st7735_drv = 
+{
+    LCD_Init,
+    LCD_FillRect,
+    LCD_WriteArea,
+    LCD_Pixel,
+    LCD_Scroll,
+    LCD_SetOrientation,
+    LCD_Window,
+    LCD_Data,
+    LCD_Bkl,
+    LCD_GetWidth,
+    LCD_GetHeight,
+    LCD_GetSize
+};
+
+static uint8_t scratch[4] __attribute__((aligned (16)));
+
+static drvlcdspi_t *drvlcd;
 static spibus_t *spidev;
 
+extern void DelayMs(uint32_t ms);
 static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 
-#if (TFT_W == 128) && (TFT_H == 160)
-#define st7735_init_seq st7735_128x160
 // Can't remember where I got this ...
 // Init for 7735R, part 1 (red or green tab)
 static const uint8_t st7735_128x160[] = {
@@ -97,8 +127,7 @@ static const uint8_t st7735_128x160[] = {
 		ST7735_DISPON ,    ST_CMD_DELAY, // 17: Main screen turn on, no args w/delay
 		100						  //      100 ms delay
 };
-#elif (TFT_W == 80) && (TFT_H == 160)
-#define st7735_init_seq st7735_80x160
+
 /**
  * Values for 132x162 GRAM, visible 80x160
  * Looks good on small 80x160 IPS display
@@ -159,9 +188,6 @@ static const uint8_t st7735_80x160 [] = {
 	ST7735_DISPON ,    ST_CMD_DELAY, // 18: Main screen turn on, no args w/delay
 	100						  //     100 ms delay
 };
-#else
-#error Define TFT_W and TFT_H
-#endif
 
 /**
  * @brief Writes command to display
@@ -189,18 +215,18 @@ static void LCD_InitSequence(const uint8_t *addr) {
 	uint8_t  numCommands, numArgs;
 	uint16_t ms;
 
-	numCommands = pgm_read_byte(addr++);       // Number of commands to follow
+	numCommands = *addr++;                     // Number of commands to follow
 	while(numCommands--) {                     // For each command...
-		LCD_Command(pgm_read_byte(addr++));    //   Read, issue command
-		numArgs  = pgm_read_byte(addr++);      //   Number of args to follow
-		ms       = numArgs & ST_CMD_DELAY;            //   If hibit set, delay follows args
-		numArgs &= ~ST_CMD_DELAY;                     //   Mask out delay bit
+		LCD_Command(*addr++);                  //   Read, issue command
+		numArgs  = *addr++;                    //   Number of args to follow
+		ms       = numArgs & ST_CMD_DELAY;     //   If hibit set, delay follows args
+		numArgs &= ~ST_CMD_DELAY;              //   Mask out delay bit
 		while(numArgs--) {                     //   For each argument...
 			SPI_Transfer(spidev, (uint8_t*)addr++, 1);  	   //   Read, issue argument
 		}
 
 		if(ms) {
-			ms = pgm_read_byte(addr++);        // Read post-command delay time (ms)
+			ms = *addr++;                       // Read post-command delay time (ms)
 			if(ms == 255) ms = 500;
 			DelayMs(ms);
 		}
@@ -212,7 +238,7 @@ static void LCD_InitSequence(const uint8_t *addr) {
  * 
  */
 static void LCD_WriteData(uint16_t *data, uint32_t count){
-	if(spidev->dma.per != NULL){
+	if(spidev->eot_cb != NULL){
 		spidev->flags |= SPI_16BIT;
 		SPI_TransferDMA(spidev, (uint8_t*)data, count);
 		//LCD_CS1; // SET by DMA handler
@@ -296,7 +322,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 	LCD_CS0;
 	LCD_Window(x, y, w, h);
 
-	if(spidev->dma.per != NULL){
+	if(spidev->eot_cb != NULL){
 		spidev->flags |= SPI_DMA_NO_MINC | SPI_16BIT;
 		*((uint16_t*)scratch) = color;
 		SPI_TransferDMA(spidev, (uint8_t*)scratch, count);
@@ -351,37 +377,59 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
 /**
  * @brief Display initialisation
  * */
-void LCD_Init(void *spi){
-	spidev = (spibus_t*)spi;
-	if(spidev->dma.per != NULL){
-		spidev->eot_cb = LCD_EOTHandler;
-	}
+void LCD_Init(void *param){
+    const uint8_t *init_seq;
 
-	LCD_CD1;
-	LCD_CS1;
-	LCD_BKL0;
-	LCD_RST0;
-	DelayMs(2);
-	LCD_RST1;
-	DelayMs(5);
+    if(param == NULL){
+        return;
+    }
 
-	LCD_CS0;
-	LCD_Command(ST7735_SWRESET);
-	LCD_CS1;
+    drvlcd = (drvlcdspi_t*)param;
+    spidev = &drvlcd->spidev;
 
-	DelayMs(150);
+    if(spidev == NULL){
+        return;
+    }
 
-	LCD_CS0;
-	LCD_InitSequence(st7735_init_seq);
-	LCD_CS1;
+    spidev->freq = ST7735_SPI_FREQ;
+
+    SPI_Init(spidev);
+
+    spidev->eot_cb = (spidev->dma.per != NULL) ? LCD_EOTHandler : NULL;
+
+    if ((drvlcd->w == 128) && (drvlcd->h == 160)){
+        init_seq = st7735_128x160;
+    }else if((drvlcd->w == 80) && (drvlcd->h == 160)){
+        init_seq = st7735_80x160;
+    }else{
+        return;
+    }
+
+    LCD_CD1;
+    LCD_CS1;
+    LCD_BKL0;
+    LCD_RST0;
+    DelayMs(2);
+    LCD_RST1;
+    DelayMs(5);
+
+    LCD_CS0;
+    LCD_Command(ST7735_SWRESET);
+    LCD_CS1;
+
+    DelayMs(150);
+
+    LCD_CS0;    
+    LCD_InitSequence(init_seq);    
+    LCD_CS1;
 
     #if TFT_OFFSET
-	// Set offset
-	start_x = TFT_OFFSET_SOURCE;
-	start_y = TFT_OFFSET_GATE;
+    // Set offset
+    start_x = TFT_OFFSET_SOURCE;
+    start_y = TFT_OFFSET_GATE;
     #endif
-	_width  = TFT_W;
-	_height = TFT_H;
+    _width  = drvlcd->w;
+    _height = drvlcd->h;
 }
 
 /**
@@ -396,8 +444,8 @@ void LCD_SetOrientation(uint8_t m) {
 	    start_x = TFT_OFFSET_SOURCE;
 	    start_y = TFT_OFFSET_GATE;
         #endif
-        _width  = TFT_W;
-        _height = TFT_H;
+        _width  = drvlcd->w;
+        _height = drvlcd->h;
         break;
         
     case LCD_LANDSCAPE:
@@ -406,8 +454,8 @@ void LCD_SetOrientation(uint8_t m) {
         start_x = TFT_OFFSET_GATE;
         start_y = TFT_OFFSET_SOURCE;
         #endif
-        _width  = TFT_H;
-        _height = TFT_W;
+        _width  = drvlcd->h;
+        _height = drvlcd->w;
         break;
 
     case LCD_REVERSE_PORTRAIT:
@@ -416,8 +464,8 @@ void LCD_SetOrientation(uint8_t m) {
         start_x = TFT_OFFSET_SOURCE;
         start_y = TFT_OFFSET_GATE;
         #endif
-        _width  = TFT_W;
-        _height = TFT_H;        
+        _width  = drvlcd->w;
+        _height = drvlcd->h;        
         break;
 
     case LCD_REVERSE_LANDSCAPE:
@@ -426,8 +474,8 @@ void LCD_SetOrientation(uint8_t m) {
 	    start_x = TFT_OFFSET_GATE;
 	    start_y = TFT_OFFSET_SOURCE;
         #endif
-        _width  = TFT_H;
-        _height = TFT_W;
+        _width  = drvlcd->h;
+        _height = drvlcd->w;
         break;
 
     default:
