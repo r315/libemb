@@ -89,28 +89,49 @@ typedef enum {
 #define PORTD   PD_0
 
 
-/**
- * Pin modes 
- * 
- * */
-#define GPO_2MHZ                    (2 << 0) 
-#define GPO_10MHZ                   (1 << 0)
-#define GPO_50MHZ                   (3 << 0)
-#define GPO_OD                      (1 << 2) // Open drain
-#define GPO_AF                      (2 << 2) // Alternative function
-#define GPO_AF_OD                   (3 << 2) // Alternative function open drain
+//Pin modes
+#define GPIO_IOM_INPUT             0
+#define GPIO_IOM_2MHZ              2
+#define GPIO_IOM_10MHZ             1
+#define GPIO_IOM_50MHZ             3
+// Pin function (output)
+#define GPIO_IOF_PP                 (0 << 2)
+#define GPIO_IOF_OD                 (1 << 2)
+#define GPIO_IOF_AF                 (2 << 2)
+#define GPIO_IOF_AF_OD              (3 << 2)
+// Pin function (input)
+#define GPIO_IOF_AN                 (0 << 2)
+#define GPIO_IOF_FLT                (1 << 2)
+#define GPIO_IOF_PD                 (2 << 2)
+#define GPIO_IOF_PU                 (3 << 2)
 
-#define GPI_ANALOG                  (0 << 0)
-#define GPI_FLOAT                   (1 << 2)
-#define GPI_PD                      (2 << 2)
-#define GPI_PU                      (6 << 2) // 2 | 4   
+#define GPO_LS                      (GPIO_IOF_PP | GPIO_IOM_2MHZ) 
+#define GPO_MS                      (GPIO_IOF_PP | GPIO_IOM_10MHZ)
+#define GPO_HS                      (GPIO_IOF_PP | GPIO_IOM_50MHZ)
+#define GPO_LS_OD                   (GPIO_IOF_OD | GPIO_IOM_2MHZ) 
+#define GPO_MS_OD                   (GPIO_IOF_OD | GPIO_IOM_10MHZ)
+#define GPO_HS_OD                   (GPIO_IOF_OD | GPIO_IOM_50MHZ)
+#define GPO_LS_AF                   (GPIO_IOF_AF | GPIO_IOM_2MHZ) 
+#define GPO_MS_AF                   (GPIO_IOF_AF | GPIO_IOM_10MHZ)
+#define GPO_HS_AF                   (GPIO_IOF_AF | GPIO_IOM_50MHZ)
+#define GPO_LS_AF_OD                (GPIO_IOF_AF_OD | GPIO_IOM_2MHZ) 
+#define GPO_MS_AF_OD                (GPIO_IOF_AF_OD | GPIO_IOM_10MHZ)
+#define GPO_HS_AF_OD                (GPIO_IOF_AF_OD | GPIO_IOM_50MHZ)
 
-#define PIN_RESET(_port, _pin) _port->BRR = (1 << _pin)
-#define PIN_SET(_port, _pin) _port->BSRR = (1 << _pin)
-        
+#define GPI_ANALOG                  (GPIO_IOF_AN | GPIO_IOM_INPUT)
+#define GPI_FLOAT                   (GPIO_IOF_FLT | GPIO_IOM_INPUT)
+#define GPI_PD                      (GPIO_IOF_PD | GPIO_IOM_INPUT)
+#define GPI_PU                      (GPIO_IOF_PU | GPIO_IOM_INPUT)
 
-#define GPIO_GET_PORT(name)          (name >> 4)
-#define GPIO_GET_PIN(name)           (name & 0x0f)
+#define GPIO_PIN_RESET(_port, _pin) _port->BRR = (1 << _pin)
+#define GPIO_PIN_SET(_port, _pin)   _port->BSRR = (1 << _pin)
+
+#define GPIO_NAME_TO_PORT(name)     (name >> 4)
+#define GPIO_NAME_TO_PIN(name)      (name & 15)
+#define GPIO_CFG_MASK(cfg)          (cfg & 15)
+#define GPIO_CFG_MASK_MODE(cfg)     (cfg & 3)
+#define GPIO_CFG_MASK_FUNC(cfg)     (cfg >> 2) & 3
+
 
 void GPIO_PORT_Write(pinName_e name, uint32_t value);
 uint32_t GPIO_PORT_Read(pinName_e name);
