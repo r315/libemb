@@ -30,9 +30,9 @@ void SPI_Init(spibus_t *spi){
 			LPC_PINCON->PINSEL0 = (LPC_PINCON->PINSEL0 & ~(P0_15_FUNC_MASK)) | (P0_15_SCK0 << P0_15_FUNC_POS);
 			LPC_PINCON->PINSEL1 = (LPC_PINCON->PINSEL1 & ~(P0_17_FUNC_MASK | P0_18_FUNC_MASK)) | 
 							  (P0_17_MISO0 << P0_17_FUNC_POS) | (P0_18_MOSI0 << P0_18_FUNC_POS);
-			if(spi->flags & SPI_HW_CS){
-				GPIO_Init(P0_16, P0_16_SSEL0);
-			}
+			//if(spi->flags & SPI_HW_CS){
+			//	GPIO_Init(P0_16, P0_16_SSEL0);
+			//}
 			break;
 
 		case SPI_BUS1:
@@ -41,9 +41,9 @@ void SPI_Init(spibus_t *spi){
         	psel = PCLK_SSP1;
 			LPC_PINCON->PINSEL0 = (LPC_PINCON->PINSEL0 & ~(P0_7_FUNC_MASK | P0_8_FUNC_MASK | P0_9_FUNC_MASK)) | 
 							(P0_7_SCK1 << P0_7_FUNC_POS) | (P0_8_MISO1 << P0_8_FUNC_POS) | (P0_9_MOSI1 << P0_9_FUNC_POS);
-			if(spi->flags & SPI_HW_CS){
-				GPIO_Init(P0_6, P0_6_SSEL1);
-			}
+			//if(spi->flags & SPI_HW_CS){
+			//	GPIO_Init(P0_6, P0_6_SSEL1);
+			//}
 			break;
 
 		case SPI_BUS2:	// Alternative pins for SSP0
@@ -53,9 +53,9 @@ void SPI_Init(spibus_t *spi){
 			LPC_PINCON->PINSEL3 = (LPC_PINCON->PINSEL0 & ~(P1_20_FUNC_MASK | P1_23_FUNC_MASK | P1_24_FUNC_MASK)) | 
 							(P1_20_SCK0 << P1_20_FUNC_POS) | (P1_23_MISO0 << P1_23_FUNC_POS) | (P1_24_MOSI0 << P1_24_FUNC_POS);
 			
-			if(spi->flags & SPI_HW_CS){
-				GPIO_Init(P1_21, P1_21_SSEL0);
-			}
+			//if(spi->flags & SPI_HW_CS){
+			//	GPIO_Init(P1_21, P1_21_SSEL0);
+			//}
 			break;
 
 	}

@@ -26,7 +26,7 @@
 #endif
 #endif
 
-#define ST7735_SPI_FREQ     4000    //4000kHz
+#define ST7735_SPI_FREQ     10000    //10000kHz
 
 #ifdef TFT_BGR_FILTER
 // Applys for TFT's with BGR filter or IPS
@@ -435,8 +435,8 @@ void LCD_Init(void *param){
 /**
  * @brief
  * */
-void LCD_SetOrientation(uint8_t m) {
-
+void LCD_SetOrientation(drvlcdorientation_t m) 
+{
 	switch (m) {
     case LCD_PORTRAIT:
         m = DEFAULT_MADCTL;

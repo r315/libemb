@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include "drvlcd.h"
 
 //-------------------------------------------------------------------
 #define LCD_REG_DRV_CODE		0x00
@@ -67,14 +68,28 @@ extern "C" {
 #define LCD_PANEL_IF_CTRL6		0x98
 #define LCD_DELAY               0xFF
 
+
+#define LCD_DRIV_OUT_CTRL_SM    (1 << 10)
+#define LCD_DRIV_OUT_CTRL_SS    (1 << 8)
+#define LCD_GATE_SCAN_CTRL1_GS  (1 << 15)
+#define LCD_GATE_SCAN_CTRL1_NL320  ((320/8) << 8)
+
+#define LCD_ENTRY_MOD_TRI       (1 << 15)
+#define LCD_ENTRY_MOD_DFM       (1 << 14)
+#define LCD_ENTRY_MOD_BGR       (1 << 12)
+#define LCD_ENTRY_MOD_ORG       (1 << 7)
+#define LCD_ENTRY_MOD_VI        (1 << 5)
+#define LCD_ENTRY_MOD_HI        (1 << 4)
+#define LCD_ENTRY_MOD_AM        (1 << 3)
+
 /*-------------------------------------------------------------------
  
   v-- origin in software
   ___________________ 
- | _______________   |	ORIENTATION90
- ||               |[]|	ENTRY MOD = 0x38
- ||               |  |	SHIFT DIR = 0x0000
- || ------        |[]|	SCAN CTRL1 = 0xA700
+ | _______________   |	Landscape
+ ||               |[]|	REG_03 = 0x38
+ ||               |  |	REG_01 = 0x0000
+ || ------        |[]|	REG_60 = 0xA700
  ||      /        |  |
  ||      ----->   |[]|
  ||               |  |
@@ -83,10 +98,10 @@ extern "C" {
   ^-- LCD's origin (0x0000)
   G320 
   ___________________ 
- | _______________   |	ORIENTATION270
- ||               |[]|	ENTRY MOD = 0x38
- ||               |  |	SHIFT DIR = 0x0100
- || <------       |[]|	SCAN CTRL1 = 0x2700
+ | _______________   |	Reversed Landscape
+ ||               |[]|	REG_03 = 0x38
+ ||               |  |	REG_01 = 0x0100
+ || <------       |[]|	REG_60 = 0x2700
  ||       /       |  |
  ||      ------   |[]|
  ||	              |  |
@@ -97,10 +112,10 @@ extern "C" {
 
   ________________
  | ______________ |		
- ||B             ||		default
- ||              ||		ENTRY MOD = 0x30
- || ------       ||		SHIFT DIR = 0x0100
- ||      /       ||		SCAN CTRL1 = 0x2700
+ ||B             ||		Portrait (default)
+ ||              ||		REG_03 = 0x30
+ || ------       ||		REG_01 = 0x0100
+ ||      /       ||		REG_60 = 0x2700
  ||      ------> ||		
  ||              ||
  ||              ||
@@ -111,10 +126,10 @@ extern "C" {
 
   ________________
  | ______________ |		
- ||             B||		decrement
- ||              ||		ENTRY MOD = 0x20
- ||       ------ ||		SHIFT DIR = 0x0100
- ||      \       ||		SCAN CTRL1 = 0x2700
+ ||             B||		Reversed portrait
+ ||              ||		REG_03 = 0x20
+ ||       ------ ||		REG_01 = 0x0100
+ ||      \       ||		REG_60 = 0x2700
  || <-----       ||		
  ||              ||
  ||              ||
@@ -127,11 +142,6 @@ extern "C" {
 //-------------------------------------------------------------------	
 
 #define LCD_ILI9328
-
-#define TFT_H 320
-#define TFT_W 240
-
-#define LCD_USE_ID
 
 #if 0//defined(LCD_LANDSCAPE)
 	#define VAL_ENTRY_MOD	0x0038 | BGR_BIT
@@ -171,12 +181,7 @@ extern "C" {
 	#define BGR_BIT (1<<12)
 #endif
 
-enum {
-    LCD_PORTRAIT = 0,
-    LCD_LANDSCAPE,
-    LCD_REVERSE_PORTRAIT,
-    LCD_REVERSE_LANDSCAPE
-};
+extern const drvlcd_t ili9328_drv;
 
 void LCD_Init(void *param);
 void LCD_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);

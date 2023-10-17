@@ -1,6 +1,5 @@
 #include <stddef.h>
 #include "lpc17xx_hal.h"
-#include "timer.h"
 
 typedef struct stimer{
     uint32_t interval;
@@ -149,10 +148,10 @@ void TIM_Capture(LPC_TIM_TypeDef *tim, uint8_t mrx, uint8_t edge, void (*func)(u
 
     // Configure GPIO pin
     if(mrx == 0){
-        GPIO_Init(P0_23, P0_23_CAP3_0); 
+        GPIO_Config(P0_23, P0_23_CAP3_0); 
     }
     else{
-        GPIO_Init(P0_24, P0_24_CAP3_1);
+        GPIO_Config(P0_24, P0_24_CAP3_1);
     }
     
     tim_cap_cb = func;

@@ -36,12 +36,12 @@ extern "C" {
     #define RGB565(r,g,b)  (uint16_t)(((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b & 0xF8) >> 3)
 #endif
 
-typedef enum orientation_e{
+typedef enum drvlcdorientation_e{
     LCD_PORTRAIT = 0,
     LCD_LANDSCAPE,
     LCD_REVERSE_PORTRAIT,
     LCD_REVERSE_LANDSCAPE
-}orientation_t;
+}drvlcdorientation_t;
 
 typedef struct drvlcdspi_s {
     uint16_t w;
@@ -61,12 +61,17 @@ typedef struct drvlcdi2c_s {
     i2cbus_t i2cdev;
 }drvlcdi2c_t;
 
-typedef struct drvparallel_s {
+typedef struct drvlcdparallel_s {
     uint16_t w;
     uint16_t h;
     uint8_t rst;
     uint8_t bkl;
-}drvparallel_s;
+    uint8_t wr;
+    uint8_t rd;
+    uint8_t cd;
+    uint8_t cs;
+    void (*write)(uint32_t);
+}drvlcdparallel_s;
 
 typedef struct drvlcd_s{
     void (*init)(void *param);
@@ -74,7 +79,7 @@ typedef struct drvlcd_s{
     void (*drawArea)(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data);
     void (*drawPixel)(uint16_t x, uint16_t y, uint16_t color);
     void (*scrollScreen)(uint16_t sc);
-    void (*setOrientation)(orientation_t m);
+    void (*setOrientation)(drvlcdorientation_t m);
     void (*setWindow)(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
     void (*data)(uint16_t dta);
     void (*setBacklight)(uint8_t state);

@@ -1,9 +1,9 @@
 #include "gpio_lpc17xx.h"
 
-#define NAME_TO_POS(name)       name & (32 - 1)
-#define NAME_TO_OFS(name)       (name >> 2) & 0x38
-#define NAME_TO_POS2(name)      (name & 0x0f) << 1
-#define NAME_TO_OFS2(name)      (name >> 4)
+#define NAME_TO_BIT(name)        (name & 0x1f)          // One bit masking
+#define NAME_TO_OFS(name)        ((name & 0x60) >> 2)   // offset divide by 4 since is added as uint32_t
+#define NAME_TO_BIT_2(name)      ((name & 0x0f) << 1)   // Two bit masking
+#define NAME_TO_OFS_2(name)      (name >> 4)
 
 /**
  * @brief GPIO pin configuration.
@@ -21,10 +21,30 @@
  *                  PIN_IN_FLOAT,
  *                  PIN_IN_PD,
  * */
-void GPIO_Init(pinName_e name, uint8_t cfg){    
-    GPIO_Function(name, cfg);
-    GPIO_Mode(name, cfg >> PIN_MODE_POS);
-    GPIO_Direction(name, cfg & PIN_OUT_PP);
+void GPIO_Config(uint32_t name, uint32_t cfg){    
+    uint8_t bit_pos = NAME_TO_BIT_2(name);
+    uint8_t ofs = NAME_TO_OFS_2(name);
+
+    // Config function
+    __IO uint32_t *reg = &LPC_PINCON->PINSEL0 + ofs;
+    uint8_t tmp = PIN_MASK_FUNC(cfg);
+    *reg = (*reg & ~(3 << bit_pos)) | (tmp << bit_pos);
+    // Mode
+    reg = &LPC_PINCON->PINMODE0 + ofs;
+    tmp = PIN_MASK_MODE(cfg);
+    *reg = (*reg & ~(3 << bit_pos)) | (tmp << bit_pos);
+
+    if(cfg & PIN_TYPE_OD){
+        ofs = ofs >> 1;
+        reg = &LPC_PINCON->PINMODE_OD0 + ofs;
+        *reg |= (1 << bit_pos);
+    }
+    
+    // Direction
+    bit_pos = NAME_TO_BIT(name);
+    ofs = NAME_TO_OFS(name);
+    reg = (uint32_t*)&LPC_GPIO0->FIODIR + ofs;
+    *reg = (cfg & PIN_DIR_OUT) ? *reg | (1 << bit_pos) : *reg & ~(1 << bit_pos);
 }
 
 /**
@@ -38,12 +58,12 @@ void GPIO_Init(pinName_e name, uint8_t cfg){
  *                      PIN_FUNC2,
  *                      PIN_FUNC3,
  * */
-void GPIO_Function(pinName_e name, uint8_t func){
-    uint8_t bit_pos = NAME_TO_POS2(name);
-    uint8_t ofs = NAME_TO_OFS2(name);
+void GPIO_Function(uint32_t name, uint32_t func){
+    uint8_t bit_pos = NAME_TO_BIT_2(name);
+    uint8_t ofs = NAME_TO_OFS_2(name);
 
     __IO uint32_t *pinsel = &LPC_PINCON->PINSEL0 + ofs;
-    func = func & PIN_FUNC_MASK;
+    func = PIN_MASK_FUNC(func);
     *pinsel = (*pinsel & ~(3 << bit_pos)) | (func << bit_pos);
 }
 
@@ -60,14 +80,14 @@ void GPIO_Function(pinName_e name, uint8_t func){
  *                  PIN_MODE_PP,
  *                  PIN_MODE_OD
  */
-void GPIO_Mode(pinName_e name, uint8_t mode){
-    uint8_t bit_pos = NAME_TO_POS2(name);
-    uint8_t ofs = NAME_TO_OFS2(name);
+void GPIO_Mode(uint32_t name, uint32_t mode){
+    uint8_t bit_pos = NAME_TO_BIT_2(name);
+    uint8_t ofs = NAME_TO_OFS_2(name);
     __IO uint32_t *reg = &LPC_PINCON->PINMODE0 + ofs;    
 
-    *reg = (*reg & ~(3 << bit_pos)) | ((mode & PIN_FUNC_MASK) << bit_pos);
+    *reg = (*reg & ~(3 << bit_pos)) | (PIN_MASK_MODE(mode) << bit_pos);
 
-    if(mode & PIN_MODE_OD){
+    if(mode & PIN_TYPE_OD){
         ofs = ofs >> 1;
         reg = &LPC_PINCON->PINMODE_OD0 + ofs;
         *reg |= (1 << bit_pos);
@@ -80,12 +100,12 @@ void GPIO_Mode(pinName_e name, uint8_t mode){
  * @param name      : Pin name
  * @param dir       : 0: input, output otherwise
  */
-void GPIO_Direction(pinName_e name, uint8_t dir){
-    uint8_t bit_pos = NAME_TO_POS(name);
+void GPIO_Direction(uint32_t name, uint32_t dir){
+    uint8_t bit_pos = NAME_TO_BIT(name);
     uint8_t ofs = NAME_TO_OFS(name);
     __IO uint32_t *reg = (uint32_t*)&LPC_GPIO0->FIODIR + ofs;
 
-    *reg = (dir == 0) ? *reg & ~(1 << bit_pos) : *reg | (1 << bit_pos);
+    *reg = (dir & PIN_DIR_OUT) ? *reg | (1 << bit_pos) : *reg & ~(1 << bit_pos);
 }
 
 /**
@@ -94,8 +114,8 @@ void GPIO_Direction(pinName_e name, uint8_t dir){
  * @param name 
  * @param state 
  */
-void GPIO_Write(pinName_e name, uint8_t state){
-    uint8_t bit_pos = NAME_TO_POS(name);
+void GPIO_Write(uint32_t name, uint32_t state){
+    uint8_t bit_pos = NAME_TO_BIT(name);
     uint8_t ofs = NAME_TO_OFS(name);
     __IO uint32_t *reg = ((state == GPIO_LOW) ? (uint32_t*)&LPC_GPIO0->FIOCLR : (uint32_t*)&LPC_GPIO0->FIOSET) + ofs;
 
@@ -108,8 +128,8 @@ void GPIO_Write(pinName_e name, uint8_t state){
  * @param name 
  * @return uint32_t 
  */
-uint32_t GPIO_Read(pinName_e name){
-    uint8_t bit_pos = NAME_TO_POS(name);
+uint32_t GPIO_Read(uint32_t name){
+    uint8_t bit_pos = NAME_TO_BIT(name);
     uint8_t ofs = NAME_TO_OFS(name);
     __IO uint32_t *reg = (uint32_t*)&LPC_GPIO0->FIOPIN + ofs;
 
@@ -121,8 +141,8 @@ uint32_t GPIO_Read(pinName_e name){
  * 
  * @param name 
  */
-void GPIO_Toggle(pinName_e name){
-    uint8_t bit_pos = NAME_TO_POS(name);
+void GPIO_Toggle(uint32_t name){
+    uint8_t bit_pos = NAME_TO_BIT(name);
     uint8_t ofs = NAME_TO_OFS(name);
     __IO uint32_t *reg = (uint32_t*)&LPC_GPIO0->FIOPIN + ofs;
 

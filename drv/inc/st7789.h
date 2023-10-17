@@ -115,12 +115,6 @@ extern "C" {
 #define COLOR_MODE_18BIT  0x06
 #define COLOR_MODE_16M    0x07
 
-enum {
-    LCD_PORTRAIT = 0,
-    LCD_LANDSCAPE,
-    LCD_REVERSE_PORTRAIT,
-    LCD_REVERSE_LANDSCAPE
-};
 
 void LCD_Init(void *ptr);
 void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);

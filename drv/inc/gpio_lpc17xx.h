@@ -38,7 +38,11 @@ extern "C" {
 #define SETOUTPUT(x) GPIO0->FIODIR |= x
 #define SETINPUT(x) GPIO0->FIODIR &= ~(x)
 
-/* ****** PINSEL bit positions ****** */
+/**
+ * PINSEL bit positions 
+ * 
+ * mask: 0x00PPbbbbb
+ * */
 typedef enum pinName{
   P0_0 = 0,
   P0_1,
@@ -128,29 +132,38 @@ typedef enum pinName{
   * b7 | b6 | b5 | b4  | b3 b2 | b1 b0
   *         | od | dir | mode  | func
   */
-#define PIN_FUNC_POS        0
-#define PIN_MODE_POS        2
-#define PIN_DIR_POS         4
-#define PIN_OD_POS          5
+ #define PIN_FUNC_Pos       0
+ #define PIN_MODE_Pos       2
+ #define PIN_DIR_Pos        4
+ #define PIN_TYPE_Pos       5
+// GPIO func
+#define PIN_FUNC0           (0 << PIN_FUNC_Pos)
+#define PIN_FUNC1           (1 << PIN_FUNC_Pos)
+#define PIN_FUNC2           (2 << PIN_FUNC_Pos)
+#define PIN_FUNC3           (3 << PIN_FUNC_Pos)
+#define PIN_MASK_FUNC(T)    ((T >> PIN_FUNC_Pos) & 3)
+// GPIO modes
+#define PIN_MODE_PU         (0 << PIN_MODE_Pos)
+#define PIN_MODE_REPEATER   (1 << PIN_MODE_Pos2)
+#define PIN_MODE_FLOAT      (1 << PIN_MODE_Pos)
+#define PIN_MODE_PD         (3 << PIN_MODE_Pos)
+#define PIN_MASK_MODE(T)    ((T >> PIN_MODE_Pos) & 3)
+// GPIO Direction
+#define PIN_DIR_IN          (0 << PIN_DIR_Pos)
+#define PIN_DIR_OUT         (1 << PIN_DIR_Pos)
+#define PIN_MASK_DIR(T)     ((T >> PIN_DIR_Pos) & 1)
+// GPIO Type
+#define PIN_TYPE_PP         (0 << PIN_TYPE_Pos)
+#define PIN_TYPE_OD         (1 << PIN_TYPE_Pos)
+#define PIN_MASK_TYPE       ((T >> PIN_TYPE_Pos) & 1)
 
-#define PIN_FUNC0           0
-#define PIN_FUNC1           1
-#define PIN_FUNC2           2
-#define PIN_FUNC3           3
-#define PIN_MODE_PU         0
-#define PIN_MODE_REPEATER   1
-#define PIN_MODE_FLOAT      2
-#define PIN_MODE_PD         3
-#define PIN_MODE_PP         4
-#define PIN_MODE_OD         8
 
-#define PIN_FUNC_MASK       (3 << 0)
-#define PIN_IN_PU           (PIN_MODE_PU << PIN_MODE_POS)
-#define PIN_IN_REPEATER     (PIN_MODE_REPEATER << PIN_MODE_POS)
-#define PIN_IN_FLOAT        (PIN_MODE_FLOAT << PIN_MODE_POS)
-#define PIN_IN_PD           (PIN_MODE_PD << PIN_MODE_POS)
-#define PIN_OUT_PP          (PIN_MODE_PP << PIN_MODE_POS)
-#define PIN_OUT_OD          (PIN_MODE_OD << PIN_MODE_POS)
+#define GPI_REPEATER        (PIN_MODE_REPEATER | PIN_FUNC0)
+#define GPI_FLT             (PIN_MODE_FLOAT | PIN_FUNC0)
+#define GPI_PU              (PIN_MODE_PU | PIN_FUNC0)
+#define GPI_PD              (PIN_MODE_PD | PIN_FUNC0)
+#define GPO_PP              (PIN_DIR_OUT | PIN_FUNC0)
+#define GPO_OD              (PIN_TYPE_OD | PIN_DIR_OUT | PIN_FUNC0)
 
 #define P0_4_I2SRX_CLK      PIN_FUNC1
 #define P0_5_I2SRX_WS       PIN_FUNC1
@@ -304,13 +317,13 @@ typedef enum pinName{
 #define P1_24_FUNC_MASK     (3 << P0_18_FUNC_POS)
 
 
-void GPIO_Init(pinName_e name, uint8_t cfg);
-void GPIO_Function(pinName_e name, uint8_t func);
-void GPIO_Mode(pinName_e name, uint8_t mode);
-void GPIO_Direction(pinName_e name, uint8_t mode);
-void GPIO_Write(pinName_e name, uint8_t state);
-void GPIO_Toggle(pinName_e name);
-uint32_t GPIO_Read(pinName_e name);
+void GPIO_Config(uint32_t name, uint32_t cfg);
+void GPIO_Function(uint32_t name, uint32_t func);
+void GPIO_Mode(uint32_t name, uint32_t mode);
+void GPIO_Direction(uint32_t name, uint32_t mode);
+void GPIO_Write(uint32_t name, uint32_t state);
+void GPIO_Toggle(uint32_t name);
+uint32_t GPIO_Read(uint32_t name);
 
 #ifdef __cplusplus
 }
