@@ -1,7 +1,13 @@
 #ifndef _at32f4xx_h_
 #define _at32f4xx_h_
 
-enum {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
+
+typedef enum {
     PA_0 = 0,
     PA_1,
     PA_2,
@@ -103,7 +109,7 @@ enum {
     PF_13,
     PF_14,
     PF_15,
-};
+}pinName_e;
 
 // Mode Option
 #define GPIO_IOM_IN         0 // Input
@@ -142,22 +148,24 @@ enum {
 
 #define GPIO_NAME_TO_PORT(name)     (name >> 4)
 #define GPIO_NAME_TO_PIN(name)      (name & 15)
-#define GPIO_FUNCTION_TO_REG(func)  (func >> 8)
+#define GPIO_CFG_MASK(cfg)          (cfg & 15)
+#define GPIO_CFG_MODE_MASK(cfg)     (cfg & 3)
+#define GPIO_CFG_FUNC_MASK(cfg)     ((cfg >> & 3)
 
-#define GPIO_SPI1_CS        (GPO_LS_AF)
-#define GPIO_SPI1_SCK       (GPO_LS_AF)
-#define GPIO_SPI1_MOSI      (GPO_LS_AF)
-#define GPIO_SPI1_MISO      (GPO_LS_AF)
-#define GPIO_SPI2_CS        (GPO_LS_AF)
-#define GPIO_SPI2_SCK       (GPO_LS_AF)
-#define GPIO_SPI2_MOSI      (GPO_LS_AF)
-#define GPIO_SPI2_MISO      (GPO_LS_AF)
-#define GPIO_USART1_TX      (GPO_LS_AF)
-#define GPIO_USART1_RX      (GPO_LS_AF)
-#define GPIO_USART2_TX      (GPO_LS_AF)
-#define GPIO_USART2_RX      (GPO_LS_AF)
-#define GPIO_USART3_TX      (GPO_LS_AF)
-#define GPIO_USART3_RX      (GPO_LS_AF)
+#define GPIO_SPI1_CS        (GPO_MS_AF)
+#define GPIO_SPI1_SCK       (GPO_HS_AF)
+#define GPIO_SPI1_MOSI      (GPO_HS_AF)
+#define GPIO_SPI1_MISO      (GPO_HS_AF)
+#define GPIO_SPI2_CS        (GPO_MS_AF)
+#define GPIO_SPI2_SCK       (GPO_HS_AF)
+#define GPIO_SPI2_MOSI      (GPO_HS_AF)
+#define GPIO_SPI2_MISO      (GPO_HS_AF)
+#define GPIO_USART1_TX      (GPO_MS_AF)
+#define GPIO_USART1_RX      (GPI_FLOAT)
+#define GPIO_USART2_TX      (GPO_MS_AF)
+#define GPIO_USART2_RX      (GPO_MS_AF)
+#define GPIO_USART3_TX      (GPO_MS_AF)
+#define GPIO_USART3_RX      (GPO_MS_AF)
 
 
 // Alternative functions remapping (wip)
@@ -179,6 +187,8 @@ enum {
 #define GPIO_PB3_I2S2_CK    (GPIO_AF_REMAP | GPIO_AF_I2S2)
 #define GPIO_PB3_TMR2_CH2   (GPIO_AF_REMAP | GPIO_AF_TMR2)
 
-void GPIO_Function(uint32_t name, uint32_t mux);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

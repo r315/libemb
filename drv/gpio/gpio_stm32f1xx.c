@@ -1,7 +1,18 @@
+#include <stdlib.h>
 #include "stm32f103xb.h"
 #include "gpio_stm32f1xx.h"
 
 static const uint32_t ports[] = {GPIOA_BASE, GPIOB_BASE, GPIOC_BASE, GPIOD_BASE, GPIOE_BASE};
+
+static GPIO_TypeDef *getPort(pinName_e name)
+{
+    uint8_t pidx = GPIO_NAME_TO_PORT(name);
+    if(pidx > sizeof(ports)/sizeof(ports[0])){
+        return NULL;
+    }
+
+    return (GPIO_TypeDef*)ports[pidx];
+}
 
 /**
  * @brief Configure GPIO pin
@@ -11,15 +22,13 @@ static const uint32_t ports[] = {GPIOA_BASE, GPIOB_BASE, GPIOC_BASE, GPIOD_BASE,
  *           
  * */
 void GPIO_Config(pinName_e name, uint8_t cfg) {
+    GPIO_TypeDef *port;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
-    name = GPIO_NAME_TO_PORT(name);
 
-    if(name > 3){
-        return;     // invalid port
+    if ((port = getPort(name)) == NULL) {
+        return;
     }
     
-    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[name];
-
     cfg = GPIO_CFG_MASK(cfg);
 
     if(pin <  8){ 
@@ -35,60 +44,55 @@ void GPIO_Config(pinName_e name, uint8_t cfg) {
     }
 }
 
-uint32_t GPIO_Read(uint32_t name){
-    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[GPIO_NAME_TO_PORT(name)];
+uint32_t GPIO_Read(pinName_e name){
+    GPIO_TypeDef *port;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
+
+    if ((port = getPort(name)) == NULL) {
+        return 0xFFFFFFFF;
+    }
 
     return !!(port->IDR & (1 << pin));
 }
 
 void GPIO_Write(pinName_e name, uint8_t state){
+    GPIO_TypeDef *port;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
-    name = GPIO_NAME_TO_PORT(name);
-
-    if(name > 3){
-        return;     // invalid port
+    
+    if ((port = getPort(name)) == NULL) {
+        return;
     }
     
-    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[name];
-
-    port->BSRR = (state != 0)? (1<<pin) : (1<<(pin+16));
+    port->BSRR = (state != 0)? (1 << pin) : (0x10000 << pin);
 }
 
 void GPIO_Toggle(pinName_e name){    
+    GPIO_TypeDef *port;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
 
-    name = GPIO_NAME_TO_PORT(name);
-
-    if(name > 3){
-        return;     // invalid port
+    if ((port = getPort(name)) == NULL) {
+        return;
     }
-    
-    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[name];
 
     port->ODR = port->IDR ^ (1<<pin);
 }
 
 void GPIO_PORT_Write(pinName_e name, uint32_t value){
-    name = GPIO_NAME_TO_PORT(name);
+    GPIO_TypeDef *port;
 
-    if(name > 3){
-        return;     // invalid port
+    if ((port = getPort(name)) == NULL) {
+        return;
     }
-    
-    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[name];
 
     port->ODR = value;
 }
 
 uint32_t GPIO_PORT_Read(pinName_e name){
-    name = GPIO_NAME_TO_PORT(name);
+    GPIO_TypeDef *port;
 
-    if(name > 3){
-        return -1;     // invalid port
+    if ((port = getPort(name)) == NULL) {
+        return 0;
     }
-    
-    GPIO_TypeDef *port = (GPIO_TypeDef*)ports[name];
 
     return port->IDR;
 }

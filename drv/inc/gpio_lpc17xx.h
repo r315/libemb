@@ -317,14 +317,6 @@ typedef enum pinName{
 #define P1_24_FUNC_MASK     (3 << P0_18_FUNC_POS)
 
 
-void GPIO_Config(uint32_t name, uint32_t cfg);
-void GPIO_Function(uint32_t name, uint32_t func);
-void GPIO_Mode(uint32_t name, uint32_t mode);
-void GPIO_Direction(uint32_t name, uint32_t mode);
-void GPIO_Write(uint32_t name, uint32_t state);
-void GPIO_Toggle(uint32_t name);
-uint32_t GPIO_Read(uint32_t name);
-
 #ifdef __cplusplus
 }
 #endif

@@ -92,8 +92,6 @@ typedef enum {
 #define PORTC   PC_0
 #define PORTD   PD_0
 
-#define PA1_SPI1_SCK    5
-#define PA7_SPI1_MOSI   5
 
 /**
  * Pin configuration
@@ -106,29 +104,50 @@ typedef enum {
  * OD[0]        0: PP, 1: OD
  * 
  * */
-#define GPIO_OD                     (1 << 6)
-#define GPIO_PU                     (1 << 4)
-#define GPIO_PD                     (2 << 4)
+#define GPIO_IOM_IN                 (0 << 0)
+#define GPIO_IOM_PP                 (1 << 0)
+#define GPIO_IOM_AF                 (2 << 0)
+#define GPIO_IOM_AN                 (3 << 0)
 
-#define GPI_ANALOG                  (3 << 0)
-#define GPI_FLOAT                   (0 << 0)
-#define GPI_PU                      GPIO_PU
-#define GPI_PD                      GPIO_PD
+#define GPIO_IOS_LS                 (0 << 2)
+#define GPIO_IOS_MS                 (1 << 2)
+#define GPIO_IOS_HS                 (2 << 2)
+#define GPIO_IOS_VHS                (3 << 2)
 
-#define GPO_LS                      ((0 << 2) | (1 << 0))  // Can be combined with GPIO_OD or GPIO_PU/GPIO_PD
-#define GPO_MS                      ((1 << 2) | (1 << 0))
-#define GPO_HS                      ((2 << 2) | (1 << 0))
-#define GPO_VHS                     ((3 << 2) | (1 << 0))
-#define GPO_AF_LS                   ((0 << 2) | (2 << 0))  // Can be combined with GPIO_OD or GPIO_PU/GPIO_PD
-#define GPO_AF_MS                   ((1 << 2) | (2 << 0))
-#define GPO_AF_HS                   ((2 << 2) | (2 << 0))
-#define GPO_AF_VHS                  ((3 << 2) | (2 << 0))
+#define GPIO_IOP_FL                 (0 << 4)
+#define GPIO_IOP_PU                 (1 << 4)
+#define GPIO_IOP_PD                 (2 << 4)
+
+#define GPIO_IOT_PP                 (0 << 6)
+#define GPIO_IOT_OD                 (1 << 6)
+
+#define GPI_ANALOG                  (GPIO_IOM_AN)
+#define GPI_FLOAT                   (GPIO_IOP_FL | GPIO_IOM_IN)
+#define GPI_PU                      (GPIO_IOP_PU | GPIO_IOM_IN)
+#define GPI_PD                      (GPIO_IOP_PD | GPIO_IOM_IN)
+
+#define GPO_LS                      (GPIO_IOS_LS | GPIO_IOM_PP)
+#define GPO_MS                      (GPIO_IOS_MS | GPIO_IOM_PP)
+#define GPO_HS                      (GPIO_IOS_HS | GPIO_IOM_PP)
+#define GPO_VHS                     (GPIO_IOS_VHS | GPIO_IOM_PP)
+#define GPO_LS_AF                   (GPIO_IOS_LS | GPIO_IOM_AF)
+#define GPO_MS_AF                   (GPIO_IOS_MS | GPIO_IOM_AF)
+#define GPO_HS_AF                   (GPIO_IOS_HS | GPIO_IOM_AF)
+#define GPO_VHS_AF                  (GPIO_IOS_VHS | GPIO_IOM_AF)
 
 #define GPIO_PIN_FAST_RESET(_port, _pin) _port->BRR = (1 << _pin)
 #define GPIO_PIN_FAST_SET(_port, _pin)   _port->BSRR = (1 << _pin)
 
 #define GPIO_NAME_TO_PORT(name)          (name >> 4)
 #define GPIO_NAME_TO_PIN(name)           (name & 0x0f)
+
+#define GPIO_CFG_MODE_MASK(cfg)     (cfg & 3)
+#define GPIO_CFG_SPEED_MASK(cfg)    ((cfg >> 2) & 3)
+#define GPIO_CFG_PULL_MASK(cfg)     ((cfg >> 4) & 3)
+#define GPIO_CFG_TYPE_MASK(cfg)     (cfg & GPIO_IOT_OD)
+#define GPIO_CFG_FUNC_MASK(cfg)     ((cfg >> 8) & 0xF)
+
+#define GPIO_AF_SPI1_SPI2           ((5 << 8) | GPO_HS_AF)
 
 void GPIO_PORT_Write(pinName_e name, uint32_t value);
 uint32_t GPIO_PORT_Read(pinName_e name);
