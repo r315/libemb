@@ -202,9 +202,11 @@ static void LCD_Command(uint8_t data){
  * @brief Write 16bit data with big-endian (msb first)
  */
 void LCD_Data(uint16_t data){
+    LCD_CS0;
 	scratch[0] = data >> 8;
 	scratch[1] = data;
 	SPI_Transfer(spidev, scratch, 2);
+    LCD_CS1;
 }
 
 /**
@@ -243,8 +245,12 @@ static void LCD_WriteData(uint16_t *data, uint32_t count){
 		SPI_TransferDMA(spidev, (uint8_t*)data, count);
 		//LCD_CS1; // SET by DMA handler
 	}else{
-		while(count--)
-			LCD_Data(*data++);
+		while(count--){
+            scratch[0] = data[0] >> 8;
+	        scratch[1] = data[0];
+	        SPI_Transfer(spidev, scratch, 2);
+            data++;
+        }
 		LCD_CS1;
 	}	
 }
@@ -298,7 +304,12 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
     x += start_x;
 	y += start_y;
     #endif
+    
+    SPI_WaitEOT(spidev);
+
+    LCD_CS0;
 	LCD_CasRasSet(x, y, x + (w - 1), y + (h - 1));
+    LCD_CS1;
 }
 
 /**
@@ -317,19 +328,20 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
         return;
     }
 
-	SPI_WaitEOT(spidev);
-
-	LCD_CS0;
 	LCD_Window(x, y, w, h);
 
+	LCD_CS0;
 	if(spidev->eot_cb != NULL){
 		spidev->flags |= SPI_DMA_NO_MINC | SPI_16BIT;
 		*((uint16_t*)scratch) = color;
 		SPI_TransferDMA(spidev, (uint8_t*)scratch, count);
 		//LCD_CS1; // SET by DMA handler	
 	}else{
-		while(count--)
-			LCD_Data(color);
+        scratch[0] = color >> 8;
+	    scratch[1] = color;
+		while(count--){
+	        SPI_Transfer(spidev, scratch, 2);
+        }
 		LCD_CS1;
 	}
 }
@@ -349,10 +361,10 @@ void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *dat
     if(!count){
         return;
     }
-
-	SPI_WaitEOT(spidev);
-    LCD_CS0;
+    
     LCD_Window(x, y, w, h);
+    
+    LCD_CS0;
     LCD_WriteData(data, count);
 }
 
@@ -365,11 +377,15 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
     x += start_x;
 	y += start_y;
     #endif
-	SPI_WaitEOT(spidev);
+    
+    scratch[0] = color >> 8;
+	scratch[1] = color;
 
-	LCD_CS0;
-	LCD_CasRasSet(x, y, x, y);
-	LCD_Data(color);
+	SPI_WaitEOT(spidev);
+	
+    LCD_CS0;
+	LCD_CasRasSet(x, y, x, y);	
+	SPI_Transfer(spidev, scratch, 2);
 	LCD_CS1;
 }
 
@@ -496,11 +512,14 @@ void LCD_SetOrientation(drvlcdorientation_t m)
  */
 void LCD_Scroll(uint16_t sc){
 
-	SPI_WaitEOT(spidev);
+    scratch[0] = sc >> 8;
+	scratch[1] = sc;
+	
+    SPI_WaitEOT(spidev);
 
 	LCD_CS0;
 	LCD_Command(ST7735_VSCSAD);
-	LCD_Data(sc);
+	SPI_Transfer(spidev, scratch, 2);
 	LCD_CS1;
 }
 
