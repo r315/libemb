@@ -1,11 +1,25 @@
+/**
+ * Basic windows bmp file to c header converter
+ * 
+ * Usage: bmp2header -f <file.bmp> [options]
+ * 
+ * -o <filename> output filename
+ * -b <n> output bpp
+ * -c <n> Number of columns on out put array
+ * -k Rotate image 90º
+ * -i Header information
+ * -p pack data
+ */
 const fs = require('fs')
 var opts = require('minimist')(process.argv.slice(2));
 
 const BPP = {
     "BPP1": 1,
     "BPP2": 2,
+    "BPP4": 4,
     "BPP8": 8,
-    "BPP16": 16
+    "BPP16": 16,
+    "BPP24": 24
 }
 
 function printBytes(filename, cb) {
@@ -24,182 +38,313 @@ function printBytes(filename, cb) {
     }
 }
 
-function int32FromArr(a, o) { return a[o] | a[o + 1] << 8 | a[o + 2] << 16 | a[o + 3] }
-function int16FromArr(a, o) { return a[o] | a[o + 1] << 8 }
+function printBmpHeader(bmpRawData)
+{
+    let bmp = getBmpHeader(bmpRawData)
 
-/**
-    
-*/
-function convertBmp(bmpArray, outbpp) {
-    if (bmpArray[0] != 66 || bmpArray[1] != 77){ //BM
+    if(bmp == null){
+        return
+    }
+
+    console.log("File size: " + bmp.fileSize + " Bytes")
+    console.log("Data offset: " + bmp.pixelDataOffset)
+    console.log("DIB size: " + bmp.dibSize)
+    console.log("Width: " + bmp.width)
+    console.log("Height: " + bmp.height)
+    console.log("Planes: " + bmp.planes)
+    console.log("Bpp: " + bmp.bpp)
+    console.log("Compression: " + bmp.compression)
+    console.log("Image Size: " + bmp.imgSize)
+    console.log("X Res: " + bmp.xRes)
+    console.log("Y Res: " + bmp.yRes)
+    console.log("Pal size: " + bmp.palSize)
+    console.log("Important colors: " + bmp.importantColors)
+    console.log("Padding: " + bmp.padding)
+
+    if(bmp.palSize > 0){
+        bmp.palette.forEach((element, idx) => {
+            console.log(`[${idx.toString().padStart(2, '0')}] ${element.toString(16).toUpperCase()}`)
+        })
+    }
+}
+
+function int32FromArr(a, o) { let number = a[o] | a[o + 1] << 8 | a[o + 2] << 16 | a[o + 3] << 24; return (number < 0) ? 0xFFFFFFFF + number + 1 : number; }
+function int16FromArr(a, o) { return a[o] | a[o + 1] << 8 }
+function isNumber(value) { return typeof value === 'number' }
+
+function getBmpHeader(bmpRawData) {
+    if (bmpRawData[0] != 66 || bmpRawData[1] != 77){ //BM
         console.log("Error: image is not bmp")
         return null
+    }  
+
+    let bmp = {
+        "fileSize" : int32FromArr(bmpRawData, 2),
+        "dibSize" : int32FromArr(bmpRawData, 14),
+        "pixelDataOffset" : int32FromArr(bmpRawData, 10),
+        "width" : int32FromArr(bmpRawData, 18),
+        "height" : int32FromArr(bmpRawData, 22),
+        "planes" : int16FromArr(bmpRawData, 26),
+        "bpp" : int16FromArr(bmpRawData, 28),
+        "compression" : int32FromArr(bmpRawData, 30),
+        "imgSize" : int32FromArr(bmpRawData, 34),
+        "xRes" : int32FromArr(bmpRawData, 38),
+        "yRes" : int32FromArr(bmpRawData, 42),
+        "palSize" : int32FromArr(bmpRawData, 46),
+        "importantColors" :  int32FromArr(bmpRawData, 50)
+    }
+    
+    let rowSize = Math.ceil(bmp.bpp * bmp.width / 32) * 4 
+    let rowWidth = Math.ceil(bmp.bpp * bmp.width / 8) 
+    bmp.padding = rowSize - rowWidth
+    bmp.pixeldata = bmpRawData.slice(bmp.pixelDataOffset)
+
+    if(bmp.palSize > 0){
+        bmp.palette = []
+        for(let i = 0; i < bmp.palSize; i++){
+            bmp.palette.push(int32FromArr(bmpRawData, 54 + (i * 4)))
+        }
     }
 
-    let pixelByteArray = [];
-    let pixelDataOffset = int32FromArr(bmpArray, 10)
-    let width = int32FromArr(bmpArray, 18)
-    let height = int32FromArr(bmpArray, 22)
-    let bpp = int16FromArr(bmpArray, 0x1C)
-    let Bpp = bpp / 8
-    let padding = width & 3
-    
-    console.log(`Size: ${width}x${height}, bpp: ${bpp}`)
+    return bmp
+}
+/**
+ * Indexed convertion for input bpp <= BPP8
+ */
+function convertBmpIndexed(bmpHeader, outbpp, palbpp)
+{
+    let pixels = []
+    let pixelindex = 0
 
-    if(bpp != 24){
-        console.log('Input pixel format unsupported')
+    if(bmpHeader.bpp == BPP.BPP1 || bmpHeader.bpp == BPP.BPP2){
+        console.log('Unsupported input pixel format (1bpp/2bpp) for indexed conversion')
         return null
     }
-
-    let pixelbyte = 0;
-    let pixelcount = 0;
-
+    
+    if(bmpHeader.bpp == BPP.BPP8){
+        // 8bpp => 1bpp, 2bpp, 4bpp, 8bpp
+        const pixelMask = (1 << outbpp) - 1
+        for (let i = 0; i < bmpHeader.pixeldata.length; i++) {
+            pixels.push(bmpHeader.pixeldata[i] & pixelMask)
+            pixelindex++                                         
+            // Check if we reached line end and add padding
+            if((pixelindex % bmpHeader.width) == 0){                        
+                i += bmpHeader.padding
+            }
+        }          
+    }else{
+        // 4bpp => 1bpp, 2bpp, 4bpp, 8bpp
+        const pixelMask = ((outbpp > BPP.BPP4) ? BPP.BPP4 : (1 << outbpp)) - 1
+        let first = true
+        for (let i = 0; i < bmpHeader.pixeldata.length; ) {                      
+            // Write one pixel and advance rawbmpdata index
+            if(first){
+                pixels.push((bmpHeader.pixeldata[i] >> 4) & pixelMask) // truncate first pixel
+                first = false
+            }else{
+                pixels.push(bmpHeader.pixeldata[i] & pixelMask) // and second pixel
+                i++
+                first = true
+            }
+            // increment pixelcount within byte
+            pixelindex++                                         
+            // Check if we reached line end and add padding
+            if((pixelindex % bmpHeader.width) == 0){
+                // check if line ended at half byte,
+                // if so skip current byte
+                if(first == false){
+                    i++
+                    first = true
+                }
+                i += bmpHeader.padding
+            }
+        }                
+    }       
+  
+    return {
+        "width": bmpHeader.width,
+        "height": bmpHeader.height,
+        "bpp": outbpp,
+        "pixels": pixels,
+        "palette" : bmpHeader.palette
+    }
+}
+/**
+ * 24bpp convertion
+ * 
+ */
+function convertBmp24(bmpHeader, outbpp)
+{
+    let pixelByteArray = []
+    let convertFunc
+    
     switch (outbpp) {
         case BPP.BPP1:
-            // image is vertically mirrored
-            for (let i = pixelDataOffset; i < bmpArray.length; i += Bpp) {
-                let b = bmpArray[i]
-                let g = bmpArray[i + 1]
-                let r = bmpArray[i + 2]
-
-                if (r != 0 || g != 0 || b != 0) {
-                    pixelbyte |= 0x80 >> (pixelcount & 7);
-                }
-
-                pixelcount++
-
-                if (pixelcount % 8 == 0 || pixelcount == width) {
-                    pixelByteArray.push(pixelbyte)
-                    pixelbyte = 0
-                    if (pixelcount == width) {
-                        pixelcount = 0
-                        i += padding
-                    }
-                }
-            }
-            //bpp = Math.floor(width / 8) + ((width % 8) != 0 ? 1 : 0)
+            // 24bpp >= 1bpp
+            convertFunc = (r,g,b) => {return ((r | g | b ) == 0) ? 0 : 1}
             break;
 
-        case BPP.BPP2:
-            // TODO: use all bits available in each line
-            // currently 2 bits/byte are not used
-            for (let i = pixelDataOffset, pixelcount = 0; i < bmpArray.length; i += Bpp) {
-                let b = bmpArray[i] >> 6
-                let g = bmpArray[i + 1] >> 6
-                let r = bmpArray[i + 2] >> 6
-                let d = r << 4 | g << 2 | b // 2-bit per color 
-                let t = d < 10 ? `0${d}` : `${d}`
-                pixelByteArray.push(t)
-                if(++pixelcount == width){
-                    i += padding
-                    pixelcount = 0;
-                }
-            }
-            //bpp =  Math.floor(width * 2 / 8) + ((width * 2 % 8) != 0 ? 1 : 0) 
-            break;
+        case BPP.BPP8:
+            // 24bpp >= 8bpp (RGB332)           
+            convertFunc = (r,g,b) => {
+                r >>= 5
+                g >>= 5
+                b >>= 6 
+                return (r << 5) | (g << 2) | b }            
+            break;       
 
         case BPP.BPP16:
-		    for (let i = pixelDataOffset, pixelcount = 0; i < bmpArray.length; i += Bpp) {
-
-	            let b = bmpArray[i + 0] >> 3
-                let g = bmpArray[i + 1] >> 2
-                let r = bmpArray[i + 2] >> 3
-
-                let d = (r << 11) | (g << 5) | b // RGB565
-
-                pixelByteArray.push(d)
-
-                if(++pixelcount == width){
-                    i += padding
-                    pixelcount = 0;
-                }
-            }
-
-            //bpp = width * 2
+            // 24bpp >= 16bpp (RGB565)
+            convertFunc = (r,g,b) => {
+                r >>= 3
+                g >>= 2
+                b >>= 3 
+                return (r << 11) | (g << 5) | b }
             break;
+
+        case BPP.BPP24:
+            // 24bpp >= 24bpp
+            convertFunc = (r,g,b) => {return (r << 16) | (g << 8) | b }
+            break
 
         default:
 	        console.log('Output pixel format unsupported')
-		return null
+		    return null
+    }
 
+    // 24bpp >= xbpp
+    for (let i = 0, pixelcount = 0; i < bmpHeader.pixeldata.length; i += 3) {
+        pixelByteArray.push(convertFunc(bmpHeader.pixeldata[i + 2], bmpHeader.pixeldata[i + 1], bmpHeader.pixeldata[i + 0]))
+        if(++pixelcount == bmpHeader.width){
+            i += bmpHeader.padding
+            pixelcount = 0;
+        }
     }
 
     return {
-        "width": width,
-        "height": height,
-        "pixels": pixelByteArray,
-        "bpp": outbpp
+        "width": bmpHeader.width,
+        "height": bmpHeader.height,
+        "bpp": outbpp,
+        "pixels": pixelByteArray
     }
 }
 
+/**
+ * Extracts pixel data (padding is removed) from raw bmp data and 
+ * stores it in a pixel array in wich each pixel is represented by a single number.
+ * Handles different input formats (4bpp, 8bpp, 24bpp) and the returned array is flipped
+ * vertically 
+ * 
+ * When using 1bpp as output format, ensure that input umage uses color 0x000000
+ * other wise the output will be only 0xFF
+ */
+function convertBmp(bmpRawData, outbpp) {
+    let bmpHeader = getBmpHeader(bmpRawData)
+
+    if(bmpHeader == null){
+        return bmpHeader
+    }
+    // if no outbpp specified, use input bpp
+    if(!isNumber(outbpp)){
+        outbpp = bmpHeader.bpp
+    }    
+ 
+    console.log(`Input:  ${bmpHeader.width}x${bmpHeader.height}, ${bmpHeader.bpp}bpp`)
+    console.log(`Output: ${bmpHeader.width}x${bmpHeader.height}, ${outbpp}bpp`)
+
+    if(bmpHeader.bpp <= 8){
+        return convertBmpIndexed(bmpHeader, outbpp, BPP.BPP16)
+    }else if(bmpHeader.bpp == 24){
+        return convertBmp24(bmpHeader, outbpp)
+    }
+    
+    console.log('Input pixel format unsupported')
+    return null
+}
+
+/**
+ * Pack pixels, this is used for indexed images
+ * and if bpp < 8 then multiple pixel are stored on one 
+ * byte
+ */
+function packData(bmpdata){
+    let pixels = []
+    let pixelDataByte = 0
+    let pixelIndex
+    const pixelModulus = (8 / bmpdata.bpp) - 1
+    const pixelMask = (1 << bmpdata.bpp) - 1
+
+    if(bmpdata.bpp >= BPP.BPP8){
+        return bmpdata 
+    }
+
+    for(pixelIndex = 0; pixelIndex < bmpdata.width * bmpdata.height; pixelIndex++){        
+        pixelDataByte <<= bmpdata.bpp
+        pixelDataByte |= bmpdata.pixels[pixelIndex] & pixelMask
+        if((pixelIndex & pixelModulus) == pixelModulus){
+            pixels.push(pixelDataByte)
+            pixelDataByte = 0
+        }
+    }
+    // Add final byte if it has some pixel
+    let remaning = ((8 / bmpdata.bpp) - (pixelIndex & pixelModulus)) & pixelModulus
+    if(remaning > 0){
+        while(remaning--){
+            pixelDataByte <<= bmpdata.bpp
+        }
+        pixels.push(pixelDataByte)
+    }
+
+    bmpdata.pixels = pixels
+    return bmpdata
+}
+/**
+ * Performs a vertical mirroring 
+ * 
+ * @param {*} bmpdata 
+ * @returns 
+ */
 function flipBmp(bmpdata){
     let pixels = []
 
-    if(bmpdata.bpp == BPP.BPP1){
-        let width = Math.ceil(bmpdata.width / 8)
-        let offset = (bmpdata.height * width) - width
-        for (; offset >= 0; offset -= width) {
-            pixels = pixels.concat(bmpdata.pixels.slice(offset, offset + width))
-        }
-    }else{
-        for (let offset = (bmpdata.height * bmpdata.width) - bmpdata.width; offset >= 0; offset -= bmpdata.width) {
-            pixels = pixels.concat(bmpdata.pixels.slice(offset, offset + bmpdata.width))
-        }
+    for (let offset = (bmpdata.height * bmpdata.width) - bmpdata.width; offset >= 0; offset -= bmpdata.width) {
+        pixels = pixels.concat(bmpdata.pixels.slice(offset, offset + bmpdata.width))
     }
-    
+
     bmpdata.pixels = pixels
     return bmpdata
 }
 
+/**
+ * Transpose pixels, this is used to rotate an
+ * image 90ª for displays that have byte pages
+ * Currently this only works for 1bit per pixel images
+ * 
+ */
 function transpose(bmpdata){
     let pixels = []
     
-    if(bmpdata.bpp == BPP.BPP1){
-        for(let page = 0; page < bmpdata.height; page += 8){
-            for(let col = 0; col < bmpdata.width; col++){
-                let byte = 0
-                let mask = (0x80 >> (col & 7))
-                let offset = page + (col >> 3)
-
-                for(let i = 0; i < 8; i++){
-                    if((bmpdata.pixels[offset + (i * (bmpdata.width / 8))] & mask) != 0){
-                        byte |= (1 << i)
-                    }
-                }
-
-                pixels.push(byte)
-            }
+    for(let row = 0; row < bmpdata.width; row ++){
+        for(let col = 0; col < bmpdata.height; col++){
+            let offsetRow = bmpdata.width * (bmpdata.height - 1 - col)            
+            pixels.push(bmpdata.pixels[offsetRow + row])
         }
     }
+
     bmpdata.pixels = pixels
     return bmpdata
 }
 
-function getLine(data, offset, len, nbits, suffix = ","){
-    return data.slice(offset, offset + len).map((e) => {
-        let mask = (nbits == BPP.BPP16) ? 0xF000 : 0xF0 
-        let str = "0x"  
-        
-        do{
-            if((e & mask) != 0){
-                break
-            }
-            str += '0'
-            mask >>= 4
-        }while( mask != 0xF)
-
-        return str + e.toString(16)
+function dataToString(data, offset, len, nbits, suffix = ","){
+    return data.slice(offset, offset + len).map((e) => {       
+        return "0x" + e.toString(16).padStart((nbits < 8) ? 2 : nbits/4, '0')
     }) + suffix
 }
 
 function saveToFile(bmpdata, filename, cols){
     let count = bmpdata.pixels.length
-    let offset = 0
+    let offset = 0     
     
-    cols = (cols > 0) ? cols : bmpdata.width
-
-    let line = getLine(bmpdata.pixels, offset, cols, bmpdata.bpp, ',\n')
-
     function nextBlock(err){
         if(err){
             console.log(err)
@@ -210,12 +355,38 @@ function saveToFile(bmpdata, filename, cols){
         offset += cols
         
         if(count > 0){
-            let line = getLine(bmpdata.pixels, offset, cols, bmpdata.bpp, ',\n')
+            let line = dataToString(bmpdata.pixels, offset, cols, bmpdata.bpp, ',\n')
             fs.appendFile(filename, line, nextBlock)
         }
     }
+
+    cols = (cols > 0) ? cols : bmpdata.width
+
+    if(bmpdata.palette){
+        let palette = "["
+        bmpdata.palette.forEach(color => {
+            let b = (color >> 3) & 31; 
+            let g = (color >> 10) & 63;
+            let r = (color >> 19) & 31;
+            color = (r << 11) | (g << 5) | b
+            palette += `0x${color.toString(16).padStart(4, '0')},` // RGB565
+        })
+
+        palette +="]\n\n"
+
+        fs.writeFile(filename, palette, (err)=>{
+            if(err){
+                console.log(err)
+                return
+            }
+            let line = dataToString(bmpdata.pixels, offset, cols, bmpdata.bpp, ',\n')
+            fs.appendFile(filename, line, nextBlock)
+        })
+    }else{
+        let line = dataToString(bmpdata.pixels, offset, cols, bmpdata.bpp, ',\n')
+        fs.writeFile(filename, line, nextBlock)
+    }
     
-    fs.writeFile(filename, line, nextBlock)
 }
 
 function printBmpData(bmpdata, cols) {
@@ -226,13 +397,20 @@ function printBmpData(bmpdata, cols) {
     cols = (cols > 0) ? cols : bmpdata.width
       
     for (let i = 0; i < bmpdata.pixels.length; i += cols) {
-        console.log(`${getLine(bmpdata.pixels, i, cols)}`)
+        console.log(`${dataToString(bmpdata.pixels, i, cols)}`)
     }    
 }
 
 function help(){
     console.log("Bitmap file to data array converter")
-    console.log("bmp2header -f <file.bmp> [-b bpp] [-c columns] [-o file.out] [-k]")
+    console.log("bmp2header -f <file.bmp> [options]")
+    console.log("\toptions :")
+    console.log("\t  -o <filename>, output file name")
+    console.log("\t  -c <n>,        Number of colums on output array")
+    console.log("\t  -b <b>,        Output Bits per pixel")
+    console.log("\t  -i,            Print bitmap header information")
+    console.log("\t  -k,            Transpose data")
+    console.log("\t  -p,            Pack data, when out bpp is < 8BPP")
 }
 
 function start() {
@@ -243,15 +421,16 @@ function start() {
         return
     }
 
-    if(!(opts.b = parseInt(opts.b, 10))){
-        opts.b = BPP.BPP2
-    }
-
     opts.c = parseInt(opts.c, 10)
 
     fs.readFile(opts.f.trim(), (err, data) => {
         if (err) {
             console.log(err)
+            return;
+        }
+
+        if(opts.i){
+            printBmpHeader(data)
             return;
         }
         
@@ -264,6 +443,10 @@ function start() {
 
         if(opts.k){
             bmpdata = transpose(bmpdata)
+        }
+
+        if(opts.p){
+            bmpdata = packData(bmpdata)
         }
 
         if(opts.o)
@@ -286,7 +469,7 @@ start()
 08: 00 00 
 0A: 46 00 00 00    46 = 70 = 14 + 40 + (4 * 4)
 
-    DIB
+    DIB (Device-Independent bitmap)
 0E: 28 00 00 00   size (40)
 12: 02 00 00 00   w
 16: 02 00 00 00   h
