@@ -16,20 +16,31 @@ extern "C" {
 
 #include <stdint.h>
 
-#define I2S_TX_EN           (1 << 0)
-#define I2S_RX_EN           (1 << 1)
-#define I2S_TX_MASTER       (1 << 2)
-#define I2S_RX_MASTER       (1 << 3)
-#define I2S_TX_EN_MASTER    (I2S_TX_EN | I2S_TX_MASTER)
-#define I2S_RX_EN_MASTER    (I2S_RX_EN | I2S_RX_MASTER)
+// Mode bits
+#define I2S_EN_TX           (1 << 0)
+#define I2S_MASTER_TX       (1 << 1)
+#define I2S_EN_RX           (1 << 2)
+#define I2S_MASTER_RX       (1 << 3)
 #define I2S_MCLK_OUT        (1 << 4)
+#define I2S_FMT_PHILIPS     (0 << 5)
+#define I2S_FMT_MSB         (1 << 5)
+#define I2S_FMT_LSB         (2 << 5)
+#define I2S_FMT_PCM         (3 << 5)
+
 
 typedef enum {
     I2S_BUS0 = 0,
     I2S_BUS1,
     I2S_BUS2,
     I2S_BUS3
-}i2sbus_e;
+}i2sbusnum_t;
+
+typedef enum {
+    I2S_DT16_SL16 = 0,
+    I2S_DT16_SL32,
+    I2S_DT24_SL32,
+    I2S_DT32_SL32,
+}i2sdsize_t;
 
 typedef void (*i2sCallback)(uint32_t *, uint32_t);
 
@@ -37,14 +48,14 @@ typedef struct {
     void *regs;
     void *dma;
     uint32_t sample_rate;
-    uint8_t data_size;
+    i2sdsize_t data_size;
     uint8_t channels;
     uint8_t mode;
     uint8_t mute;
-    i2sbus_e bus;
+    i2sbusnum_t bus;
     uint32_t *txbuffer;
     uint32_t *rxbuffer;
-    uint32_t tx_buf_len;
+    uint32_t tx_buf_len;    // size in samples
     uint32_t rx_buf_len;
     i2sCallback txcp;
     i2sCallback rxcp;

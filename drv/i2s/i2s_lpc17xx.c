@@ -133,10 +133,10 @@ static void clock_config(i2sbus_t *i2s){
 
     i2sx->TXRATE = y_divide | (x_divide << 8);
 
-    if(i2s->mode & I2S_TX_EN)
+    if(i2s->mode & I2S_EN_TX)
         i2sx->TXBITRATE = N - 1;
     
-    if(i2s->mode & I2S_RX_EN)
+    if(i2s->mode & I2S_EN_RX)
         i2sx->RXBITRATE = N - 1;
 }
 
@@ -150,24 +150,22 @@ void I2S_Config(i2sbus_t *i2s){
     
     clock_config(i2s);
 
+    /* Bits per slot 1 to 64*/
     switch(i2s->data_size){
-        case 8:
-            value |= DAO_WIDTH_8B |
-                    (7 << 6);  /* Bits per slot 1 to 64*/
-            break;
+        //case 8: value |= DAO_WIDTH_8B | (7 << 6); break;
 
         default:
-        case 16:
+        case I2S_DT16_SL16:
             value |= DAO_WIDTH_16B | (15 << 6);
             break;
 
-        case 32:
+        case I2S_DT32_SL32:
             value |= DAO_WIDTH_32B | (31 << 6);
             break;
     }    
 
-    if(i2s->mode & I2S_RX_EN){
-        if(!(i2s->mode & I2S_RX_MASTER)){
+    if(i2s->mode & I2S_EN_RX){
+        if(!(i2s->mode & I2S_MASTER_RX)){
             value |= DAI_WS_SEL;
         }
 
@@ -178,8 +176,8 @@ void I2S_Config(i2sbus_t *i2s){
         LPC_I2S->DAI = value;
     }
 
-    if(i2s->mode & I2S_TX_EN){
-        if(!(i2s->mode & I2S_TX_MASTER)){
+    if(i2s->mode & I2S_EN_TX){
+        if(!(i2s->mode & I2S_MASTER_TX)){
             value |= DAO_WS_SEL; /* Slave */
         }
 
@@ -220,23 +218,23 @@ void I2S_Init(i2sbus_t *i2s){
     // BUS defines used pins
     switch(i2s->bus){
         case I2S_BUS0:
-            if(i2s->mode & I2S_RX_EN) {I2S_PINS_RX1;}
-            if(i2s->mode & I2S_TX_EN) {I2S_PINS_TX1;}
+            if(i2s->mode & I2S_EN_RX) {I2S_PINS_RX1;}
+            if(i2s->mode & I2S_EN_TX) {I2S_PINS_TX1;}
             break;
 
         case I2S_BUS1:
-            if(i2s->mode & I2S_RX_EN) {I2S_PINS_RX2;}
-            if(i2s->mode & I2S_TX_EN) {I2S_PINS_TX1;}
+            if(i2s->mode & I2S_EN_RX) {I2S_PINS_RX2;}
+            if(i2s->mode & I2S_EN_TX) {I2S_PINS_TX1;}
             break;
 
         case I2S_BUS2:
-            if(i2s->mode & I2S_RX_EN) {I2S_PINS_RX1;}
-            if(i2s->mode & I2S_TX_EN) {I2S_PINS_TX2;}
+            if(i2s->mode & I2S_EN_RX) {I2S_PINS_RX1;}
+            if(i2s->mode & I2S_EN_TX) {I2S_PINS_TX2;}
             break;
 
         case I2S_BUS3:
-            if(i2s->mode & I2S_RX_EN) {I2S_PINS_RX2;}
-            if(i2s->mode & I2S_TX_EN) {I2S_PINS_TX2;}
+            if(i2s->mode & I2S_EN_RX) {I2S_PINS_RX2;}
+            if(i2s->mode & I2S_EN_TX) {I2S_PINS_TX2;}
             break;
 
         default:
@@ -244,12 +242,12 @@ void I2S_Init(i2sbus_t *i2s){
     }
 
     if(i2s->mode & I2S_MCLK_OUT){
-        if(i2s->mode & I2S_TX_EN){
+        if(i2s->mode & I2S_EN_TX){
             LPC_I2S->TXMODE = TXMODE_TXMCENA; /* Enable MCLK output */
             LPC_PINCON->PINSEL9 = (LPC_PINCON->PINSEL9 & (3 << 26)) | ( 1 << 26);    
         }
 
-        if(i2s->mode & I2S_RX_EN){
+        if(i2s->mode & I2S_EN_RX){
             LPC_I2S->RXMODE = RXMODE_RXMCENA;
             LPC_PINCON->PINSEL9 = (LPC_PINCON->PINSEL9 & (3 << 24)) | ( 1 << 24);
         }
@@ -274,7 +272,7 @@ void I2S_Init(i2sbus_t *i2s){
 void I2S_Start(i2sbus_t *i2s){
     
 #ifndef I2S_NO_DMA
-    if(i2s->mode & I2S_TX_EN) {
+    if(i2s->mode & I2S_EN_RX) {
         s_txCallback = i2s->txcp;
 
         s_i2s_tx_dma.src = i2s->txbuffer;
@@ -298,7 +296,7 @@ void I2S_Start(i2sbus_t *i2s){
         DMA_Start(&s_i2s_tx_dma);
     }
 
-    if(i2s->mode & I2S_RX_EN) {
+    if(i2s->mode & I2S_EN_RX) {
         LPC_I2S->DAI = LPC_I2S->DAI & ~(DAI_RESET | DAI_STOP);
         LPC_I2S->DMA2 = I2S_DMA_RX_EN | I2S_DMA_RX_DEPTH2;   
         s_rxCallback = i2s->rxcp;
@@ -306,14 +304,14 @@ void I2S_Start(i2sbus_t *i2s){
 
 #else
     uint32_t irq = 0;
-    if(i2s->mode & I2S_RX_EN) {
+    if(i2s->mode & I2S_EN_RX) {
         LPC_I2S->DAI = LPC_I2S->DAI & ~(DAI_RESET | DAI_STOP);
         irq |= IRQ_RX_IRQ_EN | ((TXFIFO_SIZE - 6) << IRQ_RX_DEPTH_POS);
     }else{
         irq |= IRQ_RX_DEPTH_MSK;
     }
     
-    if(i2s->mode & I2S_TX_EN) {
+    if(i2s->mode & I2S_EN_TX) {
         LPC_I2S->DAO = LPC_I2S->DAO & ~(DAO_RESET | DAO_STOP);
         irq |= IRQ_TX_IRQ_EN | ((TXFIFO_SIZE - 6) << IRQ_TX_DEPTH_POS);
     }else{
@@ -335,16 +333,16 @@ void I2S_Start(i2sbus_t *i2s){
  */
 void I2S_Stop(i2sbus_t *i2s){
 
-    if(i2s->mode & I2S_RX_EN) {
+    if(i2s->mode & I2S_EN_RX) {
         LPC_I2S->IRQ &= ~IRQ_RX_IRQ_EN;
         LPC_I2S->DAI = LPC_I2S->DAI | (DAI_RESET | DAI_STOP);
     }
     
-    if(i2s->mode & I2S_TX_EN) {
+    if(i2s->mode & I2S_EN_TX) {
         LPC_I2S->IRQ &= ~IRQ_TX_IRQ_EN;
         LPC_I2S->DAO = LPC_I2S->DAO | (DAO_RESET | DAO_STOP);
         #ifndef I2S_NO_DMA
-        DMA_Stop(&s_i2s_tx_dma);
+        DMA_Cancel(&s_i2s_tx_dma);
         #endif
     }
 }
@@ -358,7 +356,7 @@ void I2S_Stop(i2sbus_t *i2s){
  * @param mute  : 0 - Unmute, otherwise muted
  */
 void I2S_Mute(i2sbus_t *i2s, uint8_t mute){
-    if(i2s->mode & I2S_TX_EN) {
+    if(i2s->mode & I2S_EN_TX) {
         if(mute){
             LPC_I2S->DAO = LPC_I2S->DAO | DAO_MUTE;
         }else{

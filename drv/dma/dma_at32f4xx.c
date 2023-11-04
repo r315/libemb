@@ -88,7 +88,9 @@ void DMA_Start(dmatype_t *dma)
 
 void DMA_Cancel(dmatype_t *dma)
 {
-    // TODO: Implement
+    DMA_Channel_Type *stream = dma->stream;
+
+    stream->CHCTRL &= ~DMA_CHCTRL1_CHEN;
 }
 
 static inline void dma_irq_handler(uint8_t ch_num)
