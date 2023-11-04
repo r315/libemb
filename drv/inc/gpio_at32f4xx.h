@@ -166,6 +166,9 @@ typedef enum {
 #define GPIO_USART2_RX      (GPO_MS_AF)
 #define GPIO_USART3_TX      (GPO_MS_AF)
 #define GPIO_USART3_RX      (GPO_MS_AF)
+#define GPIO_SPI1_SD        (GPO_MS_AF)
+#define GPIO_SPI1_WS        (GPO_MS_AF)
+#define GPIO_SPI1_CK        (GPO_MS_AF)
 
 
 // Alternative functions remapping (wip)

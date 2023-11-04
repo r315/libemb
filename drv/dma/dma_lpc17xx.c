@@ -140,7 +140,7 @@ void DMA_Start(dmatype_t *dma){
  * 
  * @param ch 
  */
-void DMA_Stop(dmatype_t *ch){
+void DMA_Cancel(dmatype_t *ch){
     LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)ch->stream;
 
     #if 0 // forced stop

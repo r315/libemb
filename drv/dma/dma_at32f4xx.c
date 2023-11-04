@@ -16,7 +16,7 @@ static eot_t ch_eot[DMA_NUM_CHANNELS];
  *                   [3:0] -> Request source
  * */
 void DMA_Config(dmatype_t *dma, uint32_t request){
-    DMA_Channel_Type *stream; 
+    DMA_Channel_Type *stream;
     uint8_t ch_num;
 
     if((request & DMA_NUMBER_MASK) == 0){
@@ -30,24 +30,32 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
         switch(dma->dir){
             case DMA_DIR_P2P:
                 config |=   DMA_CCR_MSIZE_CFG(dma->ssize) | DMA_CCR_PSIZE_CFG(dma->dsize);
+                stream->CPBA = (uint32_t)dma->src;
+                stream->CMBA = (uint32_t)dma->dst;
                 break;
 
             case DMA_DIR_P2M:
                 config |=   DMA_CCR_PSIZE_CFG(dma->ssize) | 
                             DMA_CCR_MSIZE_CFG(dma->dsize) |
                             DMA_CHCTRL1_PINC;                   // Increment destination
+                stream->CPBA = (uint32_t)dma->src;
+                stream->CMBA = (uint32_t)dma->dst;
                 break;
 
             case DMA_DIR_M2P:
                 config |=   DMA_CCR_PSIZE_CFG(dma->dsize) | 
                             DMA_CCR_MSIZE_CFG(dma->ssize) | 
                             DMA_CHCTRL1_MINC | DMA_CHCTRL1_DIR; // Increment source
+                stream->CMBA = (uint32_t)dma->src;
+                stream->CPBA = (uint32_t)dma->dst;
                 break;
 
             case DMA_DIR_M2M:
                 config |=   DMA_CCR_PSIZE_CFG(dma->dsize) | 
                             DMA_CCR_MSIZE_CFG(dma->ssize) | 
                             DMA_CHCTRL1_MEMTOMEM | DMA_CHCTRL1_MINC | DMA_CHCTRL1_PINC;
+                stream->CPBA = (uint32_t)dma->src;
+                stream->CMBA = (uint32_t)dma->dst;
                 break;
         }
 
@@ -56,8 +64,11 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
             NVIC_EnableIRQ(DMA1_Channel1_IRQn + ch_num);
         }
 
-        stream->CHCTRL = config;
-        stream->CPBA = (uint32_t)dma->dst;
+        if(!dma->single){
+            config |= DMA_CHCTRL1_CIRM;
+        }
+
+        stream->CHCTRL = config;        
         dma->stream = stream;
         
         ch_eot[ch_num] = dma->eot;
@@ -65,6 +76,19 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
         RCC_AHBPeriphClockCmd(RCC_AHBPERIPH_DMA2, ENABLE);
         //TODO:
     }
+}
+
+void DMA_Start(dmatype_t *dma)
+{
+    DMA_Channel_Type *stream = dma->stream;
+
+    stream->TCNT = dma->len;
+    stream->CHCTRL |= DMA_CHCTRL1_CHEN;
+}
+
+void DMA_Cancel(dmatype_t *dma)
+{
+    // TODO: Implement
 }
 
 static inline void dma_irq_handler(uint8_t ch_num)

@@ -18,12 +18,14 @@
 #define DMA1_REQ_TIM4_CH1               ((0 << DMA_NUMBER_POS) | (0 << DMA_CHANNEL_POS))
 
 #define DMA1_REQ_SPI1_RX                ((0 << DMA_NUMBER_POS) | (1 << DMA_CHANNEL_POS))
+#define DMA1_REQ_I2S1_RX                DMA1_REQ_SPI1_RX
 #define DMA1_REQ_USART3_TX              ((0 << DMA_NUMBER_POS) | (1 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM1_CH1               ((0 << DMA_NUMBER_POS) | (1 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM2_UP                ((0 << DMA_NUMBER_POS) | (1 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM3_CH3               ((0 << DMA_NUMBER_POS) | (1 << DMA_CHANNEL_POS))
 
 #define DMA1_REQ_SPI1_TX                ((0 << DMA_NUMBER_POS) | (2 << DMA_CHANNEL_POS))
+#define DMA1_REQ_I2S1_TX                DMA1_REQ_SPI1_TX
 #define DMA1_REQ_USART3_RX              ((0 << DMA_NUMBER_POS) | (2 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM3_CH4               ((0 << DMA_NUMBER_POS) | (2 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM3_UP                DMA1_REQ_TIM3_CH4

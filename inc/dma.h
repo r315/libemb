@@ -36,6 +36,6 @@ void DMA_Init(dmatype_t *dma);
 
 void DMA_Start(dmatype_t *dma);
 
-void DMA_Stop(dmatype_t *dma);
+void DMA_Cancel(dmatype_t *dma);
 
 #endif /* _dma_h_ */
