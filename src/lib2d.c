@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "liblcd.h"
 #include "lib2d.h"
+#include "drvlcd.h"
 #include "font.h"
 #include "strfunc.h"
 
@@ -269,12 +269,12 @@ void LIB2D_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2)
     if (dx < 0) { dx = -dx;  stepx = -1; } else { stepx = 1; }
 
     if ( x1 == x2 ){
-    	LCD_VLine(x1, (y1 < y2)? y1 : y2, dy, lib2d.forecolor);
+    	LIB2D_VLine(x1, (y1 < y2)? y1 : y2, dy);
     	return;
     }
 
     if ( y1 == y2 ){
-		LCD_HLine((x1 < x2)? x1 : x2, y1, dx, lib2d.forecolor);
+		LIB2D_HLine((x1 < x2)? x1 : x2, y1, dx);
 		return;
     }
 

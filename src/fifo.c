@@ -7,10 +7,10 @@
 
 void fifo_init(fifo_t *fifo)
 {
-	fifo->head = 0;
-	fifo->tail = 0;
+    fifo->head = 0;
+    fifo->tail = 0;
     fifo->size = 0;
-	fifo->capacity = sizeof(fifo->buf);
+    fifo->capacity = sizeof(fifo->buf);
 }
 
 /**
