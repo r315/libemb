@@ -169,7 +169,8 @@ typedef enum {
 #define GPIO_SPI1_SD        (GPO_MS_AF)
 #define GPIO_SPI1_WS        (GPO_MS_AF)
 #define GPIO_SPI1_CK        (GPO_MS_AF)
-
+#define GPIO_I2C1_SCL       (GPO_MS_AF_OD)
+#define GPIO_I2C1_SDA       (GPO_MS_AF_OD)
 
 // Alternative functions remapping (wip)
 #define GPIO_AF_REMAP       (1 << 7)

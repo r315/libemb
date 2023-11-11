@@ -30,8 +30,8 @@
   * @brief  I2C Timeout definition  
   */  
 #define I2C_TIMEOUT_FLAG          ((uint32_t)35)     /* Timeout 35 ms */
-#define I2C_TIMEOUT_ADDR_SLAVE    ((uint32_t)10000)  /* Timeout 10 s  */
-#define I2C_TIMEOUT_BUSY_FLAG     ((uint32_t)10000)  /* Timeout 10 s  */
+#define I2C_TIMEOUT_ADDR_SLAVE    ((uint32_t)1000)  /* Timeout 1s  */
+#define I2C_TIMEOUT_BUSY_FLAG     ((uint32_t)1000)  /* Timeout 1s  */
 
 /** 
   * @brief  I2C Event check flag definition  
@@ -121,7 +121,9 @@ static I2C_StatusType I2C_WaitOnFlagUntilTimeout(I2C_Type* I2Cx, uint32_t Flag, 
     }    
 
     /* 10 us delay */
-    DelayMs(1);
+    for(int i = 0; i < SystemCoreClock / 10000000UL; i++){
+        asm("nop");
+    }
     
     /* Check for the Timeout */
     if((Timeout--) == 0)
@@ -133,6 +135,40 @@ static I2C_StatusType I2C_WaitOnFlagUntilTimeout(I2C_Type* I2Cx, uint32_t Flag, 
   return I2C_OK;
 }
 
+/**
+  * @brief  Helper for generate start condition and send device address
+  * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
+  * @param  DevAddress Target device address.
+  * @param  I2C_Direction Direction Transmit/Receive
+  * @param  Timeout Timeout duration.
+  * @retval I2C status.
+  */
+static I2C_StatusType I2C_Start_Transfer(I2C_Type  *I2Cx, uint16_t DevAddress, uint8_t I2C_Direction, uint32_t Timeout)
+{
+   /* Send START condition */
+   I2C_GenerateSTART(I2Cx, ENABLE);
+   /* Wait until SB flag is set */
+   if(I2C_WaitOnFlagUntilTimeout(I2Cx, I2C_FLAG_STARTF, RESET, I2C_EVT_CHECK_NONE, Timeout) != I2C_OK)
+   {
+      /* Send STOP Condition */
+      I2C_GenerateSTOP(I2Cx, ENABLE);
+      return I2C_ERROR_STEP_2;
+   }
+   /* Send slave address for write */
+   I2C_Send7bitAddress(I2Cx, DevAddress, I2C_Direction);
+   /* Wait until ADDR flag is set */
+   if(I2C_WaitOnFlagUntilTimeout(I2Cx, I2C_FLAG_ADDRF, RESET, I2C_EVT_CHECK_ACKFAIL, Timeout) != I2C_OK)
+   {
+      /* Send STOP Condition */
+      I2C_GenerateSTOP(I2Cx, ENABLE);
+      return I2C_ERROR_STEP_3;
+   }
+   /* Clear ADDR flag */
+   I2C_ClearADDRFlag(I2Cx);
+   return I2C_OK;
+}
+
+#if 0
 /**
   * @brief  Initializes peripherals used by the I2C.
   * @param  None
@@ -159,7 +195,7 @@ void LowLevel_Init(void)
   GPIO_InitStructure.GPIO_Pins = I2C_SDA_PIN;
   GPIO_Init(I2C_SDA_GPIO_PORT, &GPIO_InitStructure); 
 }
-
+#endif 
 /**
   * @brief  Initializes peripherals used by the I2C EEPROM driver.
   * @param  None.
@@ -169,7 +205,7 @@ void I2Cx_Init(I2C_Type* I2Cx)
 { 
   I2C_InitType  I2C_InitStructure;
   
-  LowLevel_Init();
+  //LowLevel_Init();
   
   /* I2C configuration */
   I2C_InitStructure.I2C_Mode = I2C_Mode_I2CDevice;
@@ -183,7 +219,7 @@ void I2Cx_Init(I2C_Type* I2Cx)
   I2C_Cmd(I2Cx, ENABLE);
   
   /* Apply I2C configuration after enabling it */
-  I2C_Init(I2Cx, &I2C_InitStructure);
+  I2C_Initialize(I2Cx, &I2C_InitStructure);
 }
 
 /**
@@ -262,6 +298,58 @@ I2C_StatusType I2C_Master_Transmit(I2C_Type* I2Cx, uint16_t DevAddress, uint8_t 
   I2C_GenerateSTOP(I2Cx, ENABLE);
 
   return I2C_OK;
+}
+
+/**
+  * @brief  Read an amount of data in blocking mode from a specific memory address
+  * @param  I2Cx: where x can be 1, 2 or 3 to select the I2C peripheral.
+  * @param  DevAddress Target device address.
+  * @param  MemAddress Target internal memory address.
+  * @param  pData Pointer to data buffer.
+  * @param  Size Amount of data to be read.
+  * @param  Timeout Timeout duration.
+  * @retval I2C status.
+  */
+I2C_StatusType I2C_Master_Receive(I2C_Type  *I2Cx, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)
+{
+   /* Wait until BUSY flag is reset */
+   if(I2C_WaitOnFlagUntilTimeout(I2Cx, I2C_FLAG_BUSYF, SET, I2C_EVT_CHECK_NONE, I2C_TIMEOUT_BUSY_FLAG) != I2C_OK)
+   {
+      return I2C_ERROR_STEP_1;
+   }
+
+   /* Disable Pos */
+   I2C_NACKPositionConfig(I2Cx, I2C_NACKPosition_Current);
+   
+   /* Read data from device */
+   if(I2C_Start_Transfer(I2Cx, DevAddress, I2C_Direction_Receive, Timeout) != I2C_OK)
+   {
+      return I2C_ERROR_STEP_5;
+   }
+   while(Size > 0)
+   {
+      Size--;
+      if(Size > 0)
+      {
+         I2C_AcknowledgeConfig(I2Cx, ENABLE);
+      }
+      else
+      {
+         I2C_AcknowledgeConfig(I2Cx, DISABLE);
+         /* Send STOP Condition, will be generated after NAK */
+         I2C_GenerateSTOP(I2Cx, ENABLE);
+      }
+      /* Wait until RDNE flag is set */
+      if(I2C_WaitOnFlagUntilTimeout(I2Cx, I2C_FLAG_RDNE, RESET, I2C_EVT_CHECK_STOP, Timeout) != I2C_OK)
+      {
+         /* Disable Address Acknowledge */
+         I2C_AcknowledgeConfig(I2Cx, DISABLE);
+         return I2C_ERROR_STEP_6;
+      }
+      /* Read data from DR */
+      (*pData++) = I2C_ReceiveData(I2Cx);
+   }
+   return I2C_OK;
 }
 
 /**

@@ -97,7 +97,8 @@ typedef enum
 void I2Cx_Init(I2C_Type* I2Cx);
 
 I2C_StatusType I2C_Master_Transmit(I2C_Type* I2Cx, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
-I2C_StatusType I2C_Slave_Receive  (I2C_Type* I2Cx, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+I2C_StatusType I2C_Master_Receive(I2C_Type  *I2Cx, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+I2C_StatusType I2C_Slave_Receive(I2C_Type* I2Cx, uint8_t *pData, uint16_t Size, uint32_t Timeout);
 
 /** 
   * @}

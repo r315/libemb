@@ -1147,7 +1147,7 @@ void I2C_Initialize(I2C_Type* I2Cx, I2C_InitType* I2C_InitStruct)
 {
   uint16_t tmpreg = 0, freqrange = 0;
   uint16_t result = 0x04;
-  uint32_t pclk1 = 8000000;
+  uint32_t pclk1;
   RCC_ClockType  rcc_clocks;
   /* Check the parameters */
   assert_param(IS_I2C_ALL_PERIPH(I2Cx));
@@ -1160,15 +1160,16 @@ void I2C_Initialize(I2C_Type* I2Cx, I2C_InitType* I2C_InitStruct)
 
   /*---------------------------- I2Cx CTRL2 Configuration ------------------------*/
   /* Get the I2Cx CTRL2 value */
-  tmpreg = I2Cx->CTRL2;
   /* Clear frequency FREQ[7:0] bits */
-  tmpreg &= CTRL2_CLKFREQ_Reset;
+  tmpreg = I2Cx->CTRL2 & CTRL2_CLKFREQ_Reset;
   /* Get pclk1 frequency value */
   RCC_GetClocksFreq(&rcc_clocks);
   pclk1 = rcc_clocks.APB1CLK_Freq;
+
   /* Set frequency bits depending on pclk1 value */
-  freqrange = (uint16_t)(pclk1 / 1000000);
+  freqrange = (uint16_t)(pclk1 / 1000000UL);
   tmpreg |= freqrange;
+  
   /* Write to I2Cx CTRL2 */
   I2Cx->CTRL2 = tmpreg;
 

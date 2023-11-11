@@ -16,10 +16,19 @@ extern "C" {
 
 #include <stdint.h>
 
+
+typedef enum {
+    I2C_BUS0 = 0,
+    I2C_BUS1,
+    I2C_BUS2,
+    I2C_BUS3
+}i2cbusnum_t;
+
 typedef struct {
-    void *ctrl;
-    uint8_t addr;           // Slave address
-    uint8_t bus_num;        // Bus number
+    void *peripheral;
+    uint8_t addr;               // Slave address
+    uint32_t speed;
+    i2cbusnum_t bus_num;        // Bus number
 }i2cbus_t;
 
 
