@@ -12,8 +12,6 @@
 #include "at32f4xx.h"
 #include "i2c.h"
 
-#define I2C_TIMEOUT         1000
-
 void I2C_Init (i2cbus_t *i2cbus){
     I2C_Type *i2c;
     I2C_InitType  init;
@@ -47,11 +45,48 @@ void I2C_Init (i2cbus_t *i2cbus){
     I2C_Initialize(i2c, &init);
 }
 
-uint32_t I2C_Write(i2cbus_t *i2c, uint8_t *data, uint32_t size){    
-    return (I2C_Master_Transmit(i2c->peripheral, i2c->addr, data, size, 1000) == I2C_OK) ? size : 0;
+void static i2c_reset_on_error(i2cbus_t *i2cbus, I2C_StatusType lastres){
+    I2C_Type *i2c = (I2C_Type*)i2cbus->peripheral;
+
+    if(lastres == I2C_ERROR_STEP_1){
+        // fail waiting on busy flag
+        I2C_Reset(i2cbus);
+        return;
+    }
+
+    uint16_t sts = i2c->STS2;
+    if(sts & I2C_STS2_BUSYF){
+        sts = i2c->STS1;
+        if(sts & (I2C_STS1_BUSERR | I2C_STS1_ARLOST)){
+            I2C_Reset(i2cbus);
+        }
+    }
+}
+uint32_t I2C_Write(i2cbus_t *i2cbus, uint8_t *data, uint32_t size){
+    I2C_StatusType res = I2C_Master_Transmit(i2cbus->peripheral, i2cbus->addr, data, size, 1000);
+
+    if(res != I2C_OK){
+        i2c_reset_on_error(i2cbus, res);
+        return 0;
+    }
+    
+    return size;
 }
 
-uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size){
-	return (I2C_Master_Receive(i2c->peripheral, i2c->addr, data, size, 1000) == I2C_OK) ? size : 0;
+uint32_t I2C_Read(i2cbus_t *i2cbus, uint8_t *data, uint32_t size){
+	I2C_StatusType res = I2C_Master_Receive(i2cbus->peripheral, i2cbus->addr, data, size, 1000);
+
+    if(res != I2C_OK){
+        i2c_reset_on_error(i2cbus, res);
+        return 0;
+    }
+    
+    return size;
+}
+
+void I2C_Reset(i2cbus_t *i2cbus){
+    I2C_Type *i2c = (I2C_Type*)i2cbus->peripheral;
+    I2C_DeInit(i2c);
+    I2C_Init(i2cbus);
 }
 

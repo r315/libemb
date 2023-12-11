@@ -35,6 +35,7 @@ typedef struct {
 void I2C_Init(i2cbus_t *i2c);
 uint32_t I2C_Write(i2cbus_t *i2c, uint8_t *data, uint32_t size);
 uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size);
+void I2C_Reset(i2cbus_t *i2c);
 
 #ifdef __cplusplus
 }

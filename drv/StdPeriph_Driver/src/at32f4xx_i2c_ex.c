@@ -89,7 +89,7 @@ void I2C_ClearSTOPFlag(I2C_Type* I2Cx)
 static I2C_StatusType I2C_WaitOnFlagUntilTimeout(I2C_Type* I2Cx, uint32_t Flag, FlagStatus Status, uint32_t EventCheck, uint32_t Timeout)
 {
   /* delay 10 us = ms * 100 */
-  Timeout *= 100;
+  Timeout *= 10;
   
   while(I2C_GetFlagStatus(I2Cx, Flag) == Status)
   {
