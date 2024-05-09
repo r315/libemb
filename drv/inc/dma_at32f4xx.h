@@ -7,8 +7,9 @@
 #define DMA_NUMBER_MASK    (15 << DMA_NUMBER_POS)
 #define DMA_CHANNEL_MASK   (15 << DMA_CHANNEL_POS)
 
-#define DMA1_NUM_CHANNELS   6
-#define DMA_NUM_CHANNELS    (DMA1_NUM_CHANNELS)
+#define DMA1_NUM_CHANNELS   7
+#define DMA2_NUM_CHANNELS   5
+#define DMA_NUM_CHANNELS    (DMA1_NUM_CHANNELS + DMA2_NUM_CHANNELS)
 
 /**
  * DMA Requests
@@ -58,6 +59,17 @@
 #define DMA1_REQ_TIM2_CH2               ((0 << DMA_NUMBER_POS) | (6 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM2_CH4               ((0 << DMA_NUMBER_POS) | (6 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM4_UP                DMA1_REQ_TIM3_CH1
+
+#define DMA2_REQ_TIM5_CH4               ((1 << DMA_NUMBER_POS) | (0 << DMA_CHANNEL_POS))
+#define DMA2_REQ_TIM5_TRIG              DMA2_REQ_TIM5_CH4
+#define DMA2_REQ_TIM5_CH3               ((1 << DMA_NUMBER_POS) | (1 << DMA_CHANNEL_POS))
+#define DMA2_REQ_TIM5_UP                DMA2_REQ_TIM5_CH3
+#define DMA2_REQ_USART4_RX              ((1 << DMA_NUMBER_POS) | (2 << DMA_CHANNEL_POS))
+#define DMA2_REQ_SDIO1                  ((1 << DMA_NUMBER_POS) | (3 << DMA_CHANNEL_POS))
+#define DMA2_REQ_TIM5_CH2               ((1 << DMA_NUMBER_POS) | (3 << DMA_CHANNEL_POS))
+#define DMA2_REQ_USART4_TX              ((1 << DMA_NUMBER_POS) | (4 << DMA_CHANNEL_POS))
+#define DMA2_REQ_TIM5_CH1               ((1 << DMA_NUMBER_POS) | (4 << DMA_CHANNEL_POS))
+
 
 #define DMA_CCR_PSIZE_8                 0
 #define DMA_CCR_PSIZE_16                1
