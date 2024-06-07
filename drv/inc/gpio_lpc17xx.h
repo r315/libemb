@@ -159,7 +159,7 @@ typedef enum pinName{
 
 
 #define GPI_REPEATER        (PIN_MODE_REPEATER | PIN_FUNC0)
-#define GPI_FLT             (PIN_MODE_FLOAT | PIN_FUNC0)
+#define GPI_FLOAT           (PIN_MODE_FLOAT | PIN_FUNC0)
 #define GPI_PU              (PIN_MODE_PU | PIN_FUNC0)
 #define GPI_PD              (PIN_MODE_PD | PIN_FUNC0)
 #define GPO_PP              (PIN_DIR_OUT | PIN_FUNC0)

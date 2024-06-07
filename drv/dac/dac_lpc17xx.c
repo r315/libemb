@@ -61,7 +61,7 @@ void DAC_Write(dactype_t *dac, uint16_t value){
 }
 
 void DAC_Stop(dactype_t *dac){
-    DMA_Stop(&dma_dac);
+    DMA_Cancel(&dma_dac);
     LPC_DAC->CTRL = 0;
 }
 
