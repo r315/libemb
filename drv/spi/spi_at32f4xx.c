@@ -1,7 +1,9 @@
 #include <stddef.h>
 #include "at32f4xx.h"
 #include "dma_at32f4xx.h"
+#include "gpio_at32f4xx.h"
 #include "spi.h"
+#include "gpio.h"
 
 #define SPI_CTRL1_MDIV_Pos          3
 #define SPI_CTRL1_MDIV_DIV2         (0 << SPI_CTRL1_MDIV_Pos)
@@ -93,6 +95,7 @@ void SPI_Init(spibus_t *spidev){
 
     switch(spidev->bus){
         case SPI_BUS0:
+        case SPI_BUS2:
             RCC_APB2PeriphClockCmd(RCC_APB2PERIPH_SPI1, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2PERIPH_SPI1, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2PERIPH_SPI1, DISABLE);
@@ -101,6 +104,7 @@ void SPI_Init(spibus_t *spidev){
             break;
 
         case SPI_BUS1:
+        case SPI_BUS3:
             RCC_APB1PeriphClockCmd(RCC_APB1PERIPH_SPI2, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1PERIPH_SPI2, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1PERIPH_SPI2, DISABLE);
@@ -142,26 +146,59 @@ void SPI_Init(spibus_t *spidev){
         DMA_Config(&spidev->dma, DMA1_REQ_SPI2_TX);
     }
 
-#if 0 /* in conclusion, to use full pin remaping pins have to be configured at board level */
+    /**
+     * This configures all pins used by SPI.
+     * A pin that is used for other function than SPI,
+     * must be reconfigured after calling SPI_Init()
+     */
+    switch(spidev->bus){
+        case SPI_BUS0: // SPI1 default pins
+            GPIO_Config(PA_5, GPIO_SPI1_SCK);
+            GPIO_Config(PA_6, GPIO_SPI1_MISO);
+            GPIO_Config(PA_7, GPIO_SPI1_MOSI);
+            if((spidev->flags & SPI_HW_CS) != 0){
+                GPIO_Config(PA_4, GPIO_SPI1_CS);
+            }
+            break;
 
-    // Configure default pins, 
-    // remapped or sw cs pin must be configure manually
-    if(spi == SPI1){
-        GPIO_Config(PA_5, GPIO_SPI1_SCK);
-        GPIO_Config(PA_6, GPIO_SPI1_MISO);
-        GPIO_Config(PA_7, GPIO_SPI1_MOSI);
-        if((spidev->flags & SPI_HW_CS) != 0){
-            GPIO_Config(PA_4, GPIO_SPI1_CS);
-        }
-    }else{
-        GPIO_Config(PB_13, GPIO_SPI2_SCK);
-        GPIO_Config(PB_14, GPIO_SPI2_MISO);
-        GPIO_Config(PB_15, GPIO_SPI2_MOSI);
-        if((spidev->flags & SPI_HW_CS) != 0){
-            GPIO_Config(PA_12, GPIO_SPI2_CS);
-        }
+        case SPI_BUS2: // SPI1 remapped
+            // To use PB3 as SPI2 sclk, SPI2 has to be remapped
+            RCC->APB2EN |= RCC_APB2EN_AFIOEN;
+            AFIO->MAP = (AFIO->MAP & ~(7 << 24)) | AFIO_MAP_SWJTAG_CONF_JTAGDISABLE;
+            AFIO->MAP5 = (AFIO->MAP5 & ~(0xFF << 16)) | AFIO_MAP5_SPI1_GRMP;
+
+            GPIO_Config(PB_3, GPIO_SPI1_SCK);
+            GPIO_Config(PB_4, GPIO_SPI1_MISO);
+            GPIO_Config(PB_5, GPIO_SPI1_MOSI);
+            if((spidev->flags & SPI_HW_CS) != 0){
+                GPIO_Config(PA_15, GPIO_SPI1_CS);
+            }
+            break;
+
+        case SPI_BUS1: // SPI2 default pins
+            GPIO_Config(PB_13, GPIO_SPI2_SCK);
+            GPIO_Config(PB_14, GPIO_SPI2_MISO);
+            GPIO_Config(PB_15, GPIO_SPI2_MOSI);
+            if((spidev->flags & SPI_HW_CS) != 0){
+                GPIO_Config(PB_12, GPIO_SPI2_CS);
+            }
+            break;
+
+        case SPI_BUS3: // SPI2 Remapped
+            // To use PB3 as SPI2 sclk, SPI2 has to be remapped
+            RCC->APB2EN |= RCC_APB2EN_AFIOEN;
+            AFIO->MAP = (AFIO->MAP & ~(7 << 24)) | AFIO_MAP_SWJTAG_CONF_JTAGDISABLE;
+            AFIO->MAP5 = (AFIO->MAP5 & ~(0xFF << 16)) | AFIO_MAP5_SPI2_GRMP;
+
+            GPIO_Config(PB_3, GPIO_SPI2_SCK);
+            GPIO_Config(PB_4, GPIO_SPI2_MISO);
+            GPIO_Config(PB_5, GPIO_SPI2_MOSI);
+            if((spidev->flags & SPI_HW_CS) != 0){
+                GPIO_Config(PA_15, GPIO_SPI2_CS);
+            }
+            break;
     }
-#endif
+
     spidev->ctrl = spi;
     spidev->flags |= SPI_ENABLED;
 }
@@ -210,9 +247,10 @@ void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
     }else{
         spi->CTRL1 &= ~(SPI_CTRL1_DFF16);
         while(count--){
-            *((__IO uint8_t *)&spi->DT) = *src++;
             while((spi->STS & SPI_STS_TE) == 0);
+            *((__IO uint8_t *)&spi->DT) = *src;
             while((spi->STS & SPI_STS_BSY) != 0);
+            *(src++) = *((__IO uint8_t *)&spi->DT);
         }
     } 
 }

@@ -33,6 +33,7 @@ CPHA = 1  ____X___X___X___X___X___X___         X         X
 #define SPI_BUS0    0
 #define SPI_BUS1    1
 #define SPI_BUS2    2
+#define SPI_BUS3    3
 
 enum spimode_e{
     SPI_MODE0 = 0x00,

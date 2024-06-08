@@ -145,6 +145,7 @@ typedef enum {
 #define GPO_LS_AF_OD        (GPIO_IOF_AF_OD | GPIO_IOM_NOR)
 #define GPO_MS_AF_OD        (GPIO_IOF_AF_OD | GPIO_IOM_LARGE)
 #define GPO_HS_AF_OD        (GPIO_IOF_AF_OD | GPIO_IOM_MAX)
+#define GPO_PP              GPO_LS
 
 #define GPIO_NAME_TO_PORT(name)     (name >> 4)
 #define GPIO_NAME_TO_PIN(name)      (name & 15)
