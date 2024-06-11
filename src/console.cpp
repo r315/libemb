@@ -6,6 +6,9 @@
 
 #include "console.h"
 
+#define VT100_BOLD   "\e[1m"
+#define VT100_NORMAL "\e[m"
+
 #define CONSOLE_ENABLE_HISTORY_DUMP 1
 #define CONSOLE_HISTORY_LIST_KEY    '>'
 
@@ -25,6 +28,7 @@ void Console::init(stdout_t *out, const char *prompt) {
 	m_out = out;
 	m_prompt = prompt;
 	m_line_len = 0;
+    m_line_edit = 0;
 
     m_hist.init(out);
 	m_hist.clear();	
@@ -57,6 +61,8 @@ char Console::parseCommand(char *line) {
 		return CMD_OK;
 
 	// Convert command line into string array
+    // TODO: Fix hard fault when number of input parameters 
+    // does not fit m_argv
 	m_argc = strToArray((char*)line, m_argv);
 
 	if(m_argc < CONSOLE_COMMAND_PARAMS && m_argv[0] != NULL){
@@ -89,20 +95,34 @@ char Console::parseCommand(char *line) {
 void Console::process(void) {
 	if(m_active == NO){
 		m_active = YES;
-		print(m_prompt);
+		printf(
+            VT100_BOLD
+            "%s"
+            VT100_NORMAL
+            ,m_prompt
+        );
 		return;
 	}
 #if defined(CONSOLE_BLOCKING)
 	m_line_len = 0;
 	m_line_len = getLine(m_line, CONSOLE_WIDTH);	
 #else
-	if (getLineNonBlocking(m_line, &m_line_len, CONSOLE_WIDTH)) 
+	if (scanForLine() == CON_LINE) 
 #endif
 	{
 		m_hist.push(m_line);
 		if(parseCommand(m_line) != CMD_OK_NO_PRT){
-			print(m_prompt);
+			printf(
+                VT100_BOLD
+                "%s"
+                VT100_NORMAL
+                ,m_prompt
+            );
 		}
+        // clear line after reading line and parsing it
+		memset(m_line, '\0', CONSOLE_WIDTH);
+        m_line_len = 0;
+        m_line_edit = 0;
 	}
 }
 
@@ -192,58 +212,134 @@ uint8_t Console::getchNonBlocking(char *c)
  * Read a line ended by \n or \r from serial port.
  * Ending char is not added to line read *
  * */
-char Console::getLineNonBlocking(char *dst, uint8_t *cur_len, uint8_t maxLen) {
+
+/**
+ * @brief Checks if a line has been entered by user
+ * A line is valid if \n character is entered by user.
+ * Ending line character is not included in line
+ * 
+ * @return line scan state
+ */
+con_res_t Console::scanForLine(void) {
 	char c;
-	uint8_t len;
+	static uint8_t EscSeq = 0;
 
 	while (m_out->available()) {
         c = m_out->readchar();
-		len = *cur_len;
-		
-		if ((c == '\n') || (c == '\r')) {			
-			//Remove all extra text from previous commands
-			memset(dst + len, '\0', maxLen - len);
-			m_out->writechar('\n');
-			*cur_len = 0;
-			return len + 1;
-		}
-		else if (c == '\b') {
-			if (len > 0) {
-				print("\b \b");
-				(*cur_len)--;
-			}
-		}
-		else if (c == 0x1b) {
-			uint16_t count = 1000; // counter to ensure that escape sequences are received
-			do{
-				if(m_out->available())
-                    c = m_out->readchar();
-			}while (count--);
-			
 
-			switch (c) {
-				case 0x41:  // UP arrow
-					*cur_len = replaceCommandLine(dst, m_hist.back(), *cur_len);
+        // Handle escape sequences
+        if(c == '\e'){
+            EscSeq = 1;
+            continue;
+        }
+
+        if(EscSeq == 1){
+            if(c == '['){
+                EscSeq = 2;
+                continue;
+            }else{
+                EscSeq = 0;
+            }
+        }
+
+        if(EscSeq == 2){
+            switch (c) {
+				case 'A':  // UP arrow
+					replaceLine(m_hist.back());
 					break;
-				case 0x42:  // Down arrow
-					*cur_len = replaceCommandLine(dst, m_hist.forward(), *cur_len);
+
+				case 'B':  // Down arrow
+					replaceLine(m_hist.forward());
 					break;
+
+                case 'C':            
+                    //puts ("RIGTH");
+                    if(m_line_edit > 0){
+                        printf("\e[1C");
+                        m_line_edit--;
+                    }
+                    break;
+
+                case 'D':
+                    //puts ("LEFT");
+                    if(m_line_edit < m_line_len){
+                        printf("\e[1D");
+                        m_line_edit++;
+                    }
+                    break;
+			}            
+            EscSeq = 0;
+            continue;
+        }
+		
+        // Handle line ending
+		if ((c == '\n') || (c == '\r')) {
+            m_line[m_line_len] = '\0';
+			m_out->writechar('\n');
+            return CON_LINE;
+		}
+
+        // Handle backspace
+		if (c == '\b') {
+			if (m_line_len > 0) {
+                if(!m_line_edit){
+    				m_out->write("\b \b", 3);
+                }else{
+                    uint8_t offset = m_line_len - m_line_edit;
+                    // move cursor one character to left
+                    m_out->writechar('\b');
+                    // Move and print remaning string
+                    for(uint8_t i = 0; i < m_line_edit; i++){
+                        m_line[offset + i - 1] = m_line[offset + i];
+                        m_out->writechar(m_line[offset + i]);
+                    }
+                    // Erase character at the end of line
+                    m_out->writechar(' ');                    
+                    // Move cursor back to edit position                  
+                    printf("\e[%uD", m_line_edit + 1);
+                }
+                m_line_len--;
 			}
+            continue;
+		}
+			
 #if CONSOLE_ENABLE_HISTORY_DUMP
-		}else if (c == CONSOLE_HISTORY_LIST_KEY && *cur_len == 0) {
-            *dst = '\0';
+		if (c == CONSOLE_HISTORY_LIST_KEY && m_line_len == 0) {
+            *m_line = '\0';
 			m_hist.dump();
-            return 1;
+            return CON_LINE;
+        }
 #endif
-		}else if (len < (maxLen - 1)) {
-			m_out->writechar(c);
-			*(dst + len) = c;
-			(*cur_len)++;
-		}	
-	}
-	return 0;
+        // Handle normal character
+		if (m_line_len < (CONSOLE_WIDTH - 1)) {
+            if(!m_line_edit){
+                // append character to end of line
+			    m_out->writechar(c);
+			    m_line[m_line_len++] = c;    			
+            }else{
+                // Insert character on index given by m_line_edit
+                uint8_t offset = m_line_len - m_line_edit;
+                // Shift all characters right by one,
+                // starting from end to m_line_edit
+                for(uint8_t i = 0; i < m_line_edit; i++){
+                    m_line[m_line_len - i] = m_line[m_line_len - 1 - i];
+                }
+                // Insert entered character
+                m_line[offset] = c;
+                // Only needed to print line from edit position to end
+                // plus inserted character
+                m_out->write(m_line + offset, m_line_edit + 1);                                
+                // Move cursor back to edit position
+                printf("\e[%uD", m_line_edit);
+                m_line_len++;
+            }
+		}
+    }
+
+	return CON_IDLE;
 }
 
+#if 0 // TODO: Fix
 char Console::getLine(char *dst, uint8_t maxLen)
 {
 	uint8_t len = 0, hasLine = 0;
@@ -298,6 +394,7 @@ char Console::getLine(char *dst, uint8_t maxLen)
 	memset(dst + len, '\0', maxLen - len);
 	return len;
 }
+#endif
 
 int Console::printf(const char* fmt, ...){
 	va_list arp;
@@ -408,16 +505,25 @@ void History::dump(void) {
     m_out->writechar('\n');
 }
 
-uint8_t Console::replaceCommandLine(char *old_line, char *new_line, uint8_t old_line_len) {
-	uint8_t new_line_len;
+void Console::replaceLine(char *new_line) {
+    int new_line_len;
 
-	while (old_line_len--) {
-		print("\b \b");
-	}
-	
-	new_line_len = print(new_line);
+    new_line_len = strlen((const char*)new_line);
 
-	memcpy(old_line, new_line, new_line_len);
+    if(new_line_len > 0 && new_line_len < CONSOLE_WIDTH){
+    	memcpy(m_line, new_line, new_line_len);
 
-	return new_line_len;
+      if(m_line_edit){
+         printf("\e[%uC", m_line_edit);
+         m_line_edit = 0;
+      }
+
+      while(m_line_len--){
+         printf("\b \b");
+      }
+
+      m_line_len = new_line_len;
+        
+      printf("%s", new_line);
+    }
 }

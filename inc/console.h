@@ -33,6 +33,10 @@ extern "C" {
 #define CONSOLE_WIDTH	                16
 #endif
 
+typedef enum con_res{
+    CON_IDLE = 0,
+    CON_LINE
+}con_res_t;
 
 class History {
     public:
@@ -59,7 +63,6 @@ class Console {
 		Console(stdout_t *, const char *);
 		void init(stdout_t *, const char *);
 		char getLine(char *, uint8_t);
-		char getLineNonBlocking(char *, uint8_t *, uint8_t);
 		void process(void);
 		void cls(void);
 		void setOutput(stdout_t *);
@@ -77,7 +80,7 @@ class Console {
 		int printf(const char*, ...);
         int printchar(int c);
 		uint8_t available(void);
-        uint8_t getchNonBlocking(char *);
+        uint8_t getchNonBlocking(char *c);
 
 		uint8_t getCmdListSize(void) { return m_cmdListSize; }
 		ConsoleCommand *getCmdIndexed(uint8_t idx) { return m_cmdList[idx]; } // security issues??
@@ -93,8 +96,10 @@ class Console {
 		uint8_t m_cmdListSize;
 		uint8_t m_active;
 		uint8_t m_line_len;
+        uint8_t m_line_edit;
         History m_hist;
-		uint8_t replaceCommandLine(char *, char *, uint8_t);
+		void replaceLine(char *);
+		con_res_t scanForLine(void);
 };
 
 
