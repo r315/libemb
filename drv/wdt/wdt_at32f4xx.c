@@ -17,6 +17,11 @@ void WDT_Init(uint32_t timeout)
 {
     uint32_t tpre;
 
+    if ((*((uint32_t*)0xE000EDF0) & 0x1) != 0) {
+        // debugger is attached, return
+        return;
+    }
+
     if(timeout < IWDG_MIN_TIMEOUT){
         timeout = IWDG_MIN_TIMEOUT;
     }
