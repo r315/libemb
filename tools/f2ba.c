@@ -6,7 +6,7 @@
 
 /**
  * File to byte Array
- * 
+ *
  * */
 
 #define NCOLS 16
@@ -17,13 +17,14 @@ typedef struct{
     char *outfile;
     int data_size;
     char endian;
+    char *fmt;
 }Arguments;
 
 const char *data_types[] = {"char", "uint8_t", "uint16_t", "uint32_t", "uint64_t"};
 
 void help(){
     printf("File to byte array ");
-    printf("Usage: f2ba <input file> <output file> [ofs=<offset>] [ds=<bytes>] [endian=<little|big>]\n");
+    printf("Usage: f2ba <input file> <output file> [ofs=<offset>] [ds=<bytes>] [endian=<little|big>] [fmt=<c|txt>]\n");
 }
 
 #ifndef _WIN32
@@ -47,50 +48,69 @@ int strstW(const char *a, const char *b){
 }
 
 
-void savetofile(char *filename, uint8_t *buf, int len, int data_size, int endian){
-FILE *fp;
-char namecpy[20];
+void savetofile(Arguments *args, uint8_t *buf, int len){
+    FILE *fp;
 
-    fp = fopen(filename, "wb");
+    fp = fopen(args->outfile, "wb");
 
     if(fp == NULL){
-        fprintf(stderr,"Unable to open output file '%s'\n", filename);
+        fprintf(stderr,"Unable to open output file '%s'\n", args->outfile);
         exit(-1);
     }
 
-    char *name = strchr(filename, '.');
-    *name = '\0';
+    if(!strcmp(args->fmt, "c")){
+        strchr(args->outfile, '.')[0] = '\0'; // trim to file name
 
-    //fprintf(fp,"#if 0\n%.*s\n#endif\n", len, buf); // print file content if printable chars??
-    strcpy(namecpy, filename);
-    fprintf(fp,"#define %s_SIZE    %d\n", strupr(namecpy), len/data_size);
-    fprintf(fp,"const %s %s[] = {", data_types[data_size], filename);
+        //fprintf(fp,"#if 0\n%.*s\n#endif\n", len, buf); // print file content if printable chars??
 
-    for(int i = 0; i < len; ){
-        if((i % NCOLS) == 0){
-            fprintf(fp,"\n");
-        }
-        
-        fprintf(fp,"0x");
+        fprintf(fp,"#define %s_SIZE    %d\n", strupr(args->outfile), len/args->data_size);
+        fprintf(fp,"const %s %s[] = {", data_types[args->data_size], args->outfile);
 
-        if(endian == 0){                             // default big        
-            for(int ds = 0; ds < data_size; ds++){   // data_size bytes
-                fprintf(fp,"%02X", buf[i + ds]); 
+        for(int i = 0; i < len; ){
+            if((i % NCOLS) == 0){
+                fprintf(fp,"\n");
             }
-        }else{            
-            for(int ds = data_size - 1; ds >= 0; ds--){   // data size bytes
-                fprintf(fp,"%02X", buf[ i + ds]); 
+
+            fprintf(fp,"0x");
+
+            if(args->endian == 0){                             // default big
+                for(int ds = 0; ds < args->data_size; ds++){   // args->data_size bytes
+                    fprintf(fp,"%02X", buf[i + ds]);
+                }
+            }else{
+                for(int ds = args->data_size - 1; ds >= 0; ds--){   // data size bytes
+                    fprintf(fp,"%02X", buf[ i + ds]);
+                }
+            }
+
+            i += args->data_size;
+
+            if(i < len ){
+                fprintf(fp,",");
             }
         }
-        
-        i += data_size;                        
 
-        if(i < len ){
-            fprintf(fp,",");
+        fprintf(fp,"\n};");
+    }else{
+        for(int i = 0; i < len; ){
+            if(args->endian == 0){                             // default big
+                for(int ds = 0; ds < args->data_size; ds++){   // args->data_size bytes
+                    fprintf(fp,"%02X", buf[i + ds]);
+                }
+            }else{
+                for(int ds = args->data_size - 1; ds >= 0; ds--){   // data size bytes
+                    fprintf(fp,"%02X", buf[ i + ds]);
+                }
+            }
+
+            i += args->data_size;
+
+            if(i < len ){
+                fprintf(fp,"\n");
+            }
         }
     }
 
-    fprintf(fp,"\n};");
     fclose(fp);
 }
 
@@ -101,12 +121,13 @@ static void parseCmdl(int argc, char** argv, Arguments* arg){
     arg->outfile = argv[2];
     arg->data_size = 1;
     arg->endian = 0;
+    arg->fmt = "c";
 
      /* parse options in any order */
     for (int pos = 1; pos < argc; pos++)
     {
-        /*if (strstW(argv[pos], "if=") && arg->infile == NULL){            
-            arg->infile = argv[pos] + 3;            
+        /*if (strstW(argv[pos], "if=") && arg->infile == NULL){
+            arg->infile = argv[pos] + 3;
         }
 
         if (strstW(argv[pos], "of=") && arg->outfile == NULL){
@@ -120,11 +141,15 @@ static void parseCmdl(int argc, char** argv, Arguments* arg){
         if (strstW(argv[pos], "ds=")){
             arg->data_size = atoi(argv[pos] + 3);
         }
-        
+
         if (strstW(argv[pos], "endian=")){
-          if(!strcmp(argv[pos] + 7,"little")){
-            arg->endian = 1;
-          }
+            if(!strcmp(argv[pos] + 7,"little")){
+                arg->endian = 1;
+            }
+        }
+
+        if (strstW(argv[pos], "fmt=")){
+            arg->fmt = argv[pos] + 4;
         }
     }
 
@@ -133,7 +158,7 @@ static void parseCmdl(int argc, char** argv, Arguments* arg){
 int main(int argc, char **argv){
 FILE *fp;
 char *filename;
-int size;
+int len;
 char *buf;
 Arguments args;
 
@@ -143,7 +168,7 @@ Arguments args;
     }
 
     parseCmdl(argc, argv, &args);
-    
+
     fp = fopen(args.infile, "rb");
 
     if(fp == NULL){
@@ -153,21 +178,21 @@ Arguments args;
     }
 
     fseek(fp,0,SEEK_END);
-    size = ftell(fp) - args.offset;
+    len = ftell(fp) - args.offset;
     fseek(fp, args.offset, SEEK_SET);
 
-    buf = (char*)malloc(size);
+    buf = (char*)malloc(len);
 
     if(buf == NULL){
-        fprintf(stderr,"Unable to allocate %u bytes of memory\n", size);
+        fprintf(stderr,"Unable to allocate %u bytes of memory\n", len);
         fclose(fp);
         exit(-2);
     }
 
-    int res = fread(buf, 1, size, fp);
+    int res = fread(buf, 1, len, fp);
 
-    if(res != size){
-        fprintf(stderr,"Error reading file, expected size %d, read %d\n", size, res); 
+    if(res != len){
+        fprintf(stderr,"Error reading file, expected size %d, read %d\n", len, res);
         free(buf);
         fclose(fp);
         exit(-3);
@@ -175,7 +200,7 @@ Arguments args;
 
     fclose(fp);
 
-    savetofile(args.outfile, (uint8_t*)buf, size, args.data_size, args.endian);
+    savetofile(&args, (uint8_t*)buf, len);
 
     free(buf);
 
