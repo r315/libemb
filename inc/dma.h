@@ -38,4 +38,6 @@ void DMA_Start(dmatype_t *dma);
 
 void DMA_Cancel(dmatype_t *dma);
 
+uint32_t DMA_GetTransfers(dmatype_t *dma);
+
 #endif /* _dma_h_ */
