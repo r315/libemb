@@ -51,22 +51,21 @@
 
 #define ENABLE_SECTOR_WRITE	0
 #define ENABLE_CARD_DETECT	0
-#define ENABLE_DISK_ACTIVITY_LED	1
 
 #define SD_SPI_SLOW         0
 
 /*-----------------------------------------------------------------------
-   Module Private variables                                              
+   Module Private variables
 -------------------------------------------------------------------------*/
 static uint8_t CardType;
 static spibus_t *s_spi = NULL;
 static uint8_t spi_dummy;
 /*-----------------------------------------------------------------------*/
 /* Send a command packet to MMC                                          */
-/*-----------------------------------------------------------------------*/	
+/*-----------------------------------------------------------------------*/
 /**
  * @brief Sends a data packet to memory card, note that card is selected on exit
- * 
+ *
  * @param cmd 		: command code
  * @param arg 		: command argument
  * @return uint8_t  : command response
@@ -77,7 +76,7 @@ static uint8_t cardCmd (uint8_t cmd, uint32_t arg){
 
     if (cmd & ACMD_FLAG) {	/* ACMD<n> is the command sequence of CMD55-CMD<n> */
         r1 = cardCmd(CMD55, 0);
-        if (r1 > 1) 
+        if (r1 > 1)
             return r1;
         cmd = cmd & ~ACMD_FLAG;
     }
@@ -122,7 +121,7 @@ static uint8_t cardCmd (uint8_t cmd, uint32_t arg){
 
 /**
  * @brief Retrieve Card Specific Data
- * 
+ *
  * @param CSDRegister   16-Byte buffer
  * @return uint8_t      0: Success, otherwise error
  */
@@ -133,8 +132,8 @@ uint8_t SDGetCSD(uint8_t *CSDRegister){
         uint8_t retry = 32;
         do {/* Wait for data packet with timeout */
             if (SPI_Xchg(s_spi, &spi_dummy) == SD_START_BLOCK_SINGLE) {
-                for (uint8_t n = 0; n < 16; n++){ 
-                   CSDRegister[n] = SPI_Xchg(s_spi, &spi_dummy); 
+                for (uint8_t n = 0; n < 16; n++){
+                   CSDRegister[n] = SPI_Xchg(s_spi, &spi_dummy);
                 }
                 res = 0;
                 break;
@@ -147,8 +146,8 @@ uint8_t SDGetCSD(uint8_t *CSDRegister){
 }
 
 /**
- * @brief Retrieve Card Identification Register. 
- * 
+ * @brief Retrieve Card Identification Register.
+ *
  * @param CIDRegister   16-Byte buffer
  * @return uint8_t      0: Success, otherwise error
  */
@@ -159,8 +158,8 @@ uint8_t SDGetCID(uint8_t *CIDRegister){
         uint8_t retry = 32;
         do {/* Wait for data packet with timeout */
             if (SPI_Xchg(s_spi, &spi_dummy) == SD_START_BLOCK_SINGLE) {
-                for (uint8_t n = 0; n < 16; n++){ 
-                   CIDRegister[n] = SPI_Xchg(s_spi, &spi_dummy); 
+                for (uint8_t n = 0; n < 16; n++){
+                   CIDRegister[n] = SPI_Xchg(s_spi, &spi_dummy);
                 }
                 res = 0;
                 break;
@@ -174,7 +173,7 @@ uint8_t SDGetCID(uint8_t *CIDRegister){
 
 /**
  * @brief Retrieve SD Card Configuration Register
- * 
+ *
  * @param SCRRegister   8-Byte buffer
  * @return uint8_t      0: Success, otherwise error
  */
@@ -184,7 +183,7 @@ uint8_t SDGetSCR(uint8_t *SCRRegister){
 
 /**
  * @brief Retrieve Operation Condition Register
- * 
+ *
  * @param OCRRegister   4-byte buffer
  * @return uint8_t      0: Success, otherwise error
  */
@@ -204,19 +203,19 @@ uint8_t SDGetOCR(uint8_t *OCRRegister){
             }
         }
     }while(--retry);
-    
+
     BOARD_SDCARD_DESELECT;
     return res;
 }
 /**
  * @brief Initialize Disk Drive in SPI mode
- * 
- * @return STA_OK on success, STA_NOINIT otherwise 
+ *
+ * @return STA_OK on success, STA_NOINIT otherwise
  */
 DSTATUS disk_initialize (void){
     uint8_t n, cmd, ocr[4];
-    uint16_t tmr;	
-    
+    uint16_t tmr;
+
 #if ENABLE_CARD_DETECT
     if(BOARD_CARD_IS_DETECTED == 0){
         return STA_NODISK;
@@ -224,7 +223,7 @@ DSTATUS disk_initialize (void){
 #endif
 
 #if ENABLE_SECTOR_WRITE
-    if (BOARD_CARD_IS_SELECTED) 
+    if (BOARD_CARD_IS_SELECTED)
         disk_writep(0, 0);		/* Finalize write process if it is in progress */
 #endif
 
@@ -239,7 +238,7 @@ DSTATUS disk_initialize (void){
     if(s_spi == NULL){
         s_spi = BOARD_SD_GET_SPI;
     }
-    
+
     uint32_t freq = s_spi->freq;
     s_spi->freq = 100000;
     spi_dummy = 0xFF;     // Dummy variable for single transfers
@@ -255,15 +254,15 @@ DSTATUS disk_initialize (void){
     CardType = CT_NONE;
 
     if (cardCmd(CMD0, 0) == R1_IDLE) {          /* Enter Idle state */
-        if (cardCmd(CMD8, 0x1AA) == R1_IDLE) {  
+        if (cardCmd(CMD8, 0x1AA) == R1_IDLE) {
             /* Card is SDv2 */
             /* Read R7 remaining 4-bytes */
-            for (uint8_t n = 0; n < 4; n++){ 
-                ocr[n] = SPI_Xchg(s_spi, &spi_dummy); 
+            for (uint8_t n = 0; n < 4; n++){
+                ocr[n] = SPI_Xchg(s_spi, &spi_dummy);
             }
 
             if (ocr[2] == 0x01 && ocr[3] == 0xAA) {				/* Check if card supports vdd range of 2.7-3.6V */
-            
+
                 /* Wait for leaving idle state (ACMD41 with HCS bit) */
                 for (tmr = 12000; tmr; tmr--){
                     if(cardCmd(ACMD41, SD_HCS) != R1_IDLE){
@@ -277,15 +276,15 @@ DSTATUS disk_initialize (void){
                 }
             }
             // Reject card
-        } else {							
+        } else {
             if (cardCmd(ACMD41, 0) <= R1_IDLE) 	{
                 CardType = CT_SD1; cmd = ACMD41;    /* SDv1 */
             } else {
                 CardType = CT_MMC; cmd = CMD1;	    /* MMCv3 */
             }
-            
+
             for (tmr = 25000; tmr && cardCmd(cmd, 0); tmr--) ;	/* Wait for leaving idle state */
-            
+
             if (!tmr || cardCmd(CMD16, 512) != 0){			    /* Set R/W block length to 512 */
                 CardType = CT_NONE;
             }
@@ -303,15 +302,15 @@ DSTATUS disk_initialize (void){
 }
 
 
-/** 
+/**
  * @brief Read partial sector
- * 
+ *
  * @param buff		: Pointer to the read buffer (NULL:Read uint8_ts are forwarded to the stream)
  * @param lba		: Sector number (LBA)
  * @param ofs		: offset to read from (0..511)
  * @param cnt 		: Number of uint8_ts to read (ofs + cnt must be <= 512)
  * @return DRESULT 	:
- * */ 
+ * */
 DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
     DRESULT res;
     WORD bc;
@@ -331,7 +330,7 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
 #endif
 
     /* READ_SINGLE_BLOCK */
-    if (cardCmd(CMD17, lba) == 0) {		
+    if (cardCmd(CMD17, lba) == 0) {
         bc = 30000;
         do {/* Wait for data packet with timeout */
             if (SPI_Xchg(s_spi, &spi_dummy) == SD_START_BLOCK_SINGLE) {
@@ -346,7 +345,7 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
                 /* Receive a part of the sector */
                 do
                     *buff++ = SPI_Xchg(s_spi, &spi_dummy);
-                while (--cnt);            
+                while (--cnt);
 
                 /* Skip trailing uint8_ts and CRC */
                 do SPI_Xchg(s_spi, &spi_dummy); while (--bc);
@@ -370,11 +369,11 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
 /* Write partial sector                                                  */
 /*-----------------------------------------------------------------------*/
 /**
- * @brief 
- * 
+ * @brief
+ *
  * @param buff 		: Pointer to the uint8_ts to be written (NULL:Initiate/Finalize sector write)
  * @param sa 		: Number of uint8_ts to send, Sector number (LBA) or zero
- * @return DRESULT 
+ * @return DRESULT
  */
 DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
 #if ENABLE_SECTOR_WRITE
@@ -403,7 +402,7 @@ DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
         if (sa) {	/* Initiate sector write process */
             if (!(CardType & CT_BLOCK)) sa *= 512;	/* Convert to uint8_t address if needed */
             if (cardCmd(CMD24, sa) == 0) {			/* WRITE_SINGLE_BLOCK */
-                SPI_Send(s_spi, 0xFF); 
+                SPI_Send(s_spi, 0xFF);
                 SPI_Send(s_spi, SD_START_BLOCK_SINGLE);		/* Data block header */
                 wc = 512;							/* Set uint8_t counter */
                 res = RES_OK;
