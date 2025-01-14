@@ -12,8 +12,9 @@ typedef struct dmactrl{
    struct {
       uint32_t ssize : 5;
       uint32_t dsize : 5;
-      uint32_t single : 1;
       uint32_t dir : 2;
+      uint32_t single : 1;  // Single transfer
+      uint32_t constant;    // Transfer is constant value
    };
    void (*eot)(void);
 }dmatype_t;
