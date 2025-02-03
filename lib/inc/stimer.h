@@ -13,6 +13,7 @@ typedef struct simpletimer_s {
     uint32_t countdown;         // Internal private counter
     uint32_t (*callback)(struct simpletimer_s *timer); // callback function
     struct simpletimer_s *next; // Next timer in list
+    void *data;
 }simpletimer_t;
 
 void STIMER_Config(simpletimer_t *timer, uint32_t interval, uint32_t (*callback)(simpletimer_t *timer));

@@ -4,13 +4,14 @@
 
 static simpletimer_t *tlist = NULL;
 
+
 /**
  * @brief Configures a timer and adds it to internal timer list
- * 
+ *
  * @param timer         pointer to simpletimer_t
- * @param interval      Expiration interval in handler call quantum, [ms] typical 
+ * @param interval      Expiration interval in handler call quantum, [ms] typical
  * @param callback      Callback function on expiration
- * @return 
+ * @return
  */
 void STIMER_Config(simpletimer_t *timer, uint32_t interval, uint32_t (*callback)(simpletimer_t *timer))
 {
@@ -21,25 +22,33 @@ void STIMER_Config(simpletimer_t *timer, uint32_t interval, uint32_t (*callback)
     timer->interval = interval;
     timer->callback = callback;
     timer->countdown = 0;
-    timer->next = NULL;
 
     if(tlist == NULL){
+        // Empty list, add head
+        timer->next = NULL;
         tlist = timer;
         return;
     }
 
     simpletimer_t *head = tlist;
 
-    while(head->next != NULL){
-        head = head->next;
-    }
+    do{
+        if(head == timer){
+            // timer is already on list, all done
+            return;
+        }
 
-    head->next = timer;
+        if(head->next == NULL){
+            head->next = timer;
+            return;
+        }
+        head = head->next;
+    }while(1);
 }
 
 /**
  * @brief Removes timer from timer linked list
- * 
+ *
  * @param timer     pointer to simpletimer_t
  * @return
  */
@@ -51,6 +60,7 @@ void STIMER_Remove(simpletimer_t *timer)
         return;
     }
 
+    // Remove from head
     if(head == timer){
         if(head->next != NULL){
             tlist = head->next;
@@ -60,51 +70,52 @@ void STIMER_Remove(simpletimer_t *timer)
         return;
     }
 
+    // Go through list
     while(head){
         if(head->next == timer){
             head->next = timer->next;
             return;
-        }        
+        }
         head = head->next;
     }
 }
 
 /**
  * @brief Changes the interval of a timer.
- * This affects a running timer on next call of callback if 
+ * This affects a running timer on next call of callback if
  * returns STIMER_GetInterval() or STIMER_Start()
- * 
+ *
  * @param timer     pointer to simpletimer_t
- * @param interval  New expiration interval in handler call quantum, [ms] typical 
+ * @param interval  New expiration interval in handler call quantum, [ms] typical
  */
 void STIMER_SetInterval(simpletimer_t *timer, uint32_t interval)
 {
     if(!timer){
         return;
     }
-    
+
     timer->interval = interval;
 }
 
 /**
  * @brief Starts a timer, if timer in parameter is not
  * on internal list, it will not start
- * 
+ *
  * @param timer     pointer to simpletimer_t
- * 
+ *
 */
 void STIMER_Start(simpletimer_t *timer)
 {
     if(!timer){
         return;
     }
-    
+
     timer->countdown = timer->interval;
 }
 
 /**
- * @brief Stops timer 
- * 
+ * @brief Stops timer
+ *
  * @param timer     pointer to simpletimer_t
 */
 void STIMER_Stop(simpletimer_t *timer)
