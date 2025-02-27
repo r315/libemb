@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
-#include "at32f4xx.h"
+#include "at32f4xx_rcc.h"
 #include "uart.h"
 
 static serialbus_t *serial1, *serial2, *serial3;
@@ -45,7 +45,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC_APB1PeriphResetCmd(RCC_APB1RST_USART3RST, DISABLE);
 
             pclk = clocks.APB1CLK_Freq;
-            
+
             uart = USART3;
             serial3 = serialbus;
             irq = USART3_IRQn;
@@ -57,17 +57,17 @@ void UART_Init(serialbus_t *serialbus){
 
 
     uart->BAUDR = pclk / serialbus->speed;
-    
+
     uart->CTRL1 = USART_CTRL1_REN | USART_CTRL1_TEN | USART_CTRL1_UEN | USART_CTRL1_RDNEIEN;
 
-    
+
     fifo_init(&serialbus->txfifo);
     fifo_init(&serialbus->rxfifo);
 
     serialbus->ctrl = uart;
 
     NVIC_EnableIRQ(irq);
-}   
+}
 
 uint32_t UART_Available(serialbus_t *huart){
     return fifo_avail(&huart->rxfifo);
@@ -83,7 +83,7 @@ uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
         }else{
             uart->CTRL1 |= USART_CTRL1_TDEIEN;
             while(fifo_free(&huart->txfifo) == 0);
-        }        
+        }
     }
 
     uart->CTRL1 |= USART_CTRL1_TDEIEN;
@@ -92,7 +92,7 @@ uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
 
 uint32_t UART_Read(serialbus_t *huart, uint8_t *data, uint32_t len){
     uint32_t count = len;
-	while(count--){        
+	while(count--){
         while(!fifo_get(&huart->rxfifo, data));
         data++;
     }
@@ -106,7 +106,7 @@ void UART_IRQHandler(void *ptr){
     if(ptr == NULL){
         return;
     }
-    serialbus = (serialbus_t*)ptr;	
+    serialbus = (serialbus_t*)ptr;
     usart = (USART_Type*)serialbus->ctrl;
 
     uint32_t isrflags = usart->STS;

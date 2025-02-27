@@ -152,8 +152,9 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
 
     if(len == 1){
         /* Single byte, is faster just write it*/
+        while(RESET == usart_flag_get(huart->uart, USART_FLAG_TBE));
         usart_data_transmit(huart->uart, buf[0]);
-        while(SET == usart_flag_get(huart->uart, USART_FLAG_BSY));
+        //while(SET == usart_flag_get(huart->uart, USART_FLAG_BSY));
     }else {
         /* TX_DMA */
 

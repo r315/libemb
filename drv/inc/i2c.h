@@ -1,7 +1,7 @@
 /**
 * @file		i2c.h
 * @brief	Contains the i2c API header.
-*     		
+*
 * @version	1.0
 * @date		6 Apr. 2017
 * @author	Hugo Reis
@@ -33,9 +33,10 @@ typedef struct {
 
 
 void I2C_Init(i2cbus_t *i2c);
-uint32_t I2C_Write(i2cbus_t *i2c, uint8_t *data, uint32_t size);
+uint32_t I2C_Write(i2cbus_t *i2c, const uint8_t *data, uint32_t size);
 uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size);
 void I2C_Reset(i2cbus_t *i2c);
+static inline void I2C_SetSlave(i2cbus_t *i2c, uint8_t slave){i2c->addr = slave;} // 7bit address
 
 #ifdef __cplusplus
 }

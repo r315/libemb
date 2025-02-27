@@ -10,6 +10,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "at32f4xx_rcc.h"
+#include "system_at32f4xx.h"
+
 
 /** @addtogroup at32f4xx_StdPeriph_Driver
   * @{
@@ -239,7 +241,7 @@ ErrorStatus RCC_WaitForHSEStable(void)
     StartUpCounter++;
   }
   while((StartUpCounter != HSE_STARTUP_TIMEOUT) && (HSEStatus == RESET));
-  
+
   /* Delay for HSE Stable */
   RCC_HSEENDelay(HSE_STABLE_DELAY);
 
@@ -577,7 +579,7 @@ void RCC_ADCCLKConfig(uint32_t RCC_PCLK2_Div)
   *     @arg RCC_LSE_DISABLE: LSE oscillator OFF
   *     @arg RCC_LSE_ENABLE:  LSE oscillator ON
   *     @arg RCC_LSE_BYPASS:  LSE oscillator bypassed with external clock
-  * @retval None  
+  * @retval None
   */
 void RCC_LSEConfig(uint8_t RCC_LSE)
 {
@@ -697,7 +699,7 @@ void RCC_GetClocksFreq(RCC_ClockType* RCC_Clocks)
 {
 #if defined (AT32F415xx) || defined (AT32F421xx)
   uint32_t pllcfgen = 0, pllns = 0, pllms = 0, pllfr = 0;
-  uint32_t pllsrcfreq = 0, retfr = 0; 
+  uint32_t pllsrcfreq = 0, retfr = 0;
 #endif
 #if defined (AT32F403Axx)|| defined (AT32F407xx)
   uint32_t prediv = 0;
@@ -756,7 +758,7 @@ void RCC_GetClocksFreq(RCC_ClockType* RCC_Clocks)
           pllsrcfreq = HSE_VALUE;
         }
       }
-        
+
       RCC_Clocks->SYSCLK_Freq = (pllsrcfreq * (pllns >> PLL_NS_POS)) / \
       ((pllms >> PLL_MS_POS) * retfr);
     }else
@@ -765,7 +767,7 @@ void RCC_GetClocksFreq(RCC_ClockType* RCC_Clocks)
       /* Get PLL clock source and multiplication factor ----------------------*/
       pllmult = BIT_READ(RCC->CFG, RCC_CFG_PLLMULT);
       pllmult = RCC_GET_PLLMULT(pllmult);
-  
+
       if (pllrefclk == 0x00)
       {
         /* HSI oscillator clock divided by 2 selected as PLL clock entry */
