@@ -27,7 +27,7 @@ void I2C_Init(i2cbus_t *i2c){
 	LPC_I2C_TypeDef *i2cx;
 	I2C_Controller *ctrl;
 	IRQn_Type irq;
-	
+
 	switch(i2c->bus_num){
 		default :
 		case I2C_IF0:
@@ -48,7 +48,7 @@ void I2C_Init(i2cbus_t *i2c){
 			irq = I2C2_IRQn;
 			break;
 	}
-	
+
 	ctrl = &i2cController[i2c->bus_num];
 
 	i2cx->CONCLR = I2C_CONCLR_I2ENC;
@@ -63,7 +63,7 @@ void I2C_Init(i2cbus_t *i2c){
 
 	i2c->peripheral = ctrl;
 
-	NVIC_EnableIRQ(irq);	
+	NVIC_EnableIRQ(irq);
 }
 
 
@@ -72,19 +72,19 @@ void I2C_ReadIT(i2cbus_t *i2c, uint8_t *data, uint32_t size, void (*cb)(void)){
 	I2C_StartStateMachine( i2c->peripheral, DATA_READ, data, size);
 }
 
-void I2C_WriteIT(i2cbus_t *i2c, uint8_t *data, uint32_t size, void (*cb)(void)){
+void I2C_WriteIT(i2cbus_t *i2c, const uint8_t *data, uint32_t size, void (*cb)(void)){
 	((I2C_Controller*)i2c->peripheral)->cb = cb;
-	I2C_StartStateMachine( i2c->peripheral, DATA_WRITE, data, size);
+	I2C_StartStateMachine( i2c->peripheral, DATA_WRITE, (uint8_t*)data, size);
 }
 
-uint32_t I2C_Write(i2cbus_t *i2c, uint8_t *data, uint32_t size){
+uint32_t I2C_Write(i2cbus_t *i2c, const uint8_t *data, uint32_t size){
 	I2C_Controller *ctrl = (I2C_Controller*)i2c->peripheral;
 	ctrl->device = i2c->addr;
 	I2C_WriteIT(i2c, data, size, NULL);
 	while(ctrl->state != I2C_IDLE){
        if(ctrl->state == ERROR_SLA_NACK){
             return 0;
-        }  
+        }
     }
 	return ctrl->size;
 }
@@ -104,7 +104,7 @@ uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size){
 
 int8_t I2C_StartStateMachine(I2C_Controller *i2cifc, uint8_t op, uint8_t *data, uint32_t size){
 	uint32_t timeout = I2C_MAX_TIMEOUT;
-	
+
 	i2cifc->count = 0;
 	i2cifc->size = size;
 	i2cifc->data = data;
@@ -118,11 +118,11 @@ int8_t I2C_StartStateMachine(I2C_Controller *i2cifc, uint8_t op, uint8_t *data, 
 		}
 		timeout--;
 	}
-	
+
 	i2cifc->interface->CONSET = I2C_CONSET_STO;
   	i2cifc->interface->CONCLR = I2C_CONCLR_SIC;
-	
-	return 0;	
+
+	return 0;
 }
 
 /**
@@ -219,7 +219,7 @@ static void I2C_StateMachine(I2C_Controller *i2cifc){
 		if( i2cifc->cb != NULL){
 			i2cifc->cb();
 		}
-	}	
+	}
 }
 
 void I2C0_IRQHandler(void){

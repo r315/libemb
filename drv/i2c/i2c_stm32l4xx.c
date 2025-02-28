@@ -27,7 +27,7 @@ void I2C_Init (i2cbus_t *i2c){
     GPIO_InitTypeDef GPIO_InitStruct;
 
     I2C_HandleTypeDef *hi2cx = hi2c + i2c->bus_num;
-    
+
     hi2cx->Init.OwnAddress1 = 0;
     hi2cx->Init.OwnAddress2 = 0xFF;
     hi2cx->Init.AddressingMode  = I2C_ADDRESSINGMODE_7BIT;
@@ -35,12 +35,12 @@ void I2C_Init (i2cbus_t *i2c){
     hi2cx->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
     hi2cx->Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
     hi2cx->Init.Timing = (15 << I2C_TIMINGR_PRESC_Pos) | // Timings valid for PCLK1 = 80MHz
-                         (24 << I2C_TIMINGR_SCLL_Pos) | 
-                         (19 << I2C_TIMINGR_SCLH_Pos) | 
+                         (24 << I2C_TIMINGR_SCLL_Pos) |
+                         (19 << I2C_TIMINGR_SCLH_Pos) |
                          (3 << I2C_TIMINGR_SDADEL_Pos) |
                          (5 << I2C_TIMINGR_SCLDEL_Pos);
 
-  
+
 	switch(i2c->bus_num){
 		default :
 		case I2C_IF0:
@@ -65,15 +65,15 @@ void I2C_Init (i2cbus_t *i2c){
     {
         return;
     }
-    
+
     GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     HAL_I2CEx_ConfigAnalogFilter(hi2cx, I2C_ANALOGFILTER_ENABLE);
 }
 
-uint32_t I2C_Write(i2cbus_t *i2c, uint8_t *data, uint32_t size){
-    return (HAL_I2C_Master_Transmit(i2c->peripheral, i2c->addr, data, size, 100) == HAL_OK) ? size : 0;
+uint32_t I2C_Write(i2cbus_t *i2c, const uint8_t *data, uint32_t size){
+    return (HAL_I2C_Master_Transmit(i2c->peripheral, i2c->addr, (uint8_t*)data, size, 100) == HAL_OK) ? size : 0;
 }
 
 uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size){
@@ -81,5 +81,5 @@ uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size){
 }
 
 void I2C_Reset(i2cbus_t *i2cbus){
-  
+
 }
