@@ -6,8 +6,8 @@
 extern "C" {
 
 #include <stdint.h>
-#include "stdout.h"
 #include "console_command.h"
+
 
 #define NO        0
 #define YES       1
@@ -32,6 +32,14 @@ extern "C" {
 #ifndef CONSOLE_WIDTH
 #define CONSOLE_WIDTH	                16
 #endif
+
+typedef struct stdout_s {
+    int (*available)(void);
+    char (*readchar)(void);
+    int (*read)(const char* str, int len);
+    void (*writechar)(char c);
+    int (*write)(const char* str, int len);
+}stdout_t;
 
 typedef enum con_res{
     CON_IDLE = 0,
