@@ -6,6 +6,7 @@
 #define IWDG_LICK           40000UL //Hz
 #define IWDG_MAX_RLD        0x1000
 
+#define DHCSR               *((uint32_t*)0xE000EDF0) // Debug Halting Control and Status Register
 
 /**
  * @brief Independend watchdog configuration
@@ -17,7 +18,7 @@ void WDT_Init(uint32_t timeout)
 {
     uint32_t tpre;
 
-    if ((*((uint32_t*)0xE000EDF0) & 0x1) != 0) {
+    if ((DHCSR & 0x1) != 0) {
         // debugger is attached, return
         return;
     }
