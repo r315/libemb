@@ -35,9 +35,7 @@ extern "C" {
 
 typedef struct stdout_s {
     int (*available)(void);
-    char (*readchar)(void);
-    int (*read)(const char* str, int len);
-    void (*writechar)(char c);
+    int (*read)(char* str, int len);
     int (*write)(const char* str, int len);
 }stdout_t;
 
@@ -49,9 +47,6 @@ typedef enum con_res{
 class History {
     public:
         History(void);
-        History(stdout_t *);
-        void init(stdout_t *);
-        void dump(void);
 		void push(const char *);
 		char *pop(void);
 		char *back(void);
@@ -62,7 +57,6 @@ class History {
 		uint8_t m_top;
 		uint8_t m_idx;
 		uint8_t m_size;
-		stdout_t *m_out;
 };
 
 class Console {
@@ -95,6 +89,8 @@ class Console {
 
     private:
         ConsoleCommand *m_cmdList[CONSOLE_MAX_COMMANDS];
+        char readchar(void);
+        void writechar(char c);
 		char m_line[CONSOLE_WIDTH];
 		char m_buf[CONSOLE_WIDTH];
 		char *m_argv[CONSOLE_COMMAND_PARAMS];

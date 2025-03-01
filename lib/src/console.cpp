@@ -9,7 +9,7 @@
 #define VT100_BOLD   "\e[1m"
 #define VT100_NORMAL "\e[m"
 
-#define CONSOLE_ENABLE_HISTORY_DUMP 1
+#define CONSOLE_ENABLE_HISTORY_DUMP 0
 #define CONSOLE_HISTORY_LIST_KEY    '>'
 
 Console::Console(void) {
@@ -29,9 +29,7 @@ void Console::init(stdout_t *out, const char *prompt) {
 	m_prompt = prompt;
 	m_line_len = 0;
     m_line_edit = 0;
-
-    m_hist.init(out);
-	m_hist.clear();	
+	m_hist.clear();
 	//addCommand(&help); // since all cpp support is disabled, classes on .data section are not initialized
 }
 
@@ -43,7 +41,7 @@ void Console::addCommand(ConsoleCommand *cmd) {
 	}
 
 	cmd->init(this);
-	m_cmdList[m_cmdListSize++] = cmd;	
+	m_cmdList[m_cmdListSize++] = cmd;
 }
 
 void Console::registerCommandList(ConsoleCommand **list){
@@ -57,11 +55,11 @@ char Console::parseCommand(char *line) {
 	ConsoleCommand **cmd = m_cmdList;
 
 	// check if empty line
-	if (*line == '\n' || *line == '\r' || *line == '\0')    
+	if (*line == '\n' || *line == '\r' || *line == '\0')
 		return CMD_OK;
 
 	// Convert command line into string array
-    // TODO: Fix hard fault when number of input parameters 
+    // TODO: Fix hard fault when number of input parameters
     // does not fit m_argv
 	m_argc = strToArray((char*)line, m_argv);
 
@@ -74,10 +72,10 @@ char Console::parseCommand(char *line) {
 			if ((*cmd)->isNameEqual(cmdname) != 0) {
 				res = (*cmd)->execute(m_argc, m_argv);
 				break;
-			}	
+			}
 		}
 	}
-	
+
 	// Clear command line
 	memset(line, '\0', CONSOLE_WIDTH);
 
@@ -105,9 +103,9 @@ void Console::process(void) {
 	}
 #if defined(CONSOLE_BLOCKING)
 	m_line_len = 0;
-	m_line_len = getLine(m_line, CONSOLE_WIDTH);	
+	m_line_len = getLine(m_line, CONSOLE_WIDTH);
 #else
-	if (scanForLine() == CON_LINE) 
+	if (scanForLine() == CON_LINE)
 #endif
 	{
 		m_hist.push(m_line);
@@ -127,17 +125,17 @@ void Console::process(void) {
 }
 
 void Console::cls(void){
-	print("\e[2J\r");	
+	print("\e[2J\r");
 }
 
 /**
  * */
 void Console::setOutput(stdout_t *sp){
-	m_out = sp;	
+	m_out = sp;
 }
 
 /**
- * 
+ *
  * */
 int Console::print(const char* str)
 {
@@ -170,12 +168,12 @@ char *Console::getString(char* str)
 	uint8_t i = 0;
 	char c;
 
-	c = m_out->readchar();
+	c = readchar();
 
 	while ((c != '\n') && (c != '\r'))
 	{
-		*(str + i++) = c;		
-		c = m_out->readchar();
+		*(str + i++) = c;
+		c = readchar();
 	}
 	*(str + i) = '\0';
 
@@ -183,26 +181,26 @@ char *Console::getString(char* str)
 }
 
 int Console::printchar(int c) {
-	m_out->writechar(c);
+	writechar(c);
 	return (int)c;
 }
 
 int Console::getChar(void)
 {
-	char c = m_out->readchar();
-	m_out->writechar(c);
+	char c = readchar();
+	writechar(c);
 	return (int)c;
 }
 
 char Console::getch(void)
 {
-	return m_out->readchar();
+	return readchar();
 }
 
 uint8_t Console::getchNonBlocking(char *c)
 {
     if(m_out->available()){
-        *c = m_out->readchar();
+        *c = readchar();
         return 1;
     }
     return 0;
@@ -217,7 +215,7 @@ uint8_t Console::getchNonBlocking(char *c)
  * @brief Checks if a line has been entered by user
  * A line is valid if \n character is entered by user.
  * Ending line character is not included in line
- * 
+ *
  * @return line scan state
  */
 con_res_t Console::scanForLine(void) {
@@ -225,7 +223,7 @@ con_res_t Console::scanForLine(void) {
 	static uint8_t EscSeq = 0;
 
 	while (m_out->available()) {
-        c = m_out->readchar();
+        c = readchar();
 
         // Handle escape sequences
         if(c == '\e'){
@@ -252,7 +250,7 @@ con_res_t Console::scanForLine(void) {
 					replaceLine(m_hist.forward());
 					break;
 
-                case 'C':            
+                case 'C':
                     //puts ("RIGTH");
                     if(m_line_edit > 0){
                         printf("\e[1C");
@@ -267,15 +265,15 @@ con_res_t Console::scanForLine(void) {
                         m_line_edit++;
                     }
                     break;
-			}            
+			}
             EscSeq = 0;
             continue;
         }
-		
+
         // Handle line ending
 		if ((c == '\n') || (c == '\r')) {
             m_line[m_line_len] = '\0';
-			m_out->writechar('\n');
+			writechar('\n');
             return CON_LINE;
 		}
 
@@ -287,22 +285,22 @@ con_res_t Console::scanForLine(void) {
                 }else{
                     uint8_t offset = m_line_len - m_line_edit;
                     // move cursor one character to left
-                    m_out->writechar('\b');
+                    writechar('\b');
                     // Move and print remaning string
                     for(uint8_t i = 0; i < m_line_edit; i++){
                         m_line[offset + i - 1] = m_line[offset + i];
-                        m_out->writechar(m_line[offset + i]);
+                        writechar(m_line[offset + i]);
                     }
                     // Erase character at the end of line
-                    m_out->writechar(' ');                    
-                    // Move cursor back to edit position                  
+                    writechar(' ');
+                    // Move cursor back to edit position
                     printf("\e[%uD", m_line_edit + 1);
                 }
                 m_line_len--;
 			}
             continue;
 		}
-			
+
 #if CONSOLE_ENABLE_HISTORY_DUMP
 		if (c == CONSOLE_HISTORY_LIST_KEY && m_line_len == 0) {
             *m_line = '\0';
@@ -314,8 +312,8 @@ con_res_t Console::scanForLine(void) {
 		if (m_line_len < (CONSOLE_WIDTH - 1)) {
             if(!m_line_edit){
                 // append character to end of line
-			    m_out->writechar(c);
-			    m_line[m_line_len++] = c;    			
+			    writechar(c);
+			    m_line[m_line_len++] = c;
             }else{
                 // Insert character on index given by m_line_edit
                 uint8_t offset = m_line_len - m_line_edit;
@@ -328,7 +326,7 @@ con_res_t Console::scanForLine(void) {
                 m_line[offset] = c;
                 // Only needed to print line from edit position to end
                 // plus inserted character
-                m_out->write(m_line + offset, m_line_edit + 1);                                
+                m_out->write(m_line + offset, m_line_edit + 1);
                 // Move cursor back to edit position
                 printf("\e[%uD", m_line_edit);
                 m_line_len++;
@@ -339,18 +337,18 @@ con_res_t Console::scanForLine(void) {
 	return CON_IDLE;
 }
 
-#if 0 // TODO: Fix
+// TODO: Fix, fix what next time write it
 char Console::getLine(char *dst, uint8_t maxLen)
 {
 	uint8_t len = 0, hasLine = 0;
 	char c;
 
 	while (!hasLine) {
-		c = m_out->readchar();
+		c = readchar();
 		switch (c) {
 		case '\b':
 			if (len != 0) {
-				m_out->write("\b \b", 3);				
+				m_out->write("\b \b", 3);
 				len--;
 			}
 			break;
@@ -358,32 +356,32 @@ char Console::getLine(char *dst, uint8_t maxLen)
 		case '\n':
 		case '\r':
 			hasLine = 1;
-			m_out->writechar('\n');
+			writechar('\n');
 			break;
 
 		case 0x1b:
-			c = m_out->readchar();
-			c = m_out->readchar();
+			c = readchar();
+			c = readchar();
 			//print("%X ", c);
 			switch (c) {
 			case 0x41:  // [1B, 5B, 41] UP arrow
-				len = replaceCommandLine(dst, m_hist.back(), len);
+				replaceLine(m_hist.back());
 				break;
 			case 0x42:  // [1B, 5B, 42] Down arrow
-				len = replaceCommandLine(dst, m_hist.forward(), len);
+				replaceLine(m_hist.forward());
 			default:
 				break;
 			}
 			break;
-
+#if CONSOLE_ENABLE_HISTORY_DUMP
 		case '<':
 			m_hist.dump();
 			hasLine = 1;
 			break;
-
+#endif
 		default:
 			if (len < maxLen) {
-				m_out->writechar(c);
+				writechar(c);
 				dst[len] = c;
 				len++;
 			}
@@ -394,9 +392,9 @@ char Console::getLine(char *dst, uint8_t maxLen)
 	memset(dst + len, '\0', maxLen - len);
 	return len;
 }
-#endif
 
-int Console::printf(const char* fmt, ...){
+int Console::printf(const char* fmt, ...)
+{
 	va_list arp;
     int len;
 	va_start(arp, fmt);
@@ -406,23 +404,50 @@ int Console::printf(const char* fmt, ...){
 	return m_out->write(m_buf, len);
 }
 
-uint8_t Console::available(void) {
+uint8_t Console::available(void)
+{
 	return m_out->available();
 }
 
+char Console::readchar(void)
+{
+    char c;
+    m_out->read(&c, 1);
+    return c;
+}
+
+void Console::writechar(char c)
+{
+    m_out->write((const char*)&c, 1);
+}
+
+void Console::replaceLine(char *new_line) {
+    int new_line_len;
+
+    new_line_len = strlen((const char*)new_line);
+
+    if(new_line_len > 0 && new_line_len < CONSOLE_WIDTH){
+    	memcpy(m_line, new_line, new_line_len);
+
+      if(m_line_edit){
+         printf("\e[%uC", m_line_edit);
+         m_line_edit = 0;
+      }
+
+      while(m_line_len--){
+         printf("\b \b");
+      }
+
+      m_line_len = new_line_len;
+
+      printf("%s", new_line);
+    }
+}
 
 History::History(void)
 {
-}
-
-History::History(stdout_t *out)
-{
-    init(out);
-}
-
-void History::init(stdout_t *out)
-{
-    m_out = out;
+    memset(m_history, 0, sizeof(m_history));
+	m_top = m_idx = m_size = 0;
 }
 
 char *History::pop(void) {
@@ -431,7 +456,7 @@ char *History::pop(void) {
 
 void History::push(const char *entry) {
 	if (*entry != '\n' && *entry != '\r' && *entry != '\0') {
-		
+
 		memcpy(m_history[m_top], entry, CONSOLE_WIDTH);
 
 		if (++m_top == HISTORY_MAX_SIZE)
@@ -468,7 +493,7 @@ char *History::forward(void) {
 		if (++m_idx == HISTORY_MAX_SIZE)
 			m_idx = 0;
 	}
-	
+
 	if(m_idx == m_top){
 		// Clear current line to avoid duplicating m_history navigation
 		memset(m_history[m_top], '\0', CONSOLE_WIDTH);
@@ -483,47 +508,25 @@ void History::clear(void) {
 	}
 	m_idx = m_top = m_size = 0;
 }
-
+#if 0
 void History::dump(void) {
-    m_out->writechar('\n');
+    writechar('\n');
 
 	for (uint8_t i = 0; i < HISTORY_MAX_SIZE; i++)
 	{
         //printf("\n%c %u %s", (i == m_top) ? '>' : ' ', i, m_history[i]);
-        m_out->writechar('\n');
-        m_out->writechar((i == m_top) ? '>' : ' ');
-        m_out->writechar(' ');
-        m_out->writechar('0' + i);
-        m_out->writechar(' ');
+        writechar('\n');
+        writechar((i == m_top) ? '>' : ' ');
+        writechar(' ');
+        writechar('0' + i);
+        writechar(' ');
         char *ptr = m_history[i];
         while(*ptr){
-            m_out->writechar(*ptr++);
+            writechar(*ptr++);
         }
 	}
-	
-    m_out->writechar('\n');
-    m_out->writechar('\n');
+
+    m_out->write("\n\n", 2);
 }
+#endif
 
-void Console::replaceLine(char *new_line) {
-    int new_line_len;
-
-    new_line_len = strlen((const char*)new_line);
-
-    if(new_line_len > 0 && new_line_len < CONSOLE_WIDTH){
-    	memcpy(m_line, new_line, new_line_len);
-
-      if(m_line_edit){
-         printf("\e[%uC", m_line_edit);
-         m_line_edit = 0;
-      }
-
-      while(m_line_len--){
-         printf("\b \b");
-      }
-
-      m_line_len = new_line_len;
-        
-      printf("%s", new_line);
-    }
-}
