@@ -1,12 +1,11 @@
 #include <stdint.h>
-//#include "board.h"
 #include "stm32f1xx.h"
 
 #define WEAK __attribute__((weak))
 #define NAKED __attribute__((naked))
 #define ISR __attribute__((section(".isr_vector")))
 
-/* RCC_CR Bit Banding definitions 
+/* RCC_CR Bit Banding definitions
     address = bit_banding_peripheral_base + (offset * 32) + (bit * 4)
 */
 #define RCC_CR_HSEON_bb     (*(uint8_t *)0x42420040UL)
@@ -57,7 +56,7 @@ volatile uint32_t *src, *dest;
     for (src = &_siram_code, dest = &_sram_code; dest < &_eram_code; src++, dest++)
     {
        *dest = *src;
-    }    
+    }
 
     /* Clear .bss */
     dest = &_sbss;
@@ -102,7 +101,7 @@ volatile uint32_t *src, *dest;
     }
 
     /* Configure and enable PLL oscillator (sysclk = 72Mhz) */
-    
+
     RCC->CFGR = //(4 << 24) |                 // MCO = sysclk
 #ifdef XTAL12MHZ
                 (4 << 18) |                 // PLLMUL = 6
@@ -138,7 +137,7 @@ volatile uint32_t *src, *dest;
     }
 
     SystemCoreClock = 72000000UL;
-    asm volatile("sub sp, sp, #64");         // Give some heap
+    __asm volatile("sub sp, sp, #64");         // Give some heap
     __libc_init_array();
 
 #if defined(USE_FREERTOS)
@@ -149,15 +148,15 @@ volatile uint32_t *src, *dest;
     }
     /* Start scheduler */
     vTaskStartScheduler();
-#else    
+#else
     main();
 #endif
     /* case returns... */
-    asm("b .");
+    __asm("b .");
 }
 
 void HardFault_Handler(void){
-    asm volatile
+    __asm volatile
     (
         " tst lr, #4                                 \n"        // Check current stack
         " ite eq                                     \n"
@@ -169,28 +168,27 @@ void HardFault_Handler(void){
 
 void errorHandler(void){
     while (1){
-        asm("nop");
+        __asm("nop");
     }
 }
 
 void defaultHandler(void){
     while (1){
-        asm("nop");
+        __asm("nop");
     }
 }
 
-WEAK void stackTrace(uint32_t *stack){
-    uint32_t r0  = stack[ 0 ];
-    uint32_t r1  = stack[ 1 ];
-    uint32_t r2  = stack[ 2 ];
-    uint32_t r3  = stack[ 3 ];
-    uint32_t r12 = stack[ 4 ];
-    uint32_t lr  = stack[ 5 ];
-    uint32_t pc  = stack[ 6 ];
-    uint32_t psr = stack[ 7 ];
-    while(1){
+typedef struct {
+    uint32_t r0, r1, r2, r3, r12, lr, pc, psr;
+}stackframe_t;
 
-    }
+WEAK void stackTrace(stackframe_t *stack){
+   (void)stack;
+    __asm volatile
+    (
+        "bkpt #01 \n"
+        "b . \n"
+    );
 }
 
 WEAK void NMI_Handler(void);
