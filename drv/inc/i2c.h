@@ -26,17 +26,25 @@ typedef enum {
 
 typedef struct {
     void *peripheral;
-    uint8_t addr;               // Slave address
+    uint8_t addr;               // own address
     uint32_t speed;
     i2cbusnum_t bus_num;        // Bus number
 }i2cbus_t;
 
 
 void I2C_Init(i2cbus_t *i2c);
-uint32_t I2C_Write(i2cbus_t *i2c, const uint8_t *data, uint32_t size);
-uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size);
 void I2C_Reset(i2cbus_t *i2c);
-static inline void I2C_SetSlave(i2cbus_t *i2c, uint8_t slave){i2c->addr = slave;} // 7bit address
+/**
+ * @brief Basic I2C transfers
+ *
+ * @param i2c   Structure that holds i2c handler
+ * @param addr  7-bit Device address
+ * @param data  Data to ve sent/received
+ * @param size  Number of bytes in data
+ * @return uint16_t number of bytes transfered
+ */
+uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t size);
+uint16_t I2C_Read(i2cbus_t *i2c, uint8_t addr, uint8_t *data, uint16_t size);
 
 #ifdef __cplusplus
 }

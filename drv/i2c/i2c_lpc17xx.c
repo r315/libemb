@@ -77,9 +77,9 @@ void I2C_WriteIT(i2cbus_t *i2c, const uint8_t *data, uint32_t size, void (*cb)(v
 	I2C_StartStateMachine( i2c->peripheral, DATA_WRITE, (uint8_t*)data, size);
 }
 
-uint32_t I2C_Write(i2cbus_t *i2c, const uint8_t *data, uint32_t size){
+uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t size){
 	I2C_Controller *ctrl = (I2C_Controller*)i2c->peripheral;
-	ctrl->device = i2c->addr;
+	ctrl->device = addr;
 	I2C_WriteIT(i2c, data, size, NULL);
 	while(ctrl->state != I2C_IDLE){
        if(ctrl->state == ERROR_SLA_NACK){
@@ -89,9 +89,9 @@ uint32_t I2C_Write(i2cbus_t *i2c, const uint8_t *data, uint32_t size){
 	return ctrl->size;
 }
 
-uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size){
+uint16_t I2C_Read(i2cbus_t *i2c, uint8_t addr, uint8_t *data, uint16_t size){
 	I2C_Controller *ctrl = (I2C_Controller*)i2c->peripheral;
-	ctrl->device = i2c->addr;
+	ctrl->device = addr;
 	I2C_ReadIT(i2c, data, size, NULL);
 	while(ctrl->state != I2C_IDLE ){
         if(ctrl->state == ERROR_SLA_NACK){
