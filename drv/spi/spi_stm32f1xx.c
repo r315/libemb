@@ -23,9 +23,9 @@ static spibus_t *spi_eot[2];
 void SPI_DMA_IRQHandler(spibus_t *spidev){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     DMA_Channel_TypeDef *dma = (DMA_Channel_TypeDef*)spidev->dma.stream;
-    
+
     dma->CCR &= ~(DMA_CCR_EN);
-        
+
     if(spidev->trf_counter > 0x10000UL){
         spidev->trf_counter -= 0x10000UL;
         dma->CNDTR = (spidev->trf_counter > 0x10000UL) ? 0xFFFFUL : spidev->trf_counter;
@@ -35,7 +35,7 @@ void SPI_DMA_IRQHandler(spibus_t *spidev){
             //dummy read for clearing OVR flag
             spidev->trf_counter = spi->DR;
         }
-    
+
         spi->CR2 &= ~(SPI_CR2_TXDMAEN);
 
         spidev->trf_counter = 0;
@@ -53,9 +53,9 @@ static inline void spi2Eot(void){ SPI_DMA_IRQHandler(spi_eot[1]);}
 /**
  * @brief Configures baud rate by dividing Fpckl
  * by 2, 4, 8, 16, 32, 64, 128 or 256.
- * 
- * spi peripheral must be enabled afterwards 
- * 
+ *
+ * spi peripheral must be enabled afterwards
+ *
  * */
 static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t pclk, uint32_t freq){
 
@@ -74,7 +74,7 @@ static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t pclk, uint32_t freq){
         if(div >= (2 << br)){
             break;
         }
-        br--;        
+        br--;
     }while(br);
 
     spi->CR1 &= ~(SPI_CR1_SPE | PCLK_CLK_DIV256);
@@ -115,30 +115,30 @@ void SPI_Init(spibus_t *spidev){
 
         default : return;
     }
-    
+
     __HAL_RCC_DMA1_CLK_ENABLE();
 
     spi->CR1 = SPI_CR1_MSTR;
-    
+
     SPI_SetFreq(spi, pclk, spidev->freq);
 
     if((spidev->flags & SPI_HW_CS) == 0){
         // In master mode SSOE must be enable for NSS
         // software control
         spi->CR2 |=  SPI_CR2_SSOE;
-    }            
+    }
 
     spi->CR1 |= SPI_CR1_SPE;
-    
+
     spidev->dma.dst = (void*)&spi->DR;
     spidev->dma.dsize = DMA_CCR_PSIZE_16;
     spidev->dma.src = NULL;
     spidev->dma.ssize = DMA_CCR_MSIZE_16;
     spidev->dma.dir = DMA_DIR_M2P;
     spidev->dma.eot = (spi == SPI1) ? spi1Eot : spi2Eot;
-    
+
     DMA_Config(&spidev->dma, dma_req);
-  
+
     spidev->ctrl = spi;
     spidev->flags |= SPI_ENABLED;
 }
@@ -170,13 +170,13 @@ uint16_t SPI_Xchg(spibus_t *spidev, uint8_t *data){
 
 /**
  * @brief Write data to SPI, blocking
- * 
+ *
  * \param src   : Pointer to source data
  * \param count : total number of bytes to transfer
  * */
 void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    
+
     if(spidev->flags & SPI_16BIT){
         spi->CR1 |= SPI_CR1_DFF;
         while(count--){
@@ -196,7 +196,7 @@ void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
 
 /**
  * @brief Write data to SPI using DMA controller
- * 
+ *
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
@@ -225,7 +225,7 @@ void SPI_TransferDMA(spibus_t *spidev, uint8_t *src, uint32_t count){
 
     dma->CMAR = (uint32_t)src;
     dma->CNDTR = (spidev->trf_counter > 0x10000) ? 0xFFFF : spidev->trf_counter;
-    
+
     dma->CCR |= DMA_CCR_EN;
 
     SPIDEV_SET_FLAG(spidev, SPI_BUSY);
@@ -234,7 +234,7 @@ void SPI_TransferDMA(spibus_t *spidev, uint8_t *src, uint32_t count){
 /**
  * @brief Wait for end of DMA transfer
  * */
-void SPI_WaitEOT(spibus_t *spidev){    
+void SPI_WaitEOT(spibus_t *spidev){
     #if 1
     SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
     while(spi->SR & SPI_SR_BSY){

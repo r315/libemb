@@ -337,19 +337,20 @@ con_res_t Console::scanForLine(void) {
 	return CON_IDLE;
 }
 
-// TODO: Fix, fix what next time write it
+
 char Console::getLine(char *dst, uint8_t maxLen)
 {
-	uint8_t len = 0, hasLine = 0;
 	char c;
+	uint8_t hasLine = 0;
+    m_line_len = 0;
 
 	while (!hasLine) {
 		c = readchar();
 		switch (c) {
 		case '\b':
-			if (len != 0) {
+			if (m_line_len != 0) {
 				m_out->write("\b \b", 3);
-				len--;
+				m_line_len--;
 			}
 			break;
 
@@ -380,17 +381,17 @@ char Console::getLine(char *dst, uint8_t maxLen)
 			break;
 #endif
 		default:
-			if (len < maxLen) {
+			if (m_line_len < maxLen) {
 				writechar(c);
-				dst[len] = c;
-				len++;
+				dst[m_line_len] = c;
+				m_line_len++;
 			}
 			break;
 		}
 	}
 	//Remove all extra text from previous commands
-	memset(dst + len, '\0', maxLen - len);
-	return len;
+	memset(dst + m_line_len, '\0', maxLen - m_line_len);
+	return m_line_len;
 }
 
 int Console::printf(const char* fmt, ...)

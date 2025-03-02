@@ -48,10 +48,10 @@ static uint8_t start_x, start_y;
 #define LCD_CD0     GPIO_Write(drvlcd->cd, GPIO_PIN_LOW)
 #define LCD_BKL1    GPIO_Write(drvlcd->bkl, GPIO_PIN_HIGH)
 #define LCD_BKL0    GPIO_Write(drvlcd->bkl, GPIO_PIN_LOW)
-#define LCD_RST1    GPIO_Write(drvlcd->rst, GPIO_PIN_HIGH)        
-#define LCD_RST0    GPIO_Write(drvlcd->rst, GPIO_PIN_LOW)         
+#define LCD_RST1    GPIO_Write(drvlcd->rst, GPIO_PIN_HIGH)
+#define LCD_RST0    GPIO_Write(drvlcd->rst, GPIO_PIN_LOW)
 
-const drvlcd_t st7735_drv = 
+const drvlcd_t st7735_drv =
 {
     LCD_Init,
     LCD_FillRect,
@@ -137,7 +137,7 @@ static const uint8_t st7735_80x160 [] = {
     //ST7735_SWRESET,   ST_CMD_DELAY,  //  1: Software reset, 0 args, w/delay
     //120,                      //     120ms delay
     ST7735_SLPOUT ,   ST_CMD_DELAY,  //  2: Out of sleep mode, 0 args, w/delay
-    255,                      //     500 ms delay	
+    255,                      //     500 ms delay
     ST7735_FRMCTR1, 3      ,  //  3: Frame rate ctrl - normal mode, 3 args:
     0x05, 0x3A, 0x3A,         //     Rate = fosc/([05]x2+40) * (LINE+[3A]+[3A]+2)
     ST7735_FRMCTR2, 3      ,  //  4: Frame rate control - idle mode, 3 args:
@@ -193,7 +193,7 @@ static const uint8_t st7735_80x160 [] = {
  * @brief Writes command to display
  */
 static void LCD_Command(uint8_t data){
-    LCD_CD0; 
+    LCD_CD0;
     SPI_Transfer(spidev, &data, 1);
     LCD_CD1;
 }
@@ -237,7 +237,7 @@ static void LCD_InitSequence(const uint8_t *addr) {
 
 /**
  * @brief Write a block of data
- * 
+ *
  */
 static void LCD_WriteData(uint16_t *data, uint32_t count){
     if(spidev->eot_cb != NULL){
@@ -252,7 +252,7 @@ static void LCD_WriteData(uint16_t *data, uint32_t count){
             data++;
         }
         LCD_CS1;
-    }	
+    }
 }
 
 /**
@@ -266,20 +266,20 @@ static void LCD_EOTHandler(void){
 
 /**
  * @brief Define area to be writtem
- * 
+ *
  * \param x1 :  Start x
  * \param y1 :  Start y
  * \param x2 :  End x
  * \param y2 :  End y
  * \param color :
  */
-static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){    
+static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
     LCD_Command(ST7735_CASET);
     scratch[0] = x1 >> 8;
     scratch[1] = x1;
     scratch[2] = x2 >> 8;
     scratch[3] = x2;
-    SPI_Transfer(spidev, scratch, 4);	
+    SPI_Transfer(spidev, scratch, 4);
 
     LCD_Command(ST7735_RASET);
     scratch[0] = y1 >> 8;
@@ -304,7 +304,7 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
     x += start_x;
     y += start_y;
     #endif
-    
+
     SPI_WaitEOT(spidev);
 
     LCD_CS0;
@@ -314,7 +314,7 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 
 /**
  * @brief Fill's area with same color
- * 
+ *
  * \param x :
  * \param y :
  * \param w :
@@ -335,7 +335,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
         spidev->flags |= SPI_DMA_NO_MINC | SPI_16BIT;
         *((uint16_t*)scratch) = color;
         SPI_TransferDMA(spidev, (uint8_t*)scratch, count);
-        //LCD_CS1; // SET by DMA handler	
+        //LCD_CS1; // SET by DMA handler
     }else{
         scratch[0] = color >> 8;
         scratch[1] = color;
@@ -348,7 +348,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 
 /**
  * @brief Write data block to defined area
- *  
+ *
  * \param x :
  * \param y :
  * \param w :
@@ -357,13 +357,13 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
  */
 void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data){
     uint32_t count = w * h;
-    
+
     if(!count){
         return;
     }
-    
+
     LCD_Window(x, y, w, h);
-    
+
     LCD_CS0;
     LCD_WriteData(data, count);
 }
@@ -377,14 +377,14 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
     x += start_x;
     y += start_y;
     #endif
-    
+
     scratch[0] = color >> 8;
     scratch[1] = color;
 
     SPI_WaitEOT(spidev);
-    
+
     LCD_CS0;
-    LCD_CasRasSet(x, y, x, y);	
+    LCD_CasRasSet(x, y, x, y);
     SPI_Transfer(spidev, scratch, 2);
     LCD_CS1;
 }
@@ -435,8 +435,8 @@ void LCD_Init(void *param){
 
     DelayMs(150);
 
-    LCD_CS0;    
-    LCD_InitSequence(init_seq);    
+    LCD_CS0;
+    LCD_InitSequence(init_seq);
     LCD_CS1;
 
     #if TFT_OFFSET
@@ -451,7 +451,7 @@ void LCD_Init(void *param){
 /**
  * @brief
  * */
-void LCD_SetOrientation(drvlcdorientation_t m) 
+void LCD_SetOrientation(drvlcdorientation_t m)
 {
     switch (m) {
     case LCD_PORTRAIT:
@@ -463,7 +463,7 @@ void LCD_SetOrientation(drvlcdorientation_t m)
         _width  = drvlcd->w;
         _height = drvlcd->h;
         break;
-        
+
     case LCD_LANDSCAPE:
         m = (DEFAULT_MADCTL | ST7735_MADCTL_MV | ST7735_MADCTL_MX);
         #if TFT_OFFSET
@@ -481,7 +481,7 @@ void LCD_SetOrientation(drvlcdorientation_t m)
         start_y = TFT_OFFSET_GATE;
         #endif
         _width  = drvlcd->w;
-        _height = drvlcd->h;        
+        _height = drvlcd->h;
         break;
 
     case LCD_REVERSE_LANDSCAPE:
@@ -496,7 +496,7 @@ void LCD_SetOrientation(drvlcdorientation_t m)
 
     default:
         return;
-    }    
+    }
 
     SPI_WaitEOT(spidev);
 
@@ -514,7 +514,7 @@ void LCD_Scroll(uint16_t sc){
 
     scratch[0] = sc >> 8;
     scratch[1] = sc;
-    
+
     SPI_WaitEOT(spidev);
 
     LCD_CS0;
