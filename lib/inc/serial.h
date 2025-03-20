@@ -34,35 +34,35 @@ typedef enum serial_e{
 
 typedef struct serialops_s{
     int(*available)(void);
-    int(*read)(void);
-    int(*readBytes)(uint8_t*, int);
-    int(*write)(uint8_t);
-    int(*writeBytes)(const uint8_t*, int);
+    int(*read)(char*, int);
+    int(*write)(const char*, int);
+    int(*readchar)(void);
+    int(*writechar)(char);
 }serialops_t;
 
 typedef struct serialport_s {
     serialbus_t port;
-    serialops_t serial;    
+    serialops_t serial;
 }serialport_t;
 
 /**
  * @brief Initializes serial ports available on board
- * 
- * This function implementation is board specific 
+ *
+ * This function implementation is board specific
  * and can be called on system startup
- * 
+ *
  */
 void SERIAL_Init(void);
 
 /**
  * @brief Configures serial port with given parameters
- * 
- * Used by SERIAL_Init, also can be used to reconfigure 
+ *
+ * Used by SERIAL_Init, also can be used to reconfigure
  * serial port by user
- * 
+ *
  * @param hserial   pointer to serial handler structure
  *                  obtained by SERIAL_GetSerialBus()
- * 
+ *
  * @param config    New configuration bit mask
  */
 void SERIAL_Config(serialport_t *hserial, uint32_t config);
@@ -71,21 +71,21 @@ void SERIAL_Config(serialport_t *hserial, uint32_t config);
  * @brief Get serial bus handler.
  * The returned pointer points to a serialport_t struct
  * containing HW controller configuration and fifos
- * 
+ *
  * @param nr            Number of bus starting from 0.
  *                      -1 returns default port operations
- * 
- * @return serialops_t* 
+ *
+ * @return serialops_t*
  */
 serialbus_t *SERIAL_GetSerialBus(int32_t nr);
 
 /**
  * @brief Get serial operation for a given bus.
- * 
+ *
  * @param nr            Number of bus starting from 0.
  *                      -1 returns default port operations
- * 
- * @return serialops_t* 
+ *
+ * @return serialops_t*
  */
 serialops_t *SERIAL_GetSerialOps(int32_t nr);
 
