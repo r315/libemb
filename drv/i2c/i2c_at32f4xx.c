@@ -98,7 +98,7 @@ void static i2c_reset_on_error(i2cbus_t *i2cbus, I2C_StatusType lastres){
 }
 
 uint16_t I2C_Write(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t size){
-    I2C_StatusType res = I2C_Master_Transmit(i2cbus->peripheral, addr, (uint8_t*)data, size, 1000);
+    I2C_StatusType res = I2C_Master_Transmit(i2cbus->peripheral, addr << 1, (uint8_t*)data, size, 1000);
 
     if(res != I2C_OK){
         i2c_reset_on_error(i2cbus, res);
@@ -109,7 +109,7 @@ uint16_t I2C_Write(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t
 }
 
 uint16_t I2C_Read(i2cbus_t *i2cbus, uint8_t addr, uint8_t *data, uint16_t size){
-	I2C_StatusType res = I2C_Master_Receive(i2cbus->peripheral, addr, data, size, 1000);
+	I2C_StatusType res = I2C_Master_Receive(i2cbus->peripheral, addr << 1, data, size, 1000);
 
     if(res != I2C_OK){
         i2c_reset_on_error(i2cbus, res);

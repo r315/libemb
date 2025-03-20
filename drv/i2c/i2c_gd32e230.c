@@ -4,14 +4,13 @@
 
 #define I2Cx_OWN_ADDRESS7      0x72
 
-enum {
+enum i2c_event {
     I2C_EVENT_CHECK_NONE = 0,
     I2C_EVENT_CHECK_ACKFAIL,
     I2C_EVENT_CHECK_STOP
 };
 
-typedef enum
-{
+typedef enum i2c_status {
     I2C_OK = 0,          /*!< no error */
     I2C_ERR_STEP_1,      /*!< step 1 error */
     I2C_ERR_STEP_2,      /*!< step 2 error */
@@ -34,9 +33,8 @@ typedef enum
     I2C_ERR_INTERRUPT,   /*!< interrupt error */
 } i2c_status_t;
 
-typedef struct {
+typedef struct i2c_handle {
     volatile uint32_t periph;
-
 }i2c_handle_t;
 
 static i2c_handle_t hi2cx;
@@ -287,12 +285,12 @@ void I2C_Init(i2cbus_t *i2c)
     i2c_enable(hi2cx.periph);
 }
 
-uint32_t I2C_Write(i2cbus_t *i2c, const uint8_t *data, uint32_t size)
+uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t size)
 {
-    return i2c_master_transmit(hi2cx.periph, i2c->addr, data, size, 1000) != I2C_OK ? 0 : size;
+    return i2c_master_transmit(hi2cx.periph, addr, data, size, 1000) != I2C_OK ? 0 : size;
 }
 
-uint32_t I2C_Read(i2cbus_t *i2c, uint8_t *data, uint32_t size)
+uint16_t I2C_Read(i2cbus_t *i2c, uint8_t addr, uint8_t *data, uint16_t size)
 {
-    return i2c_master_receive(hi2cx.periph, i2c->addr, data, size, 1000) != I2C_OK ? 0 : size;
+    return i2c_master_receive(hi2cx.periph, addr, data, size, 1000) != I2C_OK ? 0 : size;
 }
