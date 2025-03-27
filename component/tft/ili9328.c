@@ -19,7 +19,7 @@
 static drvlcdparallel_s *drvlcd;
 static uint16_t width, height;
 
-const drvlcd_t ili9328_drv = 
+const drvlcd_t ili9328_drv =
 {
     LCD_Init,
     LCD_FillRect,
@@ -94,7 +94,7 @@ void LCD_Data(uint16_t data)
 //--------------------------------------------------------
 //write instruction to LCD
 //--------------------------------------------------------
-static void ili9328WriteReg(uint8_t ins, uint16_t data) 
+static void ili9328WriteReg(uint8_t ins, uint16_t data)
 {
 	LCD_RS0;
 	drvlcd->write(ins);
@@ -116,7 +116,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
     uint32_t count = w * h;
 
     LCD_Window(x, y, w, h);
-    
+
     while(count--){
 		drvlcd->write(color);
 	}
@@ -124,7 +124,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 
 void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data){
 	uint32_t count = w * h;
-	
+
 	LCD_Window(x, y, w, h);
 
 	while(count--){
@@ -140,7 +140,7 @@ static void windowPortrait(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 	ili9328WriteReg(LCD_HOR_END_AD, x + w - 1);
 	ili9328WriteReg(LCD_VER_START_AD, y);
 	ili9328WriteReg(LCD_VER_END_AD, y + h - 1);
-    
+
 	ili9328WriteReg(LCD_GRAM_HOR_AD, x);
 	ili9328WriteReg(LCD_GRAM_VER_AD, y);
 }
@@ -150,7 +150,7 @@ static void windowLandscape(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 	ili9328WriteReg(LCD_HOR_END_AD, y + h - 1);
 	ili9328WriteReg(LCD_VER_START_AD, x);
 	ili9328WriteReg(LCD_VER_END_AD, x + w - 1);
-    
+
 	ili9328WriteReg(LCD_GRAM_HOR_AD, y);
 	ili9328WriteReg(LCD_GRAM_VER_AD, x);
 }
@@ -182,31 +182,31 @@ void LCD_Init(void *param)
 	LCD_CS1;
     LCD_WR1;
     LCD_RD1;
-	LCD_RST0;		 
+	LCD_RST0;
 	DelayMs(100);
 	LCD_RST1;
 	LCD_CS0;
 
 	ili9328WriteReg(0xE5, 0x8000);          //set the internal vcore voltage
 	ili9328WriteReg(LCD_START_OSC, 1);      //start oscillator
-	DelayMs(50);	
+	DelayMs(50);
 
 	ili9328WriteReg(LCD_DRIV_OUT_CTRL, SHIFT_DIR);
 	ili9328WriteReg(LCD_DRIV_WAV_CTRL, 0x0700);     //set 1 line inversion
-	
+
 	ili9328WriteReg(LCD_ENTRY_MOD, VAL_ENTRY_MOD);  //set GRAM write direction, BGR=0
 
-	ili9328WriteReg(LCD_RESIZE_CTRL, 0);    //no resizing	
+	ili9328WriteReg(LCD_RESIZE_CTRL, 0);    //no resizing
 
 	ili9328WriteReg(LCD_DISP_CTRL2, 0x0202); //front & back porch periods = 2
-	ili9328WriteReg(LCD_DISP_CTRL3, 0);		
-	ili9328WriteReg(LCD_DISP_CTRL4, 0);		
+	ili9328WriteReg(LCD_DISP_CTRL3, 0);
+	ili9328WriteReg(LCD_DISP_CTRL4, 0);
 	ili9328WriteReg(LCD_RGB_DISP_IF_CTRL1, 0); //select system interface
-	ili9328WriteReg(LCD_FRM_MARKER_POS, 0);	
+	ili9328WriteReg(LCD_FRM_MARKER_POS, 0);
 	ili9328WriteReg(LCD_RGB_DISP_IF_CTRL2, 0);
-	
+
 	ili9328WriteReg(LCD_POW_CTRL1, 0);
-	ili9328WriteReg(LCD_POW_CTRL2, 0);		
+	ili9328WriteReg(LCD_POW_CTRL2, 0);
 	ili9328WriteReg(LCD_POW_CTRL3, 0);
 	ili9328WriteReg(LCD_POW_CTRL4, 0);
 	DelayMs(200);
@@ -220,7 +220,7 @@ void LCD_Init(void *param)
 
 	ili9328WriteReg(LCD_POW_CTRL4, 0x1400);
 	ili9328WriteReg(LCD_POW_CTRL7, 0x0007);
-	DelayMs(50);	
+	DelayMs(50);
 
 	ili9328WriteReg(LCD_GAMMA_CTRL1, 0x0007);
 	ili9328WriteReg(LCD_GAMMA_CTRL2, 0x0504);
@@ -274,34 +274,34 @@ uint32_t LCD_GetSize(void){
     return width * height;
 }
 
-void LCD_SetOrientation(uint8_t m) {
+void LCD_SetOrientation(drvlcdorientation_t m) {
 
     switch (m) {
-        case LCD_PORTRAIT:            
-            ili9328WriteReg(LCD_DRIV_OUT_CTRL, 
-                        LCD_DRIV_OUT_CTRL_SS);          // Source drive S720-S1                        
-            ili9328WriteReg(LCD_GATE_SCAN_CTRL1,            
+        case LCD_PORTRAIT:
+            ili9328WriteReg(LCD_DRIV_OUT_CTRL,
+                        LCD_DRIV_OUT_CTRL_SS);          // Source drive S720-S1
+            ili9328WriteReg(LCD_GATE_SCAN_CTRL1,
                         LCD_GATE_SCAN_CTRL1_GS |        // Gate Scan G320-G1
                         LCD_GATE_SCAN_CTRL1_NL320);     // Scan 320 Lines
-            ili9328WriteReg(LCD_ENTRY_MOD,                        
+            ili9328WriteReg(LCD_ENTRY_MOD,
                         LCD_ENTRY_MOD_VI |              // Increment vertical address
                         LCD_ENTRY_MOD_HI |              // Increment horizontal address
-                        BGR_BIT);              
+                        BGR_BIT);
             width = drvlcd->w;
             height = drvlcd->h;
             windowSet = windowPortrait;
             break;
-      
+
         case LCD_LANDSCAPE:
             ili9328WriteReg(LCD_DRIV_OUT_CTRL, 0);      //Source drive S1-S720
-            ili9328WriteReg(LCD_GATE_SCAN_CTRL1,            
+            ili9328WriteReg(LCD_GATE_SCAN_CTRL1,
                         LCD_GATE_SCAN_CTRL1_GS |        // Gate Scan G320-G1
                         LCD_GATE_SCAN_CTRL1_NL320);     // Scan 320 Lines
-            ili9328WriteReg(LCD_ENTRY_MOD, 
+            ili9328WriteReg(LCD_ENTRY_MOD,
                         LCD_ENTRY_MOD_AM |              // Update vertically
                         LCD_ENTRY_MOD_VI |              // Increment vertical address
                         LCD_ENTRY_MOD_HI |              // Increment horizontal address
-                        BGR_BIT);           
+                        BGR_BIT);
             height = drvlcd->w;
             width = drvlcd->h;
             windowSet = windowLandscape;
@@ -310,7 +310,7 @@ void LCD_SetOrientation(uint8_t m) {
         case LCD_REVERSE_PORTRAIT:
             ili9328WriteReg(LCD_DRIV_OUT_CTRL,
                         LCD_DRIV_OUT_CTRL_SS);          //Source drive S720-S1
-            ili9328WriteReg(LCD_GATE_SCAN_CTRL1,            
+            ili9328WriteReg(LCD_GATE_SCAN_CTRL1,
                         //LCD_GATE_SCAN_CTRL1_GS |        // Gate Scan G320-G1
                         LCD_GATE_SCAN_CTRL1_NL320);     // Scan 320 Lines
             ili9328WriteReg(LCD_ENTRY_MOD,
@@ -321,12 +321,12 @@ void LCD_SetOrientation(uint8_t m) {
             height = drvlcd->h;
             width = drvlcd->w;
             windowSet = windowPortrait;
-            break;            
-             
+            break;
+
         case LCD_REVERSE_LANDSCAPE:
             ili9328WriteReg(LCD_DRIV_OUT_CTRL,
                         LCD_DRIV_OUT_CTRL_SS);          //Source drive S720-S1
-            ili9328WriteReg(LCD_GATE_SCAN_CTRL1,            
+            ili9328WriteReg(LCD_GATE_SCAN_CTRL1,
                         //LCD_GATE_SCAN_CTRL1_GS |        // Gate Scan G320-G1
                         LCD_GATE_SCAN_CTRL1_NL320);     // Scan 320 Lines
             ili9328WriteReg(LCD_ENTRY_MOD,
@@ -335,13 +335,13 @@ void LCD_SetOrientation(uint8_t m) {
                         LCD_ENTRY_MOD_HI |              // Increment horizontal address
                         BGR_BIT);
             height = drvlcd->w;
-            width = drvlcd->h; 
+            width = drvlcd->h;
             windowSet = windowLandscape;
             break;
 
         default:
         	return;
-    }  
+    }
 }
 
 

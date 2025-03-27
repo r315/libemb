@@ -1,5 +1,5 @@
 #include "ili9341.h"
-#include "board.h"
+#include "drvlcd.h"
 #include "spi.h"
 
 #define DELAY 			0x0080
@@ -234,7 +234,7 @@ void LCD_Init(void *spi){
  * 
  * @param m 
  */
-void LCD_SetOrientation(uint8_t m) {
+void LCD_SetOrientation(drvlcdorientation_t m) {
 
     switch (m) {
         case LCD_PORTRAIT:

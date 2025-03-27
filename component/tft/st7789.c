@@ -1,4 +1,4 @@
-#include "board.h"
+#include "drvlcd.h"
 #include "st7789.h"
 #include "spi.h"
 
@@ -252,7 +252,7 @@ void LCD_Init(void *spi){
 /**
  * @brief
  * */
-void LCD_SetOrientation(uint8_t m) {
+void LCD_SetOrientation(drvlcdorientation_t m) {
 
     switch (m) {
     case LCD_PORTRAIT:
