@@ -6,14 +6,14 @@
  * @brief Find next character in a string
  * */
 char *skipSpaces(char *str){
-	while((*str == ' ' || *str == '\t') && *str != '\0') 
+	while((*str == ' ' || *str == '\t') && *str != '\0')
 		str++;
 	return str;
 }
 
-/** 
+/**
  * @brief Replaces spaces in a string with string terminator, aka string split
- * 
+ *
  * \param str : pointer to input string
  * \param argv : pointer to output string array
  * \return : number of strings
@@ -48,20 +48,28 @@ uint32_t argc = 0;
 	return argc;
 }
 /**
- * @brief Well string length...
+ * @brief Unsafe String length
+ * last time this was changed, was due
+ * to compiler optimization.
+ * somehow with -Os compiler create an infiniteve loop
+ * not sure if was due to function name, so name was changed,
+ * aplications should be updated
  * */
-size_t strlen(const char *str) {
-	size_t count = 0;
-	//if (str == NULL) return 0;
-	while (*str++) {
-		count++;
-	}
+int xstrlen(const char *str) {
+	int count = 0;
+
+    if (str){
+        while (str[count] != '\0') {
+            count++;
+        }
+    }
+
 	return count;
 }
 
 /**
  * @brief Find a string in string array and return index
- * 
+ *
  * \param str : pointer to string to be found
  * \param strarr : array of pointers to string
  * \return : index, -1 if not found
@@ -171,7 +179,7 @@ char nextChar(char **line) {
  *
  * @param str:    pointer to word pointer to be compared
  * @param word:   pointer to comparing word
- * 
+ *
  * @return      - 1 if match and move str pointer to next word,
  *                0 not equal and no parameter changed
  * */
@@ -183,8 +191,8 @@ uint8_t isNextWord(char **str, const char *word) {
 			return 0;
 		str1++;
 		word++;
-	}	
-	*str = nextWord(*str);	
+	}
+	*str = nextWord(*str);
 	return 1;
 }
 
@@ -210,7 +218,7 @@ char *strsub(char *str, const char token, uint8_t len, char **saveptr) {
 	// save pointer for return
 	ptr = str;
 
-	// search token, if finds it 
+	// search token, if finds it
 	// replace it with string terminator character
 	while (*ptr && i < len) {
 		if (*ptr == token) {
@@ -238,10 +246,10 @@ char *strsub(char *str, const char token, uint8_t len, char **saveptr) {
 
 /**
  * @brief Compares two if strings are equal until str1 end
- * 
+ *
  * @param str1: first string
  * @param str2: second string
- * 
+ *
  * @return 0 if equal, difference of first non equal char
  * */
 char xstrcmp(char const *str1, char const *str2) {
@@ -301,7 +309,7 @@ uint8_t ia2i(char *str, int32_t *value) {
 		}
 		c = *(++str);
 	}while (c != ' ' && c != '\n' && c != '\r' && c != '\0');
-		
+
 	// check signal flag
 	*value = (s & (1 << 7)) ? -val : val;
 
@@ -310,7 +318,7 @@ uint8_t ia2i(char *str, int32_t *value) {
 
 /**
  * Try to parse a string representing a hex number to integer value
- * 
+ *
  * \param  str	pointer to input string
  * \param  value  pointer to output value
  * \return 1 if success, 0 if failed
@@ -492,7 +500,7 @@ uint32_t d2da(char *dst, double f, uint8_t places){
 
 	while ((prec++) < places) {
 		f *= 10;
-		frac_part = (frac_part * 10) + (long)f - ((long)f / 10) * 10;  //((long)f%10);			
+		frac_part = (frac_part * 10) + (long)f - ((long)f / 10) * 10;  //((long)f%10);
 	}
 
 	dst += i2ia(dst, int_part, -10, 0);
@@ -505,11 +513,11 @@ uint32_t d2da(char *dst, double f, uint8_t places){
 /**
  * @brief String formater
  *   %nu, %nd, %nb, %c, %s, %l, %x, %.nf
- * 
+ *
  * TODO: fix print percent sign (%)
  * */
 uint32_t strformater(char *dst, const char* fmt, va_list arp){
-	
+
 	int d, r, w, s, l, f;
 	char *p,*a;
 	a = dst;
@@ -517,12 +525,12 @@ uint32_t strformater(char *dst, const char* fmt, va_list arp){
 	while ((d = *fmt++) != '\0') {
 
 		if (d != '%') {
-			*(dst++) = d; 
+			*(dst++) = d;
 			continue;
 		}
 
-		d = *fmt++;		
-			
+		d = *fmt++;
+
 		f = w = r = s = l = 0;
 
 		if (d == '.') {
@@ -546,7 +554,7 @@ uint32_t strformater(char *dst, const char* fmt, va_list arp){
 		if (d == '\0'){
 			break;
 		}
-		
+
 		if (d == 's') {
 			p = va_arg(arp, char*);
 			while(*p){
@@ -570,10 +578,10 @@ uint32_t strformater(char *dst, const char* fmt, va_list arp){
 			dst += d2da(dst, va_arg(arp, double), w); // Note: float is promoted to double for varargs
 			continue;
 		}
-		
+
 		if (r == 0){
-			break;	
-		} 
+			break;
+		}
 
 		if (s) w = -w;
 
@@ -615,7 +623,7 @@ void *memcpy(void * destination, const void * source, size_t num) {
 
 void *memmove(void * dst, const void * src, size_t len) {
     uint8_t *pdst, *psrc;
-   
+
     if(dst < src){
         pdst = (uint8_t*)dst;
         psrc = (uint8_t*)src;
