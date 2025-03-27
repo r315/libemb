@@ -1,13 +1,16 @@
-#ifndef _pcf8574_h_
-#define _pcf8574_h_
+#ifndef _io_expander_h_
+#define _io_expander_h_
 
 #include <stdint.h>
 #include "i2c.h"
 
-void IOEXP_Init(i2cbus_t *i2c);
-uint8_t IOEP_Read(i2cbus_t *i2c);
-void IOEXP_Write(i2cbus_t *i2c, uint8_t data);
-void IOEXP_Set(i2cbus_t *i2c, uint8_t mask);
-void IOEXP_Clr(i2cbus_t *i2c, uint8_t mask);
+typedef struct ioexp_s {
+    uint8_t address;
+    void (*init)(i2cbus_t *i2c);
+    uint8_t (*read)(i2cbus_t *i2c);
+    void (*write)(i2cbus_t *i2c, uint8_t data);
+    void (*set)(i2cbus_t *i2c, uint8_t mask);
+    void (*clr)(i2cbus_t *i2c, uint8_t mask);
+}ioexp_t;
 
 #endif
