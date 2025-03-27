@@ -6,6 +6,7 @@
 extern "C" {
 
 #include <stdint.h>
+#include "stdinout.h"
 #include "console_command.h"
 
 
@@ -33,12 +34,6 @@ extern "C" {
 #define CONSOLE_WIDTH	                16
 #endif
 
-typedef struct stdout_s {
-    int (*available)(void);
-    int (*read)(char* str, int len);
-    int (*write)(const char* str, int len);
-}stdout_t;
-
 typedef enum con_res{
     CON_IDLE = 0,
     CON_LINE
@@ -62,12 +57,12 @@ class History {
 class Console {
 	public:
 		Console(void);
-		Console(stdout_t *, const char *);
-		void init(stdout_t *, const char *);
+		Console(stdinout_t *, const char *);
+		void init(stdinout_t *, const char *);
 		char getLine(char *, uint8_t);
 		void process(void);
 		void cls(void);
-		void setOutput(stdout_t *);
+		void setOutput(stdinout_t *);
 
 		void addCommand(ConsoleCommand *);
 		void registerCommandList(ConsoleCommand **);
@@ -96,7 +91,7 @@ class Console {
 		char *m_argv[CONSOLE_COMMAND_PARAMS];
     	int m_argc;
 		const char *m_prompt;
-        stdout_t *m_out;
+        stdinout_t *m_out;
 		uint8_t m_cmdListSize;
 		uint8_t m_active;
 		uint8_t m_line_len;

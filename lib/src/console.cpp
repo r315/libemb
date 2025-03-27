@@ -16,11 +16,11 @@ Console::Console(void) {
 
 }
 
-Console::Console(stdout_t *out, const char *prompt) {
+Console::Console(stdinout_t *out, const char *prompt) {
 	init(out, prompt);
 }
 
-void Console::init(stdout_t *out, const char *prompt) {
+void Console::init(stdinout_t *out, const char *prompt) {
 	memset(m_cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
 	memset(m_line, '\0', CONSOLE_WIDTH);
 	m_cmdListSize = 0;
@@ -130,7 +130,7 @@ void Console::cls(void){
 
 /**
  * */
-void Console::setOutput(stdout_t *sp){
+void Console::setOutput(stdinout_t *sp){
 	m_out = sp;
 }
 
