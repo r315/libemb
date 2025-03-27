@@ -22,31 +22,31 @@ typedef struct _font_t{
 #endif
 
 #ifdef USE_DEFAULT_FONT
-extern const font_t defaultFont;
+    extern const font_t defaultFont;
 #endif
 
 #ifdef USE_DEFAULT_BOLD_FONT
-	extern font_t defaultBoldFont;
+	extern const font_t defaultBoldFont;
 #endif
 
 #ifdef USE_PIXELDUST_FONT
-	extern font_t pixelDustFont;
+	extern const font_t pixelDustFont;
 #endif
 
 #ifdef USE_LCD_FONT
-	extern font_t lcdFont;
+	extern const font_t lcdFont;
 #endif
 
 #ifdef USE_COURIER_FONT
-	extern font_t courierFont;
+	extern const font_t courierFont;
 #endif
 
-#ifdef USE_GROTESKBOLD_FONT    	
-    extern font_t GroteskBold16x32;
+#ifdef USE_GROTESKBOLD_FONT
+    extern const font_t GroteskBold16x32;
 #endif
 
 #ifdef USE_UBUNTU_FONT
-    extern font_t ubuntuFont;
+    extern const font_t ubuntuFont;
 #endif
 
 
