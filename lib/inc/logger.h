@@ -20,12 +20,18 @@
 #define VT100_NORMAL
 #endif
 
+#ifdef LOG_PRINTF_FUNC
+#define LOG_PRINT(...) \
+    do { LOG_PRINTF_FUNC(__VA_ARGS__); } while(0)
+#else
 #define LOG_PRINT(...) \
     do { printf(__VA_ARGS__); putchar('\n'); } while(0)
+#endif
 
-#define LOG_INF(...) LOG_PRINT(VT100_GREEN"INFO: "VT100_NORMAL __VA_ARGS__)
-#define LOG_WRN(...) LOG_PRINT(VT100_YELLOW"WARN: "VT100_NORMAL __VA_ARGS__)
-#define LOG_ERR(...) LOG_PRINT(VT100_RED"ERROR: "VT100_NORMAL __VA_ARGS__)
+
+#define LOG_INF(...) LOG_PRINT(VT100_GREEN "INFO: " VT100_NORMAL __VA_ARGS__)
+#define LOG_WRN(...) LOG_PRINT(VT100_YELLOW "WARN: " VT100_NORMAL __VA_ARGS__)
+#define LOG_ERR(...) LOG_PRINT(VT100_RED "ERROR: " VT100_NORMAL __VA_ARGS__)
 
 #if DEBUG
 #define DBG_INF(...) LOG_INF(__VA_ARGS__)
