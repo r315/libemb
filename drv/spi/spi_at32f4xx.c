@@ -29,18 +29,18 @@ static spibus_t *spi_eot[2];
 void SPI_DMA_IRQHandler(spibus_t *spidev){
     SPI_Type *spi = (SPI_Type*)spidev->ctrl;
     DMA_Channel_Type *dma = (DMA_Channel_Type*)spidev->dma.stream;
-    
+
     dma->CHCTRL &= ~(DMA_CHCTRL1_CHEN);
-        
+
     if(spidev->trf_counter > 0x10000UL){
         spidev->trf_counter -= 0x10000UL;
         dma->TCNT = (spidev->trf_counter > 0x10000UL) ? 0xFFFFUL : spidev->trf_counter;
         dma->CHCTRL |= DMA_CHCTRL1_CHEN;
-    }else{        
+    }else{
         if(spi->STS & SPI_STS_OVR){
             //dummy read for clearing OVR flag
             spidev->trf_counter = spi->DT;
-        }      
+        }
 
         spi->CTRL2 &= ~(SPI_CTRL2_DMATEN);
 
@@ -57,9 +57,9 @@ void SPI_DMA_IRQHandler(spibus_t *spidev){
 /**
  * @brief Configures baud rate by dividing Fpckl
  * by 2, 4, 8, 16, 32, 64, 128 or 256.
- * 
- * spi peripheral must be enabled afterwards 
- * 
+ *
+ * spi peripheral must be enabled afterwards
+ *
  * */
 static void SPI_SetFreq(SPI_Type *spi, uint32_t freq){
     RCC_ClockType clocks;
@@ -75,7 +75,7 @@ static void SPI_SetFreq(SPI_Type *spi, uint32_t freq){
         div = 2;
     }
 
-    do{--br;}while((uint32_t)(2 << br) > div); 
+    do{--br;}while((uint32_t)(2 << br) > div);
 
     spi->CTRL1 &= ~(SPI_CTRL1_SPIEN | SPI_CTRL1_MCLKP);
     spi->CTRL1 |= (br << SPI_CTRL1_MDIV_Pos);
@@ -114,11 +114,11 @@ void SPI_Init(spibus_t *spidev){
 
         default : return;
     }
-    
+
     RCC_AHBPeriphClockCmd(RCC_AHBPERIPH_DMA1, ENABLE);
 
     spi->CTRL1 = SPI_CTRL1_MSTEN;
-    
+
     SPI_SetFreq(spi, spidev->freq);
 
     if((spidev->flags & SPI_HW_CS) != 0){
@@ -129,7 +129,7 @@ void SPI_Init(spibus_t *spidev){
     }
 
     spi->CTRL1 |= SPI_CTRL1_SPIEN;
-    
+
     spidev->trf_counter = 0;
 
     spidev->dma.dst = (void*)&spi->DT;
@@ -230,7 +230,7 @@ uint16_t SPI_Xchg(spibus_t *spidev, uint8_t *data){
 
 /**
  * @brief Write data to SPI, blocking
- * 
+ *
  * \param src   : Pointer to source data
  * \param count : total number of bytes to transfer
  * */
@@ -252,12 +252,12 @@ void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
             while((spi->STS & SPI_STS_BSY) != 0);
             *(src++) = *((__IO uint8_t *)&spi->DT);
         }
-    } 
+    }
 }
 
 /**
  * @brief Write data to SPI using DMA controller
- * 
+ *
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
@@ -287,16 +287,16 @@ void SPI_TransferDMA(spibus_t *spidev, uint8_t *src, uint32_t count){
 
     dma->CMBA = (uint32_t)src;
     dma->TCNT = (spidev->trf_counter > 0x10000) ? 0xFFFF : spidev->trf_counter;
-    
+
     SPIDEV_SET_FLAG(spidev, SPI_BUSY);
-    
+
     dma->CHCTRL |= DMA_CHCTRL1_CHEN;
 }
 
 /**
  * @brief Wait for end of DMA transfer
  * */
-void SPI_WaitEOT(spibus_t *spidev){    
+void SPI_WaitEOT(spibus_t *spidev){
     #if 1
     SPI_Type *spi = (SPI_Type*)spidev->ctrl;
     while(spi->STS & SPI_STS_BSY){

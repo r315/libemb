@@ -1,7 +1,7 @@
 /**
 * @file     ili9341.h
 * @brief    Contains the ILI9341 lcd controller API headers and symbols.
-*           
+*
 * @version  1.0
 * @date     5 Nov. 2016
 * @author   Hugo Reis
@@ -18,9 +18,6 @@ extern "C" {
 #include "drvlcd.h"
 
 #define TFT_ILI9341
-
-#define TFT_W 240
-#define TFT_H 320
 
 #define ILI9341_SWRST    0x01
 #define ILI9341_RDDID    0x04
@@ -49,10 +46,10 @@ extern "C" {
 #define ILI9341_PSCON    0xED   // Power on Sequence control
 #define ILI9341_PRCON    0xF7   // Pump ratio control
 
-#define ILI9341_MADCTL_MY  0x80
-#define ILI9341_MADCTL_MX  0x40
-#define ILI9341_MADCTL_MV  0x20
-#define ILI9341_MADCTL_ML  0x10
+#define ILI9341_MADCTL_MY  0x80 // Row Address Order
+#define ILI9341_MADCTL_MX  0x40 // Column Address Order
+#define ILI9341_MADCTL_MV  0x20 // Row / Column Exchange
+#define ILI9341_MADCTL_ML  0x10 // Vertical Refresh Order
 #define ILI9341_MADCTL_RGB 0x00
 #define ILI9341_MADCTL_BGR 0x08
 #define ILI9341_MADCTL_MH  0x04
