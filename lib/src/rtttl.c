@@ -168,7 +168,7 @@ uint8_t RTTTL_Play(const char *melody)
 
 	RTTTL_NextNote(&rtttl);     // Get first note
 
-    TONE_Callback(rtttl_callback);
+    TONE_SetCallback(rtttl_callback);
 
-    return TONE_Play(&rtttl.tone) & TONE_ERR_INIT ? RTTTL_ERR_INIT : RTTTL_OK;
+    return TONE_Play(&rtttl.tone) == TONE_ERR ? RTTTL_ERR : RTTTL_OK;
 }

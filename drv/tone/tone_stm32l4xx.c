@@ -288,7 +288,7 @@ uint8_t TONE_Volume(uint8_t level){
 	return pwm_tone.volume;
 }
 
-void TONE_Callback(void (*cb)(const tone_t **))
+void TONE_SetCallback(void (*cb)(const tone_t **))
 {
     pwm_tone.cb = cb;
 }

@@ -188,7 +188,7 @@ void TONE_Start(uint16_t f, uint16_t d)
     }
 
     if(!pwm_tone.tmr){
-        pwm_tone.status = TONE_ERR_INIT;
+        pwm_tone.status = TONE_ERR;
         return;
     }
 
@@ -250,7 +250,7 @@ uint8_t TONE_Volume(uint8_t level)
     return pwm_tone.volume;
 }
 
-void TONE_Callback(void (*cb)(const tone_t **))
+void TONE_SetCallback(void (*cb)(const tone_t **))
 {
     pwm_tone.cb = cb;
 }

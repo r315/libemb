@@ -15,7 +15,7 @@ typedef struct tone{
 enum tone_e{
     TONE_IDLE = 0,
     TONE_PLAYNG,
-    TONE_ERR_INIT
+    TONE_ERR
 };
 
 /**
@@ -62,7 +62,7 @@ uint8_t TONE_Volume(uint8_t level);
  *
  *
  * */
-void TONE_Callback(void (*cb)(const tone_t **));
+void TONE_SetCallback(void (*cb)(const tone_t **));
 
 #ifdef __cplusplus
 };
