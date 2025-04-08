@@ -9,63 +9,97 @@ static eot_t ch_eot[DMA_NUM_CHANNELS];
 
 /**
  * @brief Request dma controller/channel
- * \param ctrl    : pointer to hold controller and channel
+ *
+ * \param dma     : dma instance
  * \param request : Request in format
- *                   [9:8] -> DMA number
- *                   [7:4] -> Channel number
- *                   [3:0] -> Request source
+ *                   [7:5] -> unused
+ *                   [4:4] -> DMA number
+ *                   [3:0] -> Channel number
  * */
 void DMA_Config(dmatype_t *dma, uint32_t request){
-    DMA_Channel_TypeDef *stream; 
+    DMA_Channel_TypeDef *stream;
     uint8_t ch_num;
 
     if((request & DMA_NUMBER_MASK) == 0){
         __HAL_RCC_DMA1_CLK_ENABLE();
-        ch_num = (request & DMA_CHANNEL_MASK) >> DMA_CHANNEL_POS;
         dma->per = DMA1;
-        stream = (DMA_Channel_TypeDef*)((uint32_t)DMA1_Channel1 + (ch_num * 0x14));
-
-        uint32_t config = 0;
-
-        switch(dma->dir){
-            case DMA_DIR_P2P:
-                config |=   DMA_CCR_MSIZE_CFG(dma->ssize) | DMA_CCR_PSIZE_CFG(dma->dsize);
-                break;
-
-            case DMA_DIR_P2M:
-                config |=   DMA_CCR_PSIZE_CFG(dma->ssize) | 
-                            DMA_CCR_MSIZE_CFG(dma->dsize) |
-                            DMA_CCR_PINC;                   // Increment destination
-                break;
-
-            case DMA_DIR_M2P:
-                config |=   DMA_CCR_PSIZE_CFG(dma->dsize) | 
-                            DMA_CCR_MSIZE_CFG(dma->ssize) | 
-                            DMA_CCR_MINC | DMA_CCR_DIR;    // Increment source
-                break;
-
-            case DMA_DIR_M2M:
-                config |=   DMA_CCR_PSIZE_CFG(dma->dsize) | 
-                            DMA_CCR_MSIZE_CFG(dma->ssize) | 
-                            DMA_CCR_MEM2MEM | DMA_CCR_MINC | DMA_CCR_PINC;
-                break;
-        }
-
-        if(dma->eot){
-            config |= DMA_CCR_TCIE;
-            NVIC_EnableIRQ(DMA1_Channel1_IRQn + ch_num);
-        }
-
-        stream->CCR = config;
-        stream->CPAR = (uint32_t)dma->dst;
-        dma->stream = stream;
-        
-        ch_eot[ch_num] = dma->eot;
-    }else{
-        //RCC_AHBPeriphClockCmd(RCC_AHBPERIPH_DMA2, ENABLE);
-        //TODO:
     }
+    //else{ Not avialable
+    //    __HAL_RCC_DMA2_CLK_ENABLE();
+    //    dma->per = DMA2;
+    //}
+
+    ch_num = (request & DMA_CHANNEL_MASK) >> DMA_CHANNEL_POS;
+    stream = (DMA_Channel_TypeDef*)((uint32_t)DMA1_Channel1 + (ch_num * 0x14));
+
+    uint32_t config = 0;
+
+    switch(dma->dir){
+        case DMA_DIR_P2P:
+            config |=   DMA_CCR_MSIZE_CFG(dma->ssize) | DMA_CCR_PSIZE_CFG(dma->dsize);
+            stream->CPAR = (uint32_t)dma->src;
+            stream->CMAR = (uint32_t)dma->dst;
+            break;
+
+        case DMA_DIR_P2M:
+            config |=   DMA_CCR_PSIZE_CFG(dma->ssize) |
+                        DMA_CCR_MSIZE_CFG(dma->dsize) |
+                        DMA_CCR_PINC;                   // Increment destination
+            stream->CPAR = (uint32_t)dma->src;
+            stream->CMAR = (uint32_t)dma->dst;
+            break;
+
+        case DMA_DIR_M2P:
+            config |=   DMA_CCR_PSIZE_CFG(dma->dsize) |
+                        DMA_CCR_MSIZE_CFG(dma->ssize) |
+                        DMA_CCR_MINC | DMA_CCR_DIR;    // Increment source
+            stream->CMAR = (uint32_t)dma->src;
+            stream->CPAR = (uint32_t)dma->dst;
+            break;
+
+        case DMA_DIR_M2M:
+            config |=   DMA_CCR_PSIZE_CFG(dma->dsize) |
+                        DMA_CCR_MSIZE_CFG(dma->ssize) |
+                        DMA_CCR_MEM2MEM | DMA_CCR_MINC | DMA_CCR_PINC;
+            stream->CPAR = (uint32_t)dma->src;
+            stream->CMAR = (uint32_t)dma->dst;
+            break;
+    }
+
+    if(dma->eot){
+        config |= DMA_CCR_TCIE;
+        NVIC_EnableIRQ(DMA1_Channel1_IRQn + ch_num);
+    }
+
+    if(!dma->single){
+        config |= DMA_CCR_CIRC;
+    }
+
+    stream->CCR = config;
+    dma->stream = stream;
+
+    ch_eot[ch_num] = dma->eot;
 }
+
+void DMA_Start(dmatype_t *dma)
+{
+    DMA_Channel_TypeDef *stream = dma->stream;
+    stream->CNDTR = dma->len;
+    stream->CCR |= DMA_CCR_EN;
+}
+
+void DMA_Cancel(dmatype_t *dma)
+{
+    DMA_Channel_TypeDef *stream = dma->stream;
+    stream->CCR &= ~DMA_CCR_EN;
+}
+
+uint32_t DMA_GetTransfers(dmatype_t *dma)
+{
+    DMA_Channel_TypeDef *stream = dma->stream;
+    return dma->len - stream->CNDTR;
+}
+
 
 static inline void dma_irq_handler(uint8_t ch_num)
 {

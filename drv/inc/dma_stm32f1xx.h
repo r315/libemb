@@ -4,7 +4,7 @@
 #define DMA_NUMBER_POS     4
 #define DMA_CHANNEL_POS    0
 
-#define DMA_NUMBER_MASK    (3 << DMA_NUMBER_POS)
+#define DMA_NUMBER_MASK    (1 << DMA_NUMBER_POS)
 #define DMA_CHANNEL_MASK   (15 << DMA_CHANNEL_POS)
 
 
