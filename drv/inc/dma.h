@@ -33,8 +33,6 @@ enum {
  * */
 void DMA_Config(dmatype_t *dma, uint32_t req);
 
-void DMA_Init(dmatype_t *dma);
-
 void DMA_Start(dmatype_t *dma);
 
 void DMA_Cancel(dmatype_t *dma);

@@ -13,7 +13,7 @@ static void dacInt(void){
 /**
  * @brief Power up DAC and enable AOUT pin, also inits private dma structure
  *
- * 
+ *
  * @param dac structure with dac parameters. Note some fields are reseted
  */
 void DAC_Init(dactype_t *dac){
@@ -26,7 +26,7 @@ void DAC_Init(dactype_t *dac){
     dac->len = 0;
     dac->loop = 0;
 
-    DMA_Init(&dma_dac);
+    DMA_Config(&dma_dac, 0); // Check dma config
 }
 
 void DAC_DeInit(dactype_t *dac){
@@ -44,7 +44,7 @@ void DAC_Config(dactype_t *dac){
     dma_dac.dir = DMA_DIR_M2P;
     dma_dac.ssize = DMA_CONTROL_WIDTH16;
     dma_dac.dsize = DMA_CONTROL_WIDTH16;
-    
+
     if(dac->loop){
         dma_dac.eot = NULL;
         dma_dac.single = 0;
@@ -52,7 +52,7 @@ void DAC_Config(dactype_t *dac){
         dma_dac.eot = dacInt;
         dma_dac.single = 1;
     }
-    
+
     LPC_DAC->CNTVAL = dac->rate;
 }
 
@@ -68,7 +68,7 @@ void DAC_Stop(dactype_t *dac){
 void DAC_Start(dactype_t *dac){
     DMA_Config(&dma_dac, DMA_REQ_PER_DAC);
     DMA_Start(&dma_dac);
-    
+
     SET_BIT(LPC_DAC->CTRL, CTRL_DMA_ENA | CTRL_CNT_ENA);
 }
 
