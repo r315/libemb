@@ -1,11 +1,11 @@
-#ifndef _tone_stm32f1xx_h_
-#define _tone_stm32f1xx_h_
+#ifndef _tone_at32f4xx_h_
+#define _tone_at32f4xx_h_
 
 #include <stdint.h>
-#include "stm32f1xx.h"
+#include "at32f4xx.h"
 
 typedef struct tone_init {
-    TIM_TypeDef *tim;   // Timer instance to be configured
+    TMR_Type *tmr;      // Timer instance to be configured
     uint8_t ch;         // Compare channel nr - 1
     uint8_t pin;        // Pin name
     uint8_t pin_idle;   // Pin idle state

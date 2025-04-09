@@ -58,7 +58,7 @@
 #define DMA1_REQ_I2C1_RX                ((0 << DMA_NUMBER_POS) | (6 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM2_CH2               ((0 << DMA_NUMBER_POS) | (6 << DMA_CHANNEL_POS))
 #define DMA1_REQ_TIM2_CH4               ((0 << DMA_NUMBER_POS) | (6 << DMA_CHANNEL_POS))
-#define DMA1_REQ_TIM4_UP                DMA1_REQ_TIM3_CH1
+#define DMA1_REQ_TIM4_UP                ((0 << DMA_NUMBER_POS) | (6 << DMA_CHANNEL_POS))
 
 #define DMA2_REQ_TIM5_CH4               ((1 << DMA_NUMBER_POS) | (0 << DMA_CHANNEL_POS))
 #define DMA2_REQ_TIM5_TRIG              DMA2_REQ_TIM5_CH4

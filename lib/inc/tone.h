@@ -22,7 +22,7 @@ enum tone_e{
  * @brief Initializes and configure
  * low level hardware
  */
-void TONE_Init(void);
+enum tone_e TONE_Init(void);
 
 /**
  * @brief Starts playing a tone or a
@@ -63,6 +63,13 @@ uint8_t TONE_Volume(uint8_t level);
  *
  * */
 void TONE_SetCallback(void (*cb)(const tone_t **));
+
+/**
+ * @brief
+ *
+ * @return enum tone_e
+ */
+enum tone_e TONE_Status(void);
 
 #ifdef __cplusplus
 };

@@ -32,6 +32,19 @@ static pwm_tone_t pwm_tone = {0};
 static uint16_t tone_period;    // Period of PWM frequency in us
 static uint16_t tone_duration;  // Tone duration in us
 
+/**
+ * @brief Basic tone generation on pin PA8 using TIM1_CH1 and DMA
+ *
+ * Buzzer timer is configured as PWM mode1 in count down mode with 1MHz clock.
+ * The counter starts from the ARR register value (top) which defines the frequency period in us.
+ * It counts down until matches CCR1 (duty) and on that event the correspondent output is set to high.
+ * When the counter reaches zero, the correspondent output is set to low and DMA request is raised to
+ * transfer a new value to ARR register.
+ *
+ * On last DMA transfer an interrupt is issued, which will configure the next tone frequency or stop
+ * any playing melody.
+ *
+ * */
 
 /**
  * @brief TIM1 update event DMA request handler
@@ -180,20 +193,8 @@ static inline void initTimer(void){
     // Enable DMA Request
     BUZ_TIM->DIER |= TIM_DIER_UDE;
 }
-/**
- * @brief Basic tone generation on pin PA8 using TIM1_CH1 and DMA
- *
- * Buzzer timer is configured as PWM mode1 in count down mode with 1MHz clock.
- * The counter starts from the ARR register value (top) which defines the frequency period in us.
- * It counts down until matches CCR1 (duty) and on that event the correspondent output is set to high.
- * When the counter reaches zero, the correspondent output is set to low and DMA request is raised to
- * transfer a new value to ARR register.
- *
- * On last DMA transfer an interrupt is issued, which will configure the next tone frequency or stop
- * any playing melody.
- *
- * */
-void TONE_Init(void){
+
+enum tone_e TONE_Init(void){
 
     // Configure DMA
     initDMA();
@@ -203,6 +204,8 @@ void TONE_Init(void){
 
     // Configure pin
     initPwmPin();
+
+    return TONE_IDLE;
 }
 
 /**

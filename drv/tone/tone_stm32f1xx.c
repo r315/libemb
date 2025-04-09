@@ -15,8 +15,8 @@
  * Timer is configured for PWM operation which uses AR register
  * to set frequency period and CCx for volume.
  *
- * Tones are played by setting AR register through dma transfers and duration
- * by the number of transfers.
+ * Tones are played by setting AR register through dma transfer on update event
+ * and duration by the number of transfers.
  *
  * */
 
@@ -82,23 +82,30 @@ static void tone_eof_handler(void)
   * This gives a resolution of 1us which is used to generate
   * square waves from 50Hz to 50kHz.
   *
-  * @param tmr          timer peripheral
-  * @param tim_ch       timer compare channel
-  * @param pin_idle     idle ste of output pin
+  * @param init
+  * @return     TONE_ERR, TONE_IDLE
   */
 uint32_t TONE_PwmInit(tone_pwm_init_t *init)
 {
-    uint16_t ccm_value, ccr1_value;
+    uint16_t ccm_value, ccr1_value, dma_req;
 
     switch((uint32_t)init->tim){
+        case (uint32_t)TIM1:
+            RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+            dma_req = DMA1_REQ_TIM1_UP;
+            TIM1->BDTR = TIM_BDTR_MOE;
+            break;
         case (uint32_t)TIM2:
             RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+            dma_req = DMA1_REQ_TIM2_UP;
             break;
         case (uint32_t)TIM3:
             RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+            dma_req = DMA1_REQ_TIM3_UP;
             break;
         case (uint32_t)TIM4:
             RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
+            dma_req = DMA1_REQ_TIM4_UP;
             break;
 
         default:
@@ -117,7 +124,7 @@ uint32_t TONE_PwmInit(tone_pwm_init_t *init)
     }
 
     // Configure and enable channel
-    switch(init->tim_ch){
+    switch(init->ch){
         case 0:
             init->tim->CCMR1 = (init->tim->CCMR1 & ~0x70) | ccm_value;
             tone_pwm.duty = &init->tim->CCR1;
@@ -141,7 +148,7 @@ uint32_t TONE_PwmInit(tone_pwm_init_t *init)
     init->tim->CCR1 = ccr1_value;
 
     init->tim->PSC = (SystemCoreClock/1000000) - 1;   // 1us clock
-    init->tim->CCER |= TIM_CCER_CC1E << (init->tim_ch << 2);
+    init->tim->CCER |= TIM_CCER_CC1E << (init->ch << 2);
 
     // Force idle state
     init->tim->ARR = 0xFFFF;
@@ -163,7 +170,7 @@ uint32_t TONE_PwmInit(tone_pwm_init_t *init)
     tone_pwm.dma.single = 1;                // No circular buffer
     tone_pwm.dma.eot = tone_eof_handler;
 
-    DMA_Config(&tone_pwm.dma, init->dma_req);
+    DMA_Config(&tone_pwm.dma, dma_req);
 
     GPIO_Config(init->pin, GPO_MS_AF);
 
@@ -244,6 +251,16 @@ uint8_t TONE_Volume(uint8_t level)
 	}
 
     return tone_pwm.volume;
+}
+
+/**
+ * @brief
+ *
+ * @return enum tone_e
+ */
+enum tone_e TONE_Status(void)
+{
+    return tone_pwm.status;
 }
 
 /**
