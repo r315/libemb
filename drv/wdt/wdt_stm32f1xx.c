@@ -1,6 +1,7 @@
 #include "stm32f1xx.h"
 #include "wdt.h"
 
+#define DHCSR               *((uint32_t*)0xE000EDF0) // Debug Halting Control and Status Register
 
 /**
  * @brief Independend watchdog configuration
@@ -12,6 +13,11 @@ void WDT_Init(uint32_t interval)
 {
     uint32_t timeout = 4096;
     uint8_t pres = 0;
+
+    if ((DHCSR & 0x1) != 0) {
+        // debugger is attached, return
+        return;
+    }
 
     interval *= 10;
 
