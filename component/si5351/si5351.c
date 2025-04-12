@@ -1023,7 +1023,7 @@ uint8_t Si5351_Init(i2cbus_t *i2c, uint32_t xo_freq, int32_t corr)
 {
 	uint8_t reg_val;
 
-    if(m_i2c == NULL){
+    if(i2c == NULL){
         return 0;
     }
 
