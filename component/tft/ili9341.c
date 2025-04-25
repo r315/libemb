@@ -20,7 +20,7 @@ static spibus_t *spidev;
 static drvlcdspi_t *drvlcd;
 static uint8_t scratch[4];
 
-const drvlcd_t ili8341_drv =
+const drvlcd_t ili9341_drv =
 {
     LCD_Init,
     LCD_FillRect,
