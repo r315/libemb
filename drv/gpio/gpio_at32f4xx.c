@@ -19,22 +19,21 @@ static GPIO_Type *getPort(pinName_e name)
 }
 
 /**
- * @brief 
- * 
- * @param name 
- * @param mode 
+ * @brief
+ *
+ * @param name
+ * @param mode
  */
 void GPIO_Config(pinName_e name, uint32_t cfg) {
     GPIO_Type *port;
-    uint8_t iom;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
 
     if ((port = getPort(name)) == NULL) {
         return;
     }
 
-    iom = GPIO_CFG_MASK(cfg);
-    
+    cfg = GPIO_CFG_MASK(cfg);
+
     if(cfg == GPI_PD){
         port->BRE = (1 << pin);  // Activate pull-down
     }else if(cfg == GPI_PU){
@@ -42,18 +41,18 @@ void GPIO_Config(pinName_e name, uint32_t cfg) {
         cfg &= ~GPIO_IOF_FLT;    // clear reserved bit
     }
 
-    if(pin <  8){ 
-        port->CTRLL = (port->CTRLL & ~(15 << (pin << 2))) | (iom << (pin << 2));
-    }else{        
-        port->CTRLH = (port->CTRLH & ~(15 << ((pin - 8) << 2))) | (iom << ((pin - 8) << 2)); 
+    if(pin <  8){
+        port->CTRLL = (port->CTRLL & ~(15 << (pin << 2))) | (cfg << (pin << 2));
+    }else{
+        port->CTRLH = (port->CTRLH & ~(15 << ((pin - 8) << 2))) | (cfg << ((pin - 8) << 2));
     }
 }
 
 /**
- * @brief 
- * 
- * @param name 
- * @return uint32_t 
+ * @brief
+ *
+ * @param name
+ * @return uint32_t
  */
 uint32_t GPIO_Read(pinName_e name){
     GPIO_Type *port;
@@ -61,16 +60,16 @@ uint32_t GPIO_Read(pinName_e name){
 
     if ((port = getPort(name)) == NULL) {
         return 0xFFFFFFFF;
-    }    
+    }
 
     return !!(port->IPTDT & (1 << pin));
 }
 
 /**
- * @brief 
- * 
- * @param name 
- * @param state 
+ * @brief
+ *
+ * @param name
+ * @param state
  */
 void GPIO_Write(pinName_e name, uint32_t state){
     GPIO_Type *port;
@@ -84,9 +83,9 @@ void GPIO_Write(pinName_e name, uint32_t state){
 }
 
 /**
- * @brief 
- * 
- * @param name 
+ * @brief
+ *
+ * @param name
  */
 void GPIO_Toggle(pinName_e name){
     GPIO_Type *port;
