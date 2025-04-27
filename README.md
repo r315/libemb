@@ -9,8 +9,8 @@ DRIVERS_PATH 	=$(LIBEMB_PATH)/drv
 
 DRIVERS_CORE    =$(CMSIS_PATH)/Core
 DRIVERS_CMSIS   =$(CMSIS_PATH)/Device/<manufacturer>/<device>
-DRIVERS_SOC     =$(DRIVERS_PATH)
 DRIVERS_MFD     =$(DRIVERS_PATH)/SOC    <-- Needs a better name for folder
+DRIVERS_SOC     =$(DRIVERS_PATH)
 DRIVER_COMP     =$(LIBEMB_PATH)/component
 
 libemb
