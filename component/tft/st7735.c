@@ -64,7 +64,8 @@ const drvlcd_t st7735_drv =
     LCD_Bkl,
     LCD_GetWidth,
     LCD_GetHeight,
-    LCD_GetSize
+    LCD_GetSize,
+    LCD_DataEnd
 };
 
 static uint8_t scratch[4] __attribute__((aligned (16)));
@@ -200,13 +201,14 @@ static void LCD_Command(uint8_t data){
 
 /**
  * @brief Write 16bit data with big-endian (msb first)
+ * LCD_DataEnd should be called after
  */
 void LCD_Data(uint16_t data){
-    LCD_CS0;
+    //LCD_CS0;
     scratch[0] = data >> 8;
     scratch[1] = data;
     SPI_Transfer(spidev, scratch, 2);
-    LCD_CS1;
+    //LCD_CS1;
 }
 
 /**
@@ -258,7 +260,7 @@ static void LCD_WriteData(uint16_t *data, uint32_t count){
 /**
  * @brief End of transfer handler for DMA use
  * */
-static void LCD_EOTHandler(void){
+void LCD_DataEnd(void){
     spidev->flags &= ~(SPI_DMA_NO_MINC | SPI_16BIT);
     SPI_WaitEOT(spidev);
     LCD_CS1;
@@ -292,7 +294,7 @@ static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
 }
 
 /**
- * @brief Setup draw area, LCD_CS must be managed by caller
+ * @brief Setup draw area
  *
  * \param x : X position
  * \param y : Y position
@@ -309,7 +311,7 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
 
     LCD_CS0;
     LCD_CasRasSet(x, y, x + (w - 1), y + (h - 1));
-    LCD_CS1;
+    //LCD_CS1;  // SET by LCD_DataEnd
 }
 
 /**
@@ -330,7 +332,6 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 
     LCD_Window(x, y, w, h);
 
-    LCD_CS0;
     if(spidev->eot_cb != NULL){
         spidev->flags |= SPI_DMA_NO_MINC | SPI_16BIT;
         *((uint16_t*)scratch) = color;
@@ -363,8 +364,6 @@ void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *dat
     }
 
     LCD_Window(x, y, w, h);
-
-    LCD_CS0;
     LCD_WriteData(data, count);
 }
 
@@ -411,7 +410,7 @@ void LCD_Init(void *param){
 
     SPI_Init(spidev);
 
-    spidev->eot_cb = (spidev->dma.per != NULL) ? LCD_EOTHandler : NULL;
+    spidev->eot_cb = (spidev->dma.per != NULL) ? LCD_DataEnd : NULL;
 
     if ((drvlcd->w == 128) && (drvlcd->h == 160)){
         init_seq = st7735_128x160;

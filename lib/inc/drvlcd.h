@@ -86,6 +86,7 @@ typedef struct drvlcd_s{
     uint16_t (*getWidth)(void);
     uint16_t (*getHeight)(void);
     uint32_t (*getSize)(void);
+    void (*dataEnd)(void);
 }drvlcd_t;
 
 
@@ -101,6 +102,7 @@ void LCD_Bkl(uint8_t state);
 uint16_t LCD_GetWidth(void);
 uint16_t LCD_GetHeight(void);
 uint32_t LCD_GetSize(void);
+void LCD_DataEnd(void);
 
 #ifdef __cplusplus
 }

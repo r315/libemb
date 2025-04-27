@@ -33,7 +33,8 @@ const drvlcd_t ili9341_drv =
     LCD_Bkl,
     LCD_GetWidth,
     LCD_GetHeight,
-    LCD_GetSize
+    LCD_GetSize,
+    LCD_DataEnd
 };
 
 extern void DelayMs(uint32_t ms);
@@ -111,7 +112,7 @@ static void LCD_WriteData(uint16_t *data, uint32_t count){
 	}
 }
 
-static void LCD_EOTHandler(void){
+void LCD_DataEnd(void){
     spidev->flags &= ~(SPI_DMA_NO_MINC | SPI_16BIT);
 	SPI_WaitEOT(spidev);
 	LCD_CS1;
@@ -143,7 +144,11 @@ static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
  * @param w
  * @param h
  */
-void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
+void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+{
+    SPI_WaitEOT(spidev);
+
+    LCD_CS0;
 	LCD_CasRasSet(x, y, x + (w - 1), y + (h - 1));
 }
 
@@ -163,9 +168,6 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
         return;
     }
 
-    SPI_WaitEOT(spidev);
-
-	LCD_CS0;
 	LCD_Window(x, y, w, h);
 
 	if(spidev->dma.per != NULL){
@@ -199,8 +201,6 @@ void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *dat
         return;
     }
 
-    SPI_WaitEOT(spidev);
-    LCD_CS0;
 	LCD_Window(x, y, w, h);
     LCD_WriteData(data, count);
 }
@@ -241,7 +241,7 @@ void LCD_Init(void *driver){
     }
 
     if(spidev->dma.per != NULL){
-        spidev->eot_cb = LCD_EOTHandler;
+        spidev->eot_cb = LCD_DataEnd;
     }
 
     /**
@@ -252,7 +252,7 @@ void LCD_Init(void *driver){
 
     //SPI_Init(spidev);
 
-    spidev->eot_cb = (spidev->dma.per != NULL) ? LCD_EOTHandler : NULL;
+    spidev->eot_cb = (spidev->dma.per != NULL) ? LCD_DataEnd : NULL;
 
     LCD_CD0;
     LCD_CS1;
@@ -375,4 +375,3 @@ void LCD_Bkl(uint8_t state){
         LCD_BKL0;
     }
 }
-
