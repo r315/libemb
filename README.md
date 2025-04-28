@@ -48,7 +48,7 @@ libemb
 │   ├───eeprom
 │   ├───io_expander
 │   ├───si5351
-│   ├───tft
+│   ├───display
 │   └───touch
 ├───drv
 │   ├───adc
