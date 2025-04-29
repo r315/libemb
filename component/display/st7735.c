@@ -392,18 +392,18 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
 /**
  * @brief Display initialisation
  * */
-void LCD_Init(void *param){
+uint8_t LCD_Init(void *param){
     const uint8_t *init_seq;
 
     if(param == NULL){
-        return;
+        return 0;
     }
 
     drvlcd = (drvlcdspi_t*)param;
     spidev = &drvlcd->spidev;
 
     if(spidev == NULL){
-        return;
+        return 0;
     }
 
     spidev->freq = ST7735_SPI_FREQ;
@@ -417,7 +417,7 @@ void LCD_Init(void *param){
     }else if((drvlcd->w == 80) && (drvlcd->h == 160)){
         init_seq = st7735_80x160;
     }else{
-        return;
+        return 0;
     }
 
     LCD_CD1;
@@ -445,6 +445,8 @@ void LCD_Init(void *param){
     #endif
     _width  = drvlcd->w;
     _height = drvlcd->h;
+
+    return 1;
 }
 
 /**

@@ -244,7 +244,7 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
 /**
  * @brief Display initialisation
  * */
-void LCD_Init(void *spi){
+uint8_t LCD_Init(void *spi){
 
     spidev = (spibus_t*)spi;
     if(spidev->dma.per != NULL){
@@ -275,6 +275,8 @@ void LCD_Init(void *spi){
     _height = TFT_H;
     _offsetx = 0;
     _offsety = 0;
+
+    return 1;
 }
 
 /**

@@ -227,17 +227,17 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
  *
  * @param spi
  */
-void LCD_Init(void *driver){
+uint8_t LCD_Init(void *driver){
 
     if(driver == NULL){
-        return;
+        return 0;
     }
 
     drvlcd = (drvlcdspi_t*)driver;
     spidev = &drvlcd->spidev;
 
     if(spidev == NULL){
-        return;
+        return 0;
     }
 
     if(spidev->dma.per != NULL){
@@ -277,6 +277,8 @@ void LCD_Init(void *driver){
 
     _width  = drvlcd->w;
     _height = drvlcd->h;
+
+    return 1;
 }
 
 /**
