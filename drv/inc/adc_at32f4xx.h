@@ -55,17 +55,19 @@ typedef enum
   ADC12_ORDINARY_TRIG_TMR1TRGOUT         = 0x0D, /*!< timer1 trgout event as trigger source of adc1 ordinary sequence */
 } adc_ordinary_trig_select_type;
 
-typedef struct
+typedef enum
 {
-  void*                            per;                     /*!< adc peripheral */
-  uint8_t                          sequence_mode;           /*!< adc sequence mode */
-  uint8_t                          repeat_mode;             /*!< adc repeat mode */
-  adc_data_align_type              data_align;              /*!< adc data alignment */
-  uint8_t                          ordinary_channel_length; /*!< adc ordinary channel sequence length*/
-} adc_base_config_type;
+  /*adc1 preempt trigger event*/
+  ADC12_PREEMPT_TRIG_TMR1TRGOUT          = 0x00, /*!< timer1 trgout event as trigger source of adc1 preempt sequence */
+  ADC12_PREEMPT_TRIG_TMR1CH4             = 0x01, /*!< timer1 ch4 event as trigger source of adc1 preempt sequence */
+  ADC12_PREEMPT_TRIG_TMR2TRGOUT          = 0x02, /*!< timer2 trgout event as trigger source of adc1 preempt sequence */
+  ADC12_PREEMPT_TRIG_TMR2CH1             = 0x03, /*!< timer2 ch1 event as trigger source of adc1 preempt sequence */
+  ADC12_PREEMPT_TRIG_TMR3CH4             = 0x04, /*!< timer3 ch4 event as trigger source of adc1 preempt sequence */
+  ADC12_PREEMPT_TRIG_TMR4TRGOUT          = 0x05, /*!< timer4 trgout event as trigger source of adc1 preempt sequence */
+  ADC12_PREEMPT_TRIG_EXINT15_TMR1CH4     = 0x06, /*!< exint line15/timer1 ch4 event as trigger source of adc1 preempt sequence */
+  ADC12_PREEMPT_TRIG_SOFTWARE            = 0x07, /*!< software(PCSWTRG) control bit as trigger source of adc1 preempt sequence */
+  ADC12_PREEMPT_TRIG_TMR1CH1             = 0x0D, /*!< timer1 ch1 event as trigger source of adc1 preempt sequence */
+} adc_preempt_trig_select_type;
 
-void adc_base_config(ADC_Type *adcx, adc_base_config_type *adc_base_config);
-void adc_ordinary_conversion_trigger_set(ADC_Type *adc_x, adc_ordinary_trig_select_type adc_ordinary_trig, uint8_t new_state);
-void adc_ordinary_channel_set(ADC_Type *adc_x, adc_channel_select_type adc_channel, uint8_t adc_sequence, adc_sampletime_select_type adc_sampletime);
 
 #endif // ADC_AT32F4XX_H
