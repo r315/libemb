@@ -56,8 +56,7 @@ typedef struct drvlcdspi_s {
 typedef struct drvlcdi2c_s {
     uint16_t w;
     uint16_t h;
-    uint8_t rst;
-    uint8_t bkl;
+    uint8_t *fb;
     i2cbus_t i2cdev;
 }drvlcdi2c_t;
 

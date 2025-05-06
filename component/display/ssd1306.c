@@ -1,172 +1,203 @@
 
+#include <stddef.h>
 #include "ssd1306.h"
-#include "board.h"
+#include "drvlcd.h"
+#include "i2c.h"
 
-typedef struct _Frame{
-    uint8_t control;
+
+typedef struct ssd13xx_frame{
+    uint8_t ctrl;
     uint8_t data[SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8];
-}Frame;
+}ssd13xx_frame_t;
 
-static Frame frame;
 
-uint8_t *LCD_GetPixels(void){
-    return frame.data;
-}
+extern void DelayMs(uint32_t ms);
+void LCD_Update(void);
 
-static uint8_t ssd1306_waitPowerUp(void){
-uint16_t data = (SSD1306_NOP << 8);
-uint32_t count = SSD1306_ACK_RETRIES;
+const drvlcd_t ssd13xx_drv = {
+    .init = LCD_Init,
+    .drawPixel = LCD_Pixel,
+    .getWidth = LCD_GetWidth,
+    .getHeight = LCD_GetHeight,
+    .drawFillRect = LCD_FillRect,
+    .setOrientation = LCD_SetOrientation,
+    .drawArea = LCD_WriteArea,
+    .dataEnd = LCD_Update,
+};
+
+static drvlcdi2c_t *drvlcdi2c;
+static ssd13xx_frame_t ssd13xx_fb;
+
+static uint8_t ssd1306_waitPowerUp(void)
+{
+    uint16_t data = (SSD1306_NOP << 8);
+    uint32_t count = SSD1306_ACK_RETRIES;
 
     while(count--){
-        delayMs(100);
-        if(!I2C_Write(SSD1306_I2C_ADDRESS, (uint8_t*)&data, 2))
-        return 0;
-    }
-    return 1;
-}
-
-void ssd1306_command(uint8_t c) {
-uint8_t data[2];
-
-	data[0] = 0x00;   // Co = 0, D/C = 0
-	data[1] = c;
-
-    I2C_Write(SSD1306_I2C_ADDRESS, data, 2);
-}
-
-
-void LCD_ScrollRight(uint8_t start, uint8_t stop){
-    ssd1306_command(SSD1306_RIGHT_HORIZONTAL_SCROLL);
-    ssd1306_command(0X00);
-    ssd1306_command(start);
-    ssd1306_command(0X00);
-    ssd1306_command(stop);
-    ssd1306_command(0X00);
-    ssd1306_command(0XFF);
-    ssd1306_command(SSD1306_ACTIVATE_SCROLL);
-}
-
-void LCD_StopScroll(void){
-    ssd1306_command(SSD1306_DEACTIVATE_SCROLL);
-}
-
-
-uint8_t LCD_Init(void){
- 
-    if(ssd1306_waitPowerUp())
-        return 1;
-
-    ssd1306_command(SSD1306_SETMULTIPLEX);                  // 0xA8
-  
-    ssd1306_command(SSD1306_LCDHEIGHT - 1);
-
-    ssd1306_command(SSD1306_SETDISPLAYOFFSET);              // 0xD3
-    ssd1306_command(0x0);                                   // no offset
-
-    ssd1306_command(SSD1306_SETSTARTLINE | 0x0);            // line #0
-
-    ssd1306_command(SSD1306_SEGREMAP | 0x1);
-    
-    ssd1306_command(SSD1306_COMSCANDEC);
-
-    ssd1306_command(SSD1306_SETCOMPINS);                    // 0xDA
-    ssd1306_command(0x02);  
-    
-    ssd1306_command(SSD1306_SETCONTRAST);                   // 0x81
-    ssd1306_command(0x8F);
-
-    ssd1306_command(SSD1306_DISPLAYALLON_RESUME);           // 0xA4
-
-    ssd1306_command(SSD1306_NORMALDISPLAY);                 // 0xA6
-    
-    ssd1306_command(SSD1306_SETDISPLAYCLOCKDIV);            // 0xD5
-    ssd1306_command(0x80);                                  // the suggested ratio 0x80
-
-    ssd1306_command(SSD1306_CHARGEPUMP);                    // 0x8D
-    ssd1306_command(0x14);
-    
-    ssd1306_command(SSD1306_DISPLAYON);
-
-    ssd1306_command(SSD1306_MEMORYMODE);                    // 0x20
-    ssd1306_command(0x00);                                  // 0x0 act like ks0108  
-    
-    ssd1306_command(SSD1306_DEACTIVATE_SCROLL);  
-    //ssd1306_command(SSD1306_SETPRECHARGE);                  // 0xd9
-    //ssd1306_command(0xF1);
-    //ssd1306_command(SSD1306_SETVCOMDETECT);                 // 0xDB
-    //ssd1306_command(0x40);
-    for(uint16_t i = 0; i < SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8; i++){
-        frame.data[i] = 0;
+        DelayMs(100);
+        if(I2C_Write(&drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&data, 2) == 2)
+            return 1;
     }
     return 0;
 }
 
+static void ssd13xx_command(uint8_t c)
+{
+    uint8_t data[2];
 
-void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color) {
-    if (x >= SSD1306_LCDWIDTH || y >= SSD1306_LCDHEIGHT)
-        return;
-/*
-  // check rotation, move pixel around if necessary
-  switch (getRotation()) {
-  case 1:
-    ssd1306_swap(x, y);
-    x = WIDTH - x - 1;
-    break;
-  case 2:
-    x = WIDTH - x - 1;
-    y = HEIGHT - y - 1;
-    break;
-  case 3:
-    ssd1306_swap(x, y);
-    y = HEIGHT - y - 1;
-    break;
-  }
-*/
-  // x is which column
-    switch (color)
-    {
-      case WHITE:   frame.data[x+ (y/8)*SSD1306_LCDWIDTH] |=  (1 << (y&7)); break;
-      case BLACK:   frame.data[x+ (y/8)*SSD1306_LCDWIDTH] &= ~(1 << (y&7)); break;
-      case INVERSE: frame.data[x+ (y/8)*SSD1306_LCDWIDTH] ^=  (1 << (y&7)); break;
+	data[0] = 0x00;   // Co = 0, D/C = 0
+	data[1] = c;
+
+    I2C_Write(&drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, data, 2);
+}
+
+
+uint8_t LCD_Init(void *param){
+
+    drvlcdi2c = (drvlcdi2c_t*)param;
+
+    if(!ssd1306_waitPowerUp() || drvlcdi2c == NULL){
+        return 0;
     }
+
+    drvlcdi2c->fb = (uint8_t*)&ssd13xx_fb.data;
+
+    // Common init commands 1306/1315
+    ssd13xx_command(SSD1306_SETMULTIPLEX);
+    ssd13xx_command(drvlcdi2c->h - 1);
+
+    ssd13xx_command(SSD1306_CHARGEPUMP);
+    ssd13xx_command(0x14);                         // 7.5V
+
+    ssd13xx_command(SSD1306_MEMORYMODE);
+    ssd13xx_command(0x00);                         // 0x0 Horizontal addresssing mode (act like ks0108)
+
+    ssd13xx_command(SSD1306_SETSTARTLINE | 0x0);   // line #0
+
+    ssd13xx_command(SSD1306_SEGREMAP | 0x0);       // 0: SEG0=COL0, 1:SEG0=COL127
+
+    ssd13xx_command(SSD1306_COMSCAN | 0x0);        // 0: COM0->COM63 8: COM63->COM0
+
+    ssd13xx_command(SSD1306_SETCONTRAST);
+    ssd13xx_command(0x8F);                         // 0x01 to 0xFF
+
+
+#if 0 // TODO: Fix for ssd1306, check if this commads are needed
+    ssd13xx_command(SSD1306_SETDISPLAYOFFSET);
+    ssd13xx_command(0x0);                                   // no offset
+
+
+    ssd13xx_command(SSD1306_SETCOMPINS);                    // 0xDA
+    ssd13xx_command(0x02);
+
+    ssd13xx_command(SSD1306_DISPLAYALLON_RESUME);           // 0xA4
+
+    ssd13xx_command(SSD1306_NORMALDISPLAY);                 // 0xA6
+
+    ssd13xx_command(SSD1306_SETDISPLAYCLOCKDIV);            // 0xD5
+    ssd13xx_command(0x80);                                  // the suggested ratio 0x80
+#endif
+
+    ssd13xx_command(SSD1306_DEACTIVATE_SCROLL);
+
+    for(uint16_t i = 0; i < drvlcdi2c->w * drvlcdi2c->h / 8; i++){
+        drvlcdi2c->fb[i] = 0x0;
+    }
+
+    ssd13xx_command(SSD1306_DISPLAYON);
+
+    return 1;
 }
 
-uint16_t LCD_GetWidth(void){
-	return SSD1306_LCDWIDTH;
+void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color)
+{
+    uint32_t offset = (y >> 3) * drvlcdi2c->w + x;
+    uint8_t mask = 0x01 << (y & 7);
+    uint8_t data = drvlcdi2c->fb[offset];
+
+    switch (color) {
+        case WHITE:   data |=  mask; break;
+        case BLACK:   data &=  ~mask; break;
+        case INVERSE: data ^=  mask; break;
+    }
+
+    drvlcdi2c->fb[offset] = data;
 }
 
-uint16_t LCD_GetHeight(void){
-	return SSD1306_LCDHEIGHT;
-}
-
-void LCD_Update(void) {
-    ssd1306_command(SSD1306_COLUMNADDR);
-    ssd1306_command(0);   // Column start address (0 = reset)
-    ssd1306_command(SSD1306_LCDWIDTH-1); // Column end address (127 = reset)
-
-    ssd1306_command(SSD1306_PAGEADDR);
-    ssd1306_command(0); // Page start address (0 = reset)  
-    ssd1306_command(3); // Page end address
-    
-    frame.control = 0x40;
-    I2C_WriteBlock(SSD1306_I2C_ADDRESS, (uint8_t*)&frame, sizeof(frame));
-}
-
-void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color){
+void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
+{
     for(uint16_t i = y; i < y + h; i++){
+        uint16_t page = (i >> 3) * drvlcdi2c->w;
+        uint8_t mask = 1 << (i & 7);
         for(uint16_t j = x; j < x + w; j++){
-        if(color)
-            frame.data[j + (i/8)*SSD1306_LCDWIDTH] |= (1 << (i&7));
-        else
-            frame.data[j + (i/8)*SSD1306_LCDWIDTH] &= ~(1 << (i&7));
-        }    
+            uint8_t data = drvlcdi2c->fb[page + j];
+            switch (color) {
+                case WHITE:   data |=  mask; break;
+                case BLACK:   data &=  ~mask; break;
+                case INVERSE: data ^=  mask; break;
+            }
+            drvlcdi2c->fb[page + j] = data;
+        }
     }
 }
 
-void LCD_SetFrame(uint16_t c, uint16_t p, uint8_t *data){
-    uint16_t size = *data++;
-    uint8_t *dst = frame.data + (p * SSD1306_LCDWIDTH) + c;
-    while(size--){
-        *dst++ = *data++;
+void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *col_data)
+{
+    uint8_t *bitmap = (uint8_t*)col_data;
+
+    for(uint16_t i = y; i < y + h; i++){
+        uint16_t page = (i >> 3) * drvlcdi2c->w;
+        uint8_t page_mask = 1 << (i & 7);
+        uint8_t pixel_mask = 0;
+        for(uint16_t j = x; j < x + w; j++){
+            if((pixel_mask >>= 1) == 0){
+                pixel_mask = 0x80;
+                bitmap++;
+            }
+            uint8_t page_data = drvlcdi2c->fb[page + j];
+            drvlcdi2c->fb[page + j] = (*bitmap & pixel_mask) ?
+                        page_data | page_mask :
+                        page_data & ~page_mask;;
+        }
     }
+}
+
+void LCD_SetOrientation(drvlcdorientation_t m)
+{
+    switch (m) {
+    case LCD_LANDSCAPE:
+        ssd13xx_command(SSD1306_SEGREMAP | 0x0);       // 0: SEG0=COL0, 1:SEG0=COL127
+        ssd13xx_command(SSD1306_COMSCAN | 0x0);        // 0: COM0->COM63 8: COM63->COM0
+        break;
+    case LCD_REVERSE_LANDSCAPE:
+        ssd13xx_command(SSD1306_SEGREMAP | 0x1);       // 0: SEG0=COL0, 1:SEG0=COL127
+        ssd13xx_command(SSD1306_COMSCAN | 0x8);        // 0: COM0->COM63 8: COM63->COM0
+        break;
+    default:
+        break;
+    }
+}
+
+uint16_t LCD_GetWidth(void)
+{
+	return drvlcdi2c->w;
+}
+
+uint16_t LCD_GetHeight(void)
+{
+	return drvlcdi2c->h;
+}
+
+void LCD_Update(void)
+{
+    ssd13xx_command(SSD1306_COLUMNADDR);
+    ssd13xx_command(0);
+    ssd13xx_command(drvlcdi2c->w - 1);
+
+    ssd13xx_command(SSD1306_PAGEADDR);
+    ssd13xx_command(0);
+    ssd13xx_command(drvlcdi2c->h / 8 - 1);
+
+    ssd13xx_fb.ctrl = SSD13xx_CTRL_DC;
+    I2C_Write(&drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
 }
