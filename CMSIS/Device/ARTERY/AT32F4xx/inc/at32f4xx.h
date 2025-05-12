@@ -1,8 +1,8 @@
 /**
   **************************************************************************
   * File   : at32f4xx.h
-  * Version: V1.2.4
-  * Date   : 2020-08-26
+  * Version: V1.3.0
+  * Date   : 2021-03-18
   * Brief  : at32f4xx peripheral access layer header file
   **************************************************************************
   */
@@ -46,7 +46,8 @@ extern "C" {
     !defined (AT32F415KBU7_4)&& !defined (AT32F415KCU7_4)&& !defined (AT32F415R8T7_7)&& \
     !defined (AT32F415RBT7_7)&& !defined (AT32F415RCT7_7)&& \
     !defined (AT32F407RGT7)  && !defined (AT32F407VGT7)  && !defined (AT32F407RCT7)  && \
-    !defined (AT32F407VCT7)  && \
+    !defined (AT32F407VCT7)  && !defined (AT32F407VET7)  && !defined (AT32F407RET7)  && \
+    !defined (AT32F407AVCT7) && !defined (AT32F407AVGT7) && \
     !defined (AT32F403AVCT7) && !defined (AT32F403ARCT7) && !defined (AT32F403ACCT7) && \
     !defined (AT32F403ACCU7) && !defined (AT32F403AVGT7) && !defined (AT32F403ACGT7) && \
     !defined (AT32F403ARGT7) && !defined (AT32F403ACGU7) && !defined (AT32F403AVET7) && \
@@ -57,7 +58,8 @@ extern "C" {
     !defined (AT32F421K4U7_4)&& !defined (AT32F421K6U7_4)&& !defined (AT32F421K8U7_4)&& \
     !defined (AT32F421F4P7)  && !defined (AT32F421F6P7)  && !defined (AT32F421F8P7)  && \
     !defined (AT32F421F4U7)  && !defined (AT32F421F6U7)  && !defined (AT32F421F8U7)  && \
-    !defined (AT32F421G4U7)  && !defined (AT32F421G6U7)  && !defined (AT32F421G8U7)
+    !defined (AT32F421G4U7)  && !defined (AT32F421G6U7)  && !defined (AT32F421G8U7)  && \
+    !defined (AT32F421PF4P7) && !defined (AT32F421PF8P7)
 /* #define AT32F403Cx_MD */   /*!< AT32F403Cx_MD: LQFP48, Medium density devices: AT32F403CB */
 /* #define AT32F403Cx_HD */   /*!< AT32F403Cx_HD: LQFP48, High density devices: AT32F403CC, AT32F403CE */
 /* #define AT32F403Cx_XL */   /*!< AT32F403Cx_XL: LQFP48, XL-density devices: AT32F403CG */
@@ -99,6 +101,8 @@ extern "C" {
 /* #define AT32F407VET7 */    /*!< AT32F407VET7: LQFP100, XL-density devices: AT32F407VET7 */
 /* #define AT32F407RCT7 */    /*!< AT32F407RCT7: LQFP64, High density devices: AT32F407RCT7 */
 /* #define AT32F407VCT7 */    /*!< AT32F407VCT7: LQFP100, High density devices: AT32F407VCT7 */
+/* #define AT32F407AVCT7 */   /*!< AT32F407AVCT7: LQFP100, High density devices: AT32F407AVCT7 */
+/* #define AT32F407AVGT7 */   /*!< AT32F407AVGT7: LQFP100, High density devices: AT32F407AVGT7 */
 
 /* #define AT32F403AVCT7 */   /*!< AT32F403AVCT7: LQFP100, High density devices: AT32F403AVCT7 */
 /* #define AT32F403ARCT7 */   /*!< AT32F403ARCT7: LQFP64, High density devices: AT32F403ARCT7 */
@@ -134,6 +138,8 @@ extern "C" {
 /* #define AT32F421G4U7 */    /*!< AT32F421G4U7: QFN28, Low density devices: AT32F421G4U7 */
 /* #define AT32F421G6U7 */    /*!< AT32F421G6U7: QFN28, Low density devices: AT32F421G6U7 */
 /* #define AT32F421G8U7 */    /*!< AT32F421G8U7: QFN28, Medium density devices: AT32F421G8U7 */
+/* #define AT32F421PF4P7 */   /*!< AT32F421PF4P7: TSSOP20, Low density devices: AT32F421PF4P7 */
+/* #define AT32F421PF8P7 */   /*!< AT32F421PF8P7: TSSOP20, Medium density devices: AT32F421PF8P7 */
 #endif
 /*  Tip: To avoid modifying this file each time you need to switch between these
         devices, you can define the device in your toolchain compiler preprocessor.
@@ -163,6 +169,7 @@ extern "C" {
     !defined (AT32F415RBT7_7)&& !defined (AT32F415RCT7_7)&& \
     !defined (AT32F407RGT7)  && !defined (AT32F407VGT7)  && !defined (AT32F407RCT7)  && \
     !defined (AT32F407VCT7)  && !defined (AT32F407RET7)  && !defined (AT32F407VET7)  && \
+    !defined (AT32F407AVCT7) && !defined (AT32F407AVGT7) && \
     !defined (AT32F403AVCT7) && !defined (AT32F403ARCT7) && !defined (AT32F403ACCT7) && \
     !defined (AT32F403ACCU7) && !defined (AT32F403AVGT7) && !defined (AT32F403ACGT7) && \
     !defined (AT32F403ARGT7) && !defined (AT32F403ACGU7) && !defined (AT32F403AVET7) && \
@@ -173,7 +180,8 @@ extern "C" {
     !defined (AT32F421K4U7_4)&& !defined (AT32F421K6U7_4)&& !defined (AT32F421K8U7_4)&& \
     !defined (AT32F421F4P7)  && !defined (AT32F421F6P7)  && !defined (AT32F421F8P7)  && \
     !defined (AT32F421F4U7)  && !defined (AT32F421F6U7)  && !defined (AT32F421F8U7)  && \
-    !defined (AT32F421G4U7)  && !defined (AT32F421G6U7)  && !defined (AT32F421G8U7)
+    !defined (AT32F421G4U7)  && !defined (AT32F421G6U7)  && !defined (AT32F421G8U7)  && \
+    !defined (AT32F421PF4P7) && !defined (AT32F421PF8P7)
 #error "Please select first the target at32f4xx device used in your application (in at32f4xx.h file)"
 #endif
 
@@ -205,7 +213,8 @@ extern "C" {
 #endif
 
 #if defined (AT32F407RGT7)  || defined (AT32F407VGT7)  || defined (AT32F407RCT7)  || \
-    defined (AT32F407VCT7)  || defined (AT32F407VET7)  || defined (AT32F407RET7)
+    defined (AT32F407VCT7)  || defined (AT32F407VET7)  || defined (AT32F407RET7)  || \
+    defined (AT32F407AVCT7) || defined (AT32F407AVGT7)
 
     #define AT32F407xx
 #endif
@@ -224,7 +233,8 @@ extern "C" {
     defined (AT32F421K4U7_4)|| defined (AT32F421K6U7_4)|| defined (AT32F421K8U7_4)|| \
     defined (AT32F421F4P7)  || defined (AT32F421F6P7)  || defined (AT32F421F8P7)  || \
     defined (AT32F421F4U7)  || defined (AT32F421F6U7)  || defined (AT32F421F8U7)  || \
-    defined (AT32F421G4U7)  || defined (AT32F421G6U7)  || defined (AT32F421G8U7)
+    defined (AT32F421G4U7)  || defined (AT32F421G6U7)  || defined (AT32F421G8U7)  || \
+    defined (AT32F421PF4P7) || defined (AT32F421PF8P7)
 
     #define AT32F421xx
 #endif
@@ -1271,7 +1281,8 @@ typedef enum IRQn
 
 #if defined (AT32F407VCT7) || defined (AT32F407RCT7) || \
     defined (AT32F407VET7) || defined (AT32F407RET7) || \
-    defined (AT32F407VGT7) || defined (AT32F407RGT7)
+    defined (AT32F407VGT7) || defined (AT32F407RGT7) || \
+    defined (AT32F407AVCT7)|| defined (AT32F407AVGT7)
     ADC1_2_IRQn                 = 18,     /*!< ADC1 and ADC2 global Interrupt                       */
     USB_HP_CAN1_TX_IRQn         = 19,     /*!< USB Device High Priority or CAN1 TX Interrupts       */
     USB_LP_CAN1_RX0_IRQn        = 20,     /*!< USB Device Low Priority or CAN1 RX0 Interrupts       */
@@ -1332,7 +1343,9 @@ typedef enum IRQn
     ETH_IRQn                    = 79,     /*!< ETH Interrupt                                        */
     ETH_WKUP_IRQn               = 80,     /*!< ETH Wakeup Interrupt                                 */
 #endif /* AT32F407VCT7 || AT32F407RCT7 || AT32F407VGT7 || \
-          AT32F407RGT7 || AT32F407RET7 || AT32F407VET7 */
+          AT32F407RGT7 || AT32F407RET7 || AT32F407VET7 || \
+          AT32F407AVCT7|| AT32F407AVGT7
+       */
 
 #else /* AT32F421xx */
 
@@ -1374,7 +1387,8 @@ typedef enum IRQn
           AT32F421G4U7   || AT32F421G6U7   || AT32F421G8U7 */
 
 #if defined (AT32F421F4P7)  || defined (AT32F421F6P7)  || defined (AT32F421F8P7)  || \
-    defined (AT32F421F4U7)  || defined (AT32F421F6U7)  || defined (AT32F421F8U7)
+    defined (AT32F421F4U7)  || defined (AT32F421F6U7)  || defined (AT32F421F8U7)  || \
+    defined (AT32F421PF4P7) || defined (AT32F421PF8P7)
     ERTC_IRQn                   = 2,      /*!< ERTC interrupt line                                  */
     FLASH_IRQn                  = 3,      /*!< FLASH global Interrupt                               */
     RCC_IRQn                    = 4,      /*!< RCC global Interrupt                                 */
@@ -1401,7 +1415,9 @@ typedef enum IRQn
     I2C1_ER_IRQn                = 32,     /*!< I2C1 Error Interrupt                                 */
     I2C2_ER_IRQn                = 34,     /*!< I2C2 Error Interrupt                                 */
 #endif /* AT32F421F4P7   || AT32F421F6P7   || AT32F421F8P7   ||
-          AT32F421F4U7   || AT32F421F6U7   || AT32F421F8U7 */
+          AT32F421F4U7   || AT32F421F6U7   || AT32F421F8U7   ||
+          AT32F421PF4P7  || AT32F421PF8P7
+        */
 #endif /* AT32F421xx */
 
 } IRQn_Type;
@@ -1799,12 +1815,12 @@ typedef struct
     __IO uint32_t ADDR2;
     uint32_t RESERVED3[7];
 #if defined (AT32F415xx) || defined (AT32F421xx)
-    __IO uint32_t SLIB_CDR0;
-    __IO uint32_t SLIB_CDR1;
+    __IO uint32_t SLIB_STS0;
+    __IO uint32_t SLIB_STS1;
     __IO uint32_t SLIB_PSW;
     __IO uint32_t SLIB_PSW_STS;
     __IO uint32_t CRC_AR;
-    __IO uint32_t CRC_CR;
+    __IO uint32_t CRC_CTRL;
     __IO uint32_t CRC_OUTR;
     uint32_t RESERVED4[3];
 #else
@@ -1820,8 +1836,8 @@ typedef struct
 #if defined (AT32F415xx) || defined (AT32F421xx)
     uint32_t RESERVED7[6];
 #else
-    __IO uint32_t SLIB_CDR0;
-    __IO uint32_t SLIB_CDR1;
+    __IO uint32_t SLIB_STS0;
+    __IO uint32_t SLIB_STS1;
     __IO uint32_t SLIB_PSW;
     __IO uint32_t SLIB_PSW_STS;
     __IO uint32_t SLIB_SET_PSW;
@@ -1832,7 +1848,7 @@ typedef struct
     uint32_t RESERVED9[3];
 #else
     __IO uint32_t SLIB_KEYR;
-    __IO uint32_t CRC_DR;
+    __IO uint32_t CRC_CTRL;
     __IO uint32_t CRC_OUTR;
 #endif
 #if defined (AT32F415xx) || defined (AT32F421xx)
@@ -9834,7 +9850,6 @@ typedef struct
 #define  USART_CTRL1_WUMODE                     ((uint16_t)0x0800)            /*!< Wakeup method */
 #define  USART_CTRL1_LEN                        ((uint16_t)0x1000)            /*!< Word length */
 #define  USART_CTRL1_UEN                        ((uint16_t)0x2000)            /*!< USART Enable */
-#define  USART_CTRL1_OVER8                      ((uint16_t)0x8000)            /*!< USART Oversmapling 8-bits */
 
 /******************  Bit definition for USART_CTRL2 register  *******************/
 #define  USART_CTRL2_ADDR                       ((uint16_t)0x000F)            /*!< Address of the USART node */
@@ -10015,12 +10030,12 @@ typedef struct
 /******************  Bit definition for FLASH_WRPRT register  ******************/
 #define  FLASH_WRPRT_WRPRTBMP                   ((uint32_t)0xFFFFFFFF)        /*!< Write Protect */
 
-/******************  Bit definition for FSLIB_CDR0 register  ******************/
-#define  FLASH_SLIB_CDR0_BOOT_DIS               ((uint8_t)0x01)               /*!< Boot mode disable in System Memory */
-#define  FLASH_SLIB_CDR0_SYS_SLIB_EN            ((uint8_t)0x04)               /*!< SLIB code enable in System Memory */
-#define  FLASH_SLIB_CDR0_SLIB_EN                ((uint8_t)0x08)               /*!< SLIB code enable in Flash */
+/******************  Bit definition for FSLIB_STS0 register  ******************/
+#define  FLASH_SLIB_STS0_BOOT_DIS               ((uint8_t)0x01)               /*!< Boot mode disable in System Memory */
+#define  FLASH_SLIB_STS0_SYS_SLIB_EN            ((uint8_t)0x04)               /*!< SLIB code enable in System Memory */
+#define  FLASH_SLIB_STS0_SLIB_EN                ((uint8_t)0x08)               /*!< SLIB code enable in Flash */
 
-/******************  Bit definition for FSLIB_CDR1 register  ******************/
+/******************  Bit definition for FSLIB_STS1 register  ******************/
 #define  FLASH_SLIB_START_PAGE                  ((uint32_t)0x000007FF)        /*!< SLIB Start Page */
 #define  FLASH_SLIB_DATA_START_PAGE             ((uint32_t)0x003FF800)        /*!< SLIB Data Start Page */
 #define  FLASH_SLIB_INSTR_PAGE                  ((uint32_t)0x003FF800)        /*!< SLIB Instruction Start Page */
