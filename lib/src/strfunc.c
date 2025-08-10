@@ -122,7 +122,7 @@ char *nextWord(char *line) {
  * \return 1 if success and increments line pointer, 0 on failure no parameters are affected
  * */
 uint8_t nextHex(char **line, uint32_t *value) {
-	if (ha2i(*line, value)) {
+	if (ha2u(*line, value)) {
 		*line = nextWord(*line);
 		return 1;
 	}
@@ -279,16 +279,18 @@ void xstrcpy(char *dst, const char *src, uint8_t maxLen) {
  * \param  value - pointer to output value
  * \return number of converted digits
  * */
-uint8_t ia2i(char *str, int32_t *value) {
+uint8_t ia2i(const char *str, int32_t *value) {
 	int val = 0;
-	char c = *str;
+	char c;
 	uint8_t s = 0;
 
 	if(str == NULL){
 		return 0;
 	}
 
-    if(*str == '\0'){
+    c = *str;
+
+    if(c == '\0'){
         return 0;
     }
 
@@ -323,15 +325,17 @@ uint8_t ia2i(char *str, int32_t *value) {
  * \param  value  pointer to output value
  * \return 1 if success, 0 if failed
  * */
-uint8_t ha2i(char *str, uint32_t *value) {
+uint8_t ha2u(const char *str, uint32_t *value) {
 	uint32_t val = 0;
-	char c = *str;
+	char c;
 
 	if(str == NULL){
 		return 0;
 	}
 
-    if(*str == '\0'){
+    c = *str;
+
+    if(c == '\0'){
         return 0;
     }
 
@@ -366,17 +370,19 @@ uint8_t ha2i(char *str, uint32_t *value) {
  * \param  value - pointer to output value
  * \return 1:success, 0:failed
  * */
-uint8_t da2d(char *str, double *value) {
+uint8_t da2d(const char *str, double *value) {
 	uint8_t s = 0;
 	double val = 0;
-	char c = *str;
+	char c;
 	int decimal = 1;
 
 	if(str == NULL){
 		return 0;
 	}
 
-    if(*str == '\0'){
+    c = *str;
+
+    if(c == '\0'){
         return 0;
     }
 
