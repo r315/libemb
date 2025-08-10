@@ -1,55 +1,78 @@
-#include <board.h>
-#include <dac.h>
-#include <dma.h>
-#include <string.h>
-
-#define DAC_MAX_VALUE 0x3FF
-#define DAC_CFG_PIN         LPC_PINCON->PINSEL1 = (LPC_PINCON->PINSEL1 & ~(3 << 20)) | ( 2 << 20)  // P0.26 AOUT function
-#define DAC_WRITE(x)        LPC_DAC->DACR = (x & 0x7FF) << 6 // The 11th bit is DAC_BIAS
-
-#define DACCTRL_CNT_ENA     (1 << 2)
-#define DACCTRL_DMA_ENA     (1 << 3)
+#include <stddef.h>
+#include "lpc17xx_hal.h"
+#include "dac.h"
+#include "dma.h"
 
 
-Dmachannel dacdma;
+static dmatype_t dma_dac;
 
-
-void DAC_Init(){
-
-    CLOCK_SetPCLK(PCLK_DAC, PCLK_8);
-    DAC_CFG_PIN;
-    memset(&dacdma, 0, sizeof(Dmachannel));
-    DMA_Init();
-   
+static void dacInt(void){
+    CLEAR_BIT(LPC_DAC->CTRL, CTRL_INT_DMA_REQ | CTRL_DMA_ENA | CTRL_CNT_ENA);
 }
 
-void DAC_SetRate(uint32_t fq){
+/**
+ * @brief Power up DAC and enable AOUT pin, also inits private dma structure
+ *
+ *
+ * @param dac structure with dac parameters. Note some fields are reseted
+ */
+void DAC_Init(dactype_t *dac){
+    CLOCK_SetPCLK(PCLK_DAC, PCLK_1);
+    /* Select AOUT function for P0.26, this also power up DAC */
+    LPC_PINCON->PINSEL1 = (LPC_PINCON->PINSEL1 & ~(3 << 20)) | ( 2 << 20);
+    LPC_DAC->CR = DAC_CR_BIAS;
 
+    dac->per = LPC_DAC;
+    dac->len = 0;
+    dac->loop = 0;
+
+    DMA_Config(&dma_dac, 0); // Check dma config
 }
 
-void DAC_Write(uint16_t value){
-    DAC_WRITE(value);
+void DAC_DeInit(dactype_t *dac){
+    DAC_Stop(dac);
 }
 
-void DAC_WriteBufer(uint16_t *buf, uint32_t len, uint16_t rate){
-    LPC_DAC->DACCNTVAL = rate;
-    LPC_DAC->DACCTRL = 0;
+void DAC_Config(dactype_t *dac){
 
-    dacdma.src = (uint32_t)buf;
-    dacdma.dst = (uint32_t)&LPC_DAC->DACR;
-    dacdma.len = len;
-    dacdma.circular = 1;
-    dacdma.priority = 7;
+    if(!dac->len)
+        return;
 
-    DMA_Setup(&dacdma);   
-    DMA_Start(&dacdma);   
+    dma_dac.src = dac->buf;
+    dma_dac.dst = (void*)&LPC_DAC->CR;
+    dma_dac.len = dac->len;
+    dma_dac.dir = DMA_DIR_M2P;
+    dma_dac.ssize = DMA_CONTROL_WIDTH16;
+    dma_dac.dsize = DMA_CONTROL_WIDTH16;
 
-    LPC_DAC->DACCTRL = DACCTRL_DMA_ENA | DACCTRL_CNT_ENA;
+    if(dac->loop){
+        dma_dac.eot = NULL;
+        dma_dac.single = 0;
+    }else{
+        dma_dac.eot = dacInt;
+        dma_dac.single = 1;
+    }
 
-    //DAC_Stop();
+    LPC_DAC->CNTVAL = dac->rate;
 }
 
-void DAC_Stop(void){
-    LPC_DAC->DACCTRL = 0;
-    DMA_Stop(&dacdma);
+void DAC_Write(dactype_t *dac, uint16_t value){
+    LPC_DAC->CR = (LPC_DAC->CR & 0x10000) | value; // six lsb bits are discarted
+}
+
+void DAC_Stop(dactype_t *dac){
+    DMA_Cancel(&dma_dac);
+    LPC_DAC->CTRL = 0;
+}
+
+void DAC_Start(dactype_t *dac){
+    DMA_Config(&dma_dac, DMA_REQ_PER_DAC);
+    DMA_Start(&dma_dac);
+
+    SET_BIT(LPC_DAC->CTRL, CTRL_DMA_ENA | CTRL_CNT_ENA);
+}
+
+void DAC_UpdateRate(dactype_t *dac, uint32_t rate){
+    dac->rate = rate;
+    LPC_DAC->CNTVAL = dac->rate;
 }

@@ -1,28 +1,27 @@
 
 #include <LPC17xx.h>
-#include <clock_lpc17xx.h>
+#include "clock_lpc17xx.h"
 
-#ifdef __USE_SYSTICK
-volatile uint32_t _systicks;
+#ifndef __TIMER_SYSTICK
+static volatile uint32_t _systicks;
 
-//-----------------------------------------------------									   
-// SysTick Interrupt Handler (1ms)   
-//-----------------------------------------------------
-void SysTick_Handler(void){
-	_systicks++;
-}
-
-void CLOCK_DelayMs(uint32_t ms){
-uint32_t ticks = _systicks + ms;
-	while(ticks > _systicks);
+void systickInit(){
+	SysTick_Config(SystemCoreClock/1000);
 }
 
 uint32_t CLOCK_GetTicks(void){
 	return _systicks;
 }
 
-void systickInit(){
-	SysTick_Config(SystemCoreClock/1000);
+void CLOCK_DelayMs(uint32_t ms){
+uint32_t ticks = _systicks + ms;
+	while(ticks > _systicks);
+}
+//-----------------------------------------------------									   
+// SysTick Interrupt Handler (1ms)   
+//-----------------------------------------------------
+void SysTick_Handler(void){
+	_systicks++;
 }
 #else
 
@@ -176,10 +175,10 @@ uint32_t calcPclk(uint8_t div){
     }
 }
 
-uint32_t CLOCK_GetPCLK(uint8_t peripheral){
+uint32_t CLOCK_GetPCLK(pclknum_e peripheral){
 uint8_t cclkdiv;
 
-    if(peripheral < 16){
+    if(peripheral < PCLK_QEI){
         cclkdiv = (LPC_SC->PCLKSEL0 >> (peripheral << 1)) & 3;
     }else{
         cclkdiv = (LPC_SC->PCLKSEL1 >> ((peripheral & 0xF) << 1)) & 3;
@@ -187,16 +186,11 @@ uint8_t cclkdiv;
     return calcPclk(cclkdiv);
 }
 
-void CLOCK_SetPCLK(uint8_t peripheral, uint8_t div){
+void CLOCK_SetPCLK(pclknum_e peripheral, uint8_t div){
+	uint32_t pclk_pos = ((peripheral & 0xF) << 1);    
+    __IO uint32_t *pclk = (peripheral < PCLK_QEI) ? &LPC_SC->PCLKSEL0 : &LPC_SC->PCLKSEL1;
 
-uint32_t pclk_pos = ((peripheral & 0xF) << 1);
-    
-    if(peripheral < 16){
-        LPC_SC->PCLKSEL0 &= ~(3 << pclk_pos);
-        LPC_SC->PCLKSEL0 |= (div << pclk_pos);
-    }else{
-        LPC_SC->PCLKSEL1 &= ~(3 << pclk_pos);
-        LPC_SC->PCLKSEL1 |= (div << pclk_pos);
-    }
+	*pclk &= ~(3 << pclk_pos);
+	*pclk |= (div << pclk_pos);
 }
 
