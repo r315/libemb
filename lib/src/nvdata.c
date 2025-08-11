@@ -1,9 +1,20 @@
 #include <string.h>
+#include <stdio.h>
 #include "nvdata.h"
 
 #define NVDATA_BLOCK_SIZE   (nvdata->nvb.size) // Ideally NVDATA_SECTOR_SIZE mod(NVDATA_BLOCK_SIZE) = 0
 #define NVDATA_SIZE         (NVDATA_BLOCK_SIZE - 1)
 #define NVDATA_STATE        (nvdata->nvb.data[NVDATA_SIZE])
+
+#ifdef DBG_NVDATA
+#define DBG_INF     printf
+#define DBG_WRN     printf
+#define DBG_ERR     printf
+#else
+#define DBG_INF(...)
+#define DBG_WRN(...)
+#define DBG_ERR(...)
+#endif
 
 static uint32_t checkEmptyBlock(uint8_t *address);
 static uint32_t commit_nv(void);
@@ -42,17 +53,20 @@ uint32_t NV_Init(nvdata_t *nv) {
         nvdata->sector.init();
     }
 
+    DBG_INF("Start of sector %lx", nvdata->sector.start);
+
 	do {
 		if (*ptr == NVDATA_VALID) {
             // found valid data block
 			lastWritten = ptr;
+            DBG_INF("Valid block found at %x", (unsigned int)lastWritten);
 		}
 		else if (*ptr == NVDATA_EMPTY) {
 			//Set next to the found "empty" block
             nvdata->nvb.next = ptr - NVDATA_SIZE;
 
 			if(checkEmptyBlock(nvdata->nvb.next) == 0){
-				// Data corrupted
+				DBG_WRN("Corrupted block");
 				break;
 			}
 
@@ -60,6 +74,7 @@ uint32_t NV_Init(nvdata_t *nv) {
 				//get data from previous block, if has valid data
 				nvdata->sector.read((uint32_t)(lastWritten - NVDATA_SIZE), nvdata->nvb.data, NVDATA_SIZE);
                 NVDATA_STATE = NVDATA_RESTORED;
+                DBG_INF("Data restored from offset %x", (unsigned int)(lastWritten - NVDATA_SIZE));
 				return NVDATA_SIZE;
 			}
             NVDATA_STATE = NVDATA_EMPTY;
@@ -67,6 +82,7 @@ uint32_t NV_Init(nvdata_t *nv) {
 		}
 	} while ((uint32_t)(ptr += NVDATA_BLOCK_SIZE) < (uint32_t)nvdata->sector.end);
 	// no data found initialize sector
+    DBG_WRN("Erasing");
 	return NV_Erase();
 }
 
@@ -79,6 +95,7 @@ uint32_t NV_Init(nvdata_t *nv) {
 uint32_t NV_Restore(uint8_t* data, uint16_t count) {
 
     if (nvdata->nvb.next == NULL){
+        DBG_WRN("Invalid block");
         return 0;
     }
 
@@ -88,7 +105,9 @@ uint32_t NV_Restore(uint8_t* data, uint16_t count) {
 
 	memcpy(data, nvdata->nvb.data, count);
 
-	return count;
+    DBG_INF("Restored %u bytes", count);
+
+    return count;
 }
 /**
  * @brief Save given data to internal structure and persistent storage
@@ -99,6 +118,7 @@ uint32_t NV_Restore(uint8_t* data, uint16_t count) {
 uint32_t NV_Save(const uint8_t* data, uint16_t count) {
 
     if (nvdata->nvb.next == NULL){
+        DBG_WRN("Invalid block");
         return 0;
     }
 
@@ -108,6 +128,7 @@ uint32_t NV_Save(const uint8_t* data, uint16_t count) {
     }
 
 	memcpy(nvdata->nvb.data, data, count);
+
 	return commit_nv() ? count : 0;
 }
 
@@ -150,6 +171,9 @@ uint32_t NV_Read(uint16_t offset, uint8_t *data, uint32_t len){
     }
 
 	memcpy(data, &nvdata->nvb.data[offset], len);
+
+    DBG_INF("Read %lu bytes from offset %u", len, offset);
+
 	return len;
 }
 
@@ -174,6 +198,9 @@ uint32_t NV_Write(uint16_t offset, const uint8_t *data, uint32_t len){
 
 	memcpy(nvdata->nvb.data + offset, data, len);
     NVDATA_STATE = NVDATA_CHANGED;
+
+    DBG_INF("Write %lu bytes to offset %u", len, offset);
+
 	return len;
 }
 
@@ -195,11 +222,14 @@ uint32_t NV_Erase(void){
  * private functions
  */
 static uint32_t checkEmptyBlock(uint8_t *address){
+    DBG_INF("Checking block %x", (unsigned int)address);
 	for (uint16_t i = 0; i < NVDATA_BLOCK_SIZE; i++){
 		if(*(address++) != (uint8_t)0xFF){
+            DBG_INF("Found data at %x", (unsigned int)(address - 1));
 			return 0;
 		}
 	}
+    DBG_INF("Empty");
 	return 1;
 }
 
@@ -219,12 +249,16 @@ static uint32_t verify(void){
     ptr = (nvdata->nvb.next == (uint8_t*)nvdata->sector.start) ?
         (uint8_t*)(nvdata->sector.end - NVDATA_BLOCK_SIZE) :
         nvdata->nvb.next - NVDATA_BLOCK_SIZE;
-
+    DBG_INF("Verifying block %x", (unsigned int)ptr);
 	for (uint16_t i = 0; i < NVDATA_SIZE; i++)
 	{
-		if(nvdata->nvb.data[i] != ptr[i])
+		if(nvdata->nvb.data[i] != ptr[i]){
+            DBG_INF("Data missmatch at %x", (unsigned int)(ptr + i));
 			return 0;
+        }
 	}
+
+    DBG_INF("Data match");
 	return 1;
 }
 
