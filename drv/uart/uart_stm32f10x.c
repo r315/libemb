@@ -9,7 +9,7 @@ static serialbus_t *serial1, *serial2, *serial3;
 static void setBaudrate(serialbus_t *huart)
 {
     USART_TypeDef *usart = (USART_TypeDef*)huart->ctrl;
-    
+
     float uartdiv = (float)(SystemCoreClock/huart->speed) / 32;
 
     if(usart == USART1){
@@ -26,7 +26,7 @@ static void setBaudrate(serialbus_t *huart)
 void UART_Init(serialbus_t *serialbus){
     USART_TypeDef *usart = NULL;
 	IRQn_Type irq;
-    
+
     switch(serialbus->bus){
 
     case UART_BUS1:
@@ -41,7 +41,7 @@ void UART_Init(serialbus_t *serialbus){
         DMA1_Channel4->CCR = 0;
         DMA1_Channel4->CPAR = (uint32_t)&USART1->DR;
         //DMA1_Channel4->CMAR = (uint32_t)tx_buf;
-        DMA1_Channel4->CNDTR = 0;        
+        DMA1_Channel4->CNDTR = 0;
 #endif
         /**
          * PA9 -> TX
@@ -54,7 +54,7 @@ void UART_Init(serialbus_t *serialbus){
         serial1 = serialbus;
         irq = USART1_IRQn;
         break;
-    
+
     case UART_BUS2:
         RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
         asm("nop");
@@ -87,20 +87,23 @@ void UART_Init(serialbus_t *serialbus){
          * */
         GPIOB->CRH = (GPIOB->CRH & ~(0xFF << 8)) | (GPIO_IN_PU << 12) | (GPIO_OUT_AF << 8);
         GPIOB->BSRR = GPIO_PIN_11;
-        
+
         usart = USART1; // check this and comment
         serial3 = serialbus;
         irq = USART1_IRQn;
         break;
-    
+
     default:
         return;
     }
 
-    
+
     serialbus->ctrl = usart;
 
     setBaudrate(serialbus);
+
+    fifo_init(&serialbus->rxfifo);
+    fifo_init(&serialbus->txfifo);
 
     usart->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;
     usart->CR1 |= USART_CR1_RXNEIE;
@@ -118,16 +121,16 @@ uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
         }else{
             usart->CR1 |= USART_CR1_TXEIE;
             while(fifo_free(&huart->txfifo) == 0);
-        }        
+        }
     }
-    
+
     usart->CR1 |= USART_CR1_TXEIE;
     return len;
-}  
+}
 
 uint32_t UART_Read(serialbus_t *huart, uint8_t *buf, uint32_t len){
     uint32_t count = len;
-    while(count--){        
+    while(count--){
         while(!fifo_get(&huart->rxfifo, buf));
         buf++;
     }
@@ -140,12 +143,12 @@ uint32_t UART_Available(serialbus_t *huart){
 
 void UART_IRQHandler(void *ptr){
     serialbus_t *serialbus;
-    USART_TypeDef *usart; 
-    
+    USART_TypeDef *usart;
+
     if(ptr == NULL){
         return;
     }
-    
+
     serialbus = (serialbus_t*)ptr;
     usart = (USART_TypeDef*)serialbus->ctrl;
     volatile uint32_t status = usart->SR;
@@ -155,20 +158,20 @@ void UART_IRQHandler(void *ptr){
         usart->SR &= ~USART_SR_RXNE;
         fifo_put(&serialbus->rxfifo, (uint8_t)usart->DR);
     }
-    
-    // Check if data transmiter if empty 
+
+    // Check if data transmiter if empty
     if (status & USART_SR_TXE) {
         usart->SR &= ~USART_SR_TXE;	          // clear interrupt
         // Check if data is available to send
         if(fifo_avail(&serialbus->txfifo) > 0){
             uint8_t data;
             fifo_get(&serialbus->txfifo, &data);
-            usart->DR = data;            
+            usart->DR = data;
         }else{
                // No more data, disable interrupt
             usart->CR1 &= ~USART_CR1_TXEIE;		      // disable TX interrupt if nothing to send
         }
-    }    
+    }
 }
 
 void USART1_IRQHandler(void){
