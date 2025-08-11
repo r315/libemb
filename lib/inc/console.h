@@ -25,13 +25,21 @@ extern "C" {
 #define TRUE    (1)
 #endif
 
-#define CONSOLE_WIDTH 	                32      // Width in chars
-#define CONSOLE_MAX_COMMANDS            16
-#define CONSOLE_COMMAND_PARAMS		    10
-#define HISTORY_MAX_SIZE 	            5
 
 #ifndef CONSOLE_WIDTH
-#define CONSOLE_WIDTH	                16
+#define CONSOLE_WIDTH 	                32      // Width in chars
+#endif
+
+#ifndef CONSOLE_MAX_COMMANDS
+#define CONSOLE_MAX_COMMANDS 	        16
+#endif
+
+#ifndef CONSOLE_COMMAND_PARAMS
+#define CONSOLE_COMMAND_PARAMS		    10
+#endif
+
+#ifndef HISTORY_MAX_SIZE
+#define HISTORY_MAX_SIZE 	            5
 #endif
 
 typedef enum con_res{
