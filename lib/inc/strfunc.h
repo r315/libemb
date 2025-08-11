@@ -35,7 +35,7 @@ extern "C" {
 	void memcpy32(uint32_t *dst, uint32_t *src, uint32_t n);
   void *memmove(void * dst, const void * src, size_t len);
 	char *skipSpaces(char *str);
-	uint32_t strToArray(char *str, char **argv);
+	uint32_t strToArray(char *str, char **argv, int max_arg);
 	void xsprintf(char *out, const char* fmt, ...);
 	int32_t strFind(const char *str, char *strarr[], uint16_t arrsize);
 #ifdef __cplusplus

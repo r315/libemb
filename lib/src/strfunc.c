@@ -18,8 +18,9 @@ char *skipSpaces(char *str){
  * \param argv : pointer to output string array
  * \return : number of strings
  * */
-uint32_t strToArray(char *str, char **argv){
-uint32_t argc = 0;
+uint32_t strToArray(char *str, char **argv, int max_arg)
+{
+    uint32_t argc = 0;
 
     if(str == NULL){
         return 0;
@@ -36,8 +37,12 @@ uint32_t argc = 0;
         if(*str == ' '){
 			*str = '\0';
 			str = skipSpaces(str + 1);
-			if(*str != '\0')
+			if(*str != '\0'){
 				argv[argc++] = str;
+                if(argc == (max_arg - 1)){
+                    break;
+                }
+            }
         }else{
 			str++;
 		}

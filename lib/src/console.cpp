@@ -58,12 +58,9 @@ char Console::parseCommand(char *line) {
 	if (*line == '\n' || *line == '\r' || *line == '\0')
 		return CMD_OK;
 
-	// Convert command line into string array
-    // TODO: Fix hard fault when number of input parameters
-    // does not fit m_argv
-	m_argc = strToArray((char*)line, m_argv);
+	m_argc = strToArray((char*)line, m_argv, CONSOLE_COMMAND_PARAMS);
 
-	if(m_argc < CONSOLE_COMMAND_PARAMS && m_argv[0] != NULL){
+	if(m_argv[0] != NULL){
 		cmdname = m_argv[0];
 		for (uint8_t i = 0; i < m_cmdListSize; i++, cmd++) {
 			if (*cmd == NULL) {
