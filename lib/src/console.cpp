@@ -90,7 +90,7 @@ char Console::parseCommand(char *line) {
 void Console::process(void) {
 	if(m_active == NO){
 		m_active = YES;
-		printf(
+		this->printf(
             VT100_BOLD
             "%s"
             VT100_NORMAL
@@ -107,7 +107,7 @@ void Console::process(void) {
 	{
 		m_hist.push(m_line);
 		if(parseCommand(m_line) != CMD_OK_NO_PRT){
-			printf(
+			this->printf(
                 VT100_BOLD
                 "%s"
                 VT100_NORMAL
@@ -250,7 +250,7 @@ con_res_t Console::scanForLine(void) {
                 case 'C':
                     //puts ("RIGTH");
                     if(m_line_edit > 0){
-                        printf("\e[1C");
+                        this->printf("\e[1C");
                         m_line_edit--;
                     }
                     break;
@@ -258,7 +258,7 @@ con_res_t Console::scanForLine(void) {
                 case 'D':
                     //puts ("LEFT");
                     if(m_line_edit < m_line_len){
-                        printf("\e[1D");
+                        this->printf("\e[1D");
                         m_line_edit++;
                     }
                     break;
@@ -291,7 +291,7 @@ con_res_t Console::scanForLine(void) {
                     // Erase character at the end of line
                     writechar(' ');
                     // Move cursor back to edit position
-                    printf("\e[%uD", m_line_edit + 1);
+                    this->printf("\e[%uD", m_line_edit + 1);
                 }
                 m_line_len--;
 			}
@@ -325,7 +325,7 @@ con_res_t Console::scanForLine(void) {
                 // plus inserted character
                 m_out->write(m_line + offset, m_line_edit + 1);
                 // Move cursor back to edit position
-                printf("\e[%uD", m_line_edit);
+                this->printf("\e[%uD", m_line_edit);
                 m_line_len++;
             }
 		}
@@ -428,17 +428,17 @@ void Console::replaceLine(char *new_line) {
     	memcpy(m_line, new_line, new_line_len);
 
       if(m_line_edit){
-         printf("\e[%uC", m_line_edit);
+        this->printf("\e[%uC", m_line_edit);
          m_line_edit = 0;
       }
 
       while(m_line_len--){
-         printf("\b \b");
+        this->printf("\b \b");
       }
 
       m_line_len = new_line_len;
 
-      printf("%s", new_line);
+      this->printf("%s", new_line);
     }
 }
 
@@ -512,7 +512,7 @@ void History::dump(void) {
 
 	for (uint8_t i = 0; i < HISTORY_MAX_SIZE; i++)
 	{
-        //printf("\n%c %u %s", (i == m_top) ? '>' : ' ', i, m_history[i]);
+        //this->printf("\n%c %u %s", (i == m_top) ? '>' : ' ', i, m_history[i]);
         writechar('\n');
         writechar((i == m_top) ? '>' : ' ');
         writechar(' ');
