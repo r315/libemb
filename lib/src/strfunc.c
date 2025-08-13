@@ -527,13 +527,16 @@ uint32_t d2da(char *dst, double f, uint8_t places){
  *
  * TODO: fix print percent sign (%)
  * */
-uint32_t strformater(char *dst, const char* fmt, va_list arp){
-
+uint32_t strformater(char *dst, const char* fmt, va_list arp, int len)
+{
 	int d, r, w, s, l, f;
-	char *p,*a;
-	a = dst;
+	char *p, *start;
+	start = dst;
 
 	while ((d = *fmt++) != '\0') {
+        if((dst - start) >= len){
+            break;
+        }
 
 		if (d != '%') {
 			*(dst++) = d;
@@ -608,18 +611,19 @@ uint32_t strformater(char *dst, const char* fmt, va_list arp){
 	}
 
 	*dst = '\0';
-	return dst - a;
+	return dst - start;
 }
 
 /**
- * @brief
- * */
+ * @brief To be removed, it has no usage
+ * *
 void xsprintf(char *out, const char* fmt, ...){
 	va_list arp;
 	va_start(arp, fmt);
 	strformater(out, fmt, arp);
 	va_end(arp);
 }
+*/
 
 //-----------------------------------------------------------
 //
