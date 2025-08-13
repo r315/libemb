@@ -142,19 +142,19 @@ uint32_t NV_Save(const uint8_t* data, uint16_t count) {
  * @brief synchronizes internal data with persistent data
  *             if internal data has changed
  *
- * @return :     0 if data is synchronized, 1 if data was commited
+ * @return :     0: Failed to synchronize, data differs data on block
+ *               1: Data is synchronized
+ *               2: Data was commited
  */
-uint32_t NV_Sync(void){
-    uint32_t res = 0;
+uint32_t NV_Sync(void)
+{
     DBG_NVDATA_INF(DBG_TAG"Synchronizing eeprom buffer with flash");
     if(NVDATA_STATE == NVDATA_CHANGED){
         if(!verify()){
-            res = commit_nv();
-        }else{
-            NVDATA_STATE = NVDATA_VALID;
+            return commit_nv() ? 2 : 0;
         }
     }
-    return res;
+    return 1;
 }
 
 /**
