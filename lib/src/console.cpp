@@ -396,7 +396,7 @@ int Console::printf(const char* fmt, ...)
 	va_list arp;
     int len;
 	va_start(arp, fmt);
-	len = strformater(m_buf, fmt, arp);
+	len = strformater(m_buf, fmt, arp, CONSOLE_WIDTH);
 	va_end(arp);
 
 	return m_out->write(m_buf, len);
