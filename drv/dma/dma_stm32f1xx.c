@@ -44,7 +44,7 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
         case DMA_DIR_P2M:
             config |=   DMA_CCR_PSIZE_CFG(dma->ssize) |
                         DMA_CCR_MSIZE_CFG(dma->dsize) |
-                        DMA_CCR_PINC;                   // Increment destination
+                        DMA_CCR_MINC;                   // Increment destination
             stream->CPAR = (uint32_t)dma->src;
             stream->CMAR = (uint32_t)dma->dst;
             break;
