@@ -1,6 +1,7 @@
 #ifndef _uart_h_
 #define _uart_h_
 
+#include <stdint.h>
 #include "fifo.h"
 
 typedef enum uartx{
@@ -22,7 +23,7 @@ typedef struct serialbus {
         };
         uint32_t cfg;
     };
-    fifo_t rxfifo;
+    fifo_t rxfifo; //TODO: Remove fifos from here, port f1xx implementation to other chips
     fifo_t txfifo;
 }serialbus_t;
 
