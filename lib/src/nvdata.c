@@ -12,10 +12,12 @@
 #define DBG_NVDATA_INF(...) DBG_INF(DBG_TAG __VA_ARGS__)
 #define DBG_NVDATA_WRN(...) DBG_WRN(DBG_TAG __VA_ARGS__)
 #define DBG_NVDATA_ERR(...) DBG_ERR(DBG_TAG __VA_ARGS__)
+#define DBG_NVDATA_PRINTF(...) DBG_PRINTF(__VA_ARGS__)
 #else
 #define DBG_NVDATA_INF(...)
 #define DBG_NVDATA_WRN(...)
 #define DBG_NVDATA_ERR(...)
+#define DBG_NVDATA_PRINTF(...)
 #endif
 
 static uint32_t checkEmptyBlock(uint8_t *address);
@@ -43,7 +45,7 @@ uint32_t NV_Init(nvdata_t *nv) {
 
     nvdata = nv;
 
-    // Get first block status byte, aka last by of block
+    // Get first block status byte, aka last byte of block
     uint8_t *ptr = ((uint8_t*)nvdata->sector.start + NVDATA_SIZE);
     uint8_t *lastWritten = NULL;
     // Erase nvdata buffer
@@ -54,7 +56,7 @@ uint32_t NV_Init(nvdata_t *nv) {
         nvdata->sector.init();
     }
 
-    DBG_NVDATA_INF("Sector 0x%lx, block size %u bytes", nvdata->sector.start, nvdata->nvb.size);
+    DBG_NVDATA_INF("Sector 0x%lx, block size is %u bytes", nvdata->sector.start, nvdata->nvb.size);
     // Iterate blocks starting from the end of first block
     do {
         if (*ptr == NVDATA_VALID) {
@@ -69,7 +71,8 @@ uint32_t NV_Init(nvdata_t *nv) {
             if(checkEmptyBlock(nvdata->nvb.next) == 0){
                 // was not, so must be corrupted
                 DBG_NVDATA_WRN("Corrupted block");
-                break;
+                DBG_NVDATA_WRN("Erasing");
+                return NV_Erase();
             }
             // Confirmed to be empty, is it the next one after last written?
             if (lastWritten != NULL) {
@@ -79,16 +82,14 @@ uint32_t NV_Init(nvdata_t *nv) {
                 DBG_NVDATA_INF("Data restored from block 0x%x", (unsigned int)lastWritten);
                 return NVDATA_SIZE;
             }
-            // It must be first block, assume that remaining blocks on sector are also empty
-            NVDATA_STATE = NVDATA_EMPTY;
-            DBG_NVDATA_WRN("Initialyzed with no data");
-            return 0;
         }
         // Advance next block
     } while ((uint32_t)(ptr += NVDATA_BLOCK_SIZE) < (uint32_t)nvdata->sector.end);
-    // no data found initialize sector
-    DBG_NVDATA_WRN("Erasing");
-    return NV_Erase();
+    // No data found
+    DBG_NVDATA_WRN("Initialyzed with no data");
+    NVDATA_STATE = NVDATA_EMPTY;
+    nvdata->nvb.next = (uint8_t*)nvdata->sector.start;
+    return 0;
 }
 
 /**
@@ -218,8 +219,7 @@ uint32_t NV_Erase(void){
     // no data found erase sector and nvdata buffer
     nvdata->sector.erase((uint32_t)nvdata->sector.start);
     nvdata->nvb.next = (uint8_t*)nvdata->sector.start;
-    memset(nvdata->nvb.data, 0xff, NVDATA_SIZE);
-    NVDATA_STATE = NVDATA_EMPTY;
+    memset(nvdata->nvb.data, 0xff, NVDATA_BLOCK_SIZE);
     return checkEmptyBlock(nvdata->nvb.next);
 }
 
@@ -227,20 +227,22 @@ uint32_t NV_Erase(void){
  * private functions
  */
 static uint32_t checkEmptyBlock(uint8_t *address){
-    DBG_NVDATA_INF("Checking block 0x%x", (unsigned int)address);
+    DBG_NVDATA_PRINTF(DBG_TAG"Checking block 0x%x ", (unsigned int)address);
     for (uint16_t i = 0; i < NVDATA_BLOCK_SIZE; i++){
         if(*(address++) != (uint8_t)0xFF){
-            DBG_NVDATA_INF("Found data at offset 0x%x", i);
+            DBG_NVDATA_PRINTF("Found data at offset 0x%x\n", i);
             return 0;
         }
     }
-    DBG_NVDATA_INF("Block is Empty");
+    DBG_NVDATA_PRINTF("Empty\n");
     return 1;
 }
 
 /**
- * @brief verify the last written block against the
- *             current data on the internal structure.
+ * @brief verify the last written data is the
+ * same data on the internal structure. Block status
+ * byte is not checked
+ *
  *
  * @return : 1 if the content of nvdata buffer is the same
  *           as nvdata block on sector, 0 if not
@@ -273,20 +275,22 @@ static uint32_t verify(void){
  *
  * @return : 1 on success, 0 if fail
  */
-static uint32_t  commit_nv(void){
-
+static uint32_t  commit_nv(void)
+{
+    DBG_NVDATA_INF("Commiting data to block 0x%x", (unsigned int)nvdata->nvb.next);
+    // Erase flash sector if last was written
     if (nvdata->nvb.next == (uint8_t*)nvdata->sector.start) {
         nvdata->sector.erase(nvdata->sector.start);
     }
-
-    DBG_NVDATA_INF("Commiting data to block 0x%x", (unsigned int)nvdata->nvb.next);
+    // Set block status byte on internal data
+    NVDATA_STATE = NVDATA_VALID;
+    // Write block to flash sector
     nvdata->sector.write((uint32_t)nvdata->nvb.next, nvdata->nvb.data, NVDATA_BLOCK_SIZE);
     nvdata->nvb.next += NVDATA_BLOCK_SIZE;
-
+    // wrap sector on last block
     if (nvdata->nvb.next >= (uint8_t*)nvdata->sector.end) {
         nvdata->nvb.next = (uint8_t*)nvdata->sector.start;
     }
-
-    NVDATA_STATE = NVDATA_VALID;
+    // if verify is successful, status byte is also assumed to be ok.
     return verify();
 }

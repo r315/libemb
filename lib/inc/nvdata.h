@@ -26,8 +26,8 @@ extern "C" {
 
 enum nvdata_e{
     NVDATA_EMPTY = 0xFF,
-    NVDATA_VALID = 0xCC,
-    NVDATA_CHANGED = 0xBB,
+    NVDATA_VALID = 0xA5,
+    NVDATA_CHANGED = 0xB4,
     NVDATA_RESTORED = 0
 };
 

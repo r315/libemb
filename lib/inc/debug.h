@@ -30,19 +30,20 @@ extern "C" {
 #endif
 
 #ifdef DBG_PRINTF_FUNC
-#define LOG_PRINTF(...) \
-    do { LOG_PRINT_FUNC(__VA_ARGS__); } while(0)
-#define DBG_PRINT LOG_PRINTF
-#else
 #define DBG_PRINTF(...) \
-    do { dbg_printf(__VA_ARGS__); dbg_putchar('\n'); } while(0)
-#define DBG_PRINT dbg_println
+    do { DBG_PRINT_FUNC(__VA_ARGS__); } while(0)
+#define DBG_PRINT(...) \
+    do { DBG_PRINTF(__VA_ARGS__); DBG_PRINTF("\n"); } while(0)
+#else
+#define DBG_PRINTF dbg_printf
+#define DBG_PRINT(...) \
+    do { DBG_PRINTF(__VA_ARGS__); dbg_putchar('\n'); } while(0)
 #endif
 
 #if defined(DEBUG) || defined(ENABLE_DEBUG)
-#define DBG_INF(...) DBG_PRINTF(VT100_GREEN "[INFO] " VT100_NORMAL __VA_ARGS__)
-#define DBG_WRN(...) DBG_PRINTF(VT100_YELLOW "[WARN] " VT100_NORMAL __VA_ARGS__)
-#define DBG_ERR(...) DBG_PRINTF(VT100_RED "[ERROR] " VT100_NORMAL __VA_ARGS__)
+#define DBG_INF(...) DBG_PRINT(VT100_GREEN "[INFO] " VT100_NORMAL __VA_ARGS__)
+#define DBG_WRN(...) DBG_PRINT(VT100_YELLOW "[WARN] " VT100_NORMAL __VA_ARGS__)
+#define DBG_ERR(...) DBG_PRINT(VT100_RED "[ERROR] " VT100_NORMAL __VA_ARGS__)
 #define DBG_DUMP_MEM dbg_HexDump
 #define DBG_DUMP_MEM_LINE dbg_HexDumpLine
 #else
