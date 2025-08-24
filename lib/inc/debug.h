@@ -29,6 +29,7 @@ extern "C" {
 #define VT100_NORMAL
 #endif
 
+#if defined(DEBUG) || defined(ENABLE_DEBUG)
 #ifdef DBG_PRINTF_FUNC
 #define DBG_PRINTF(...) \
     do { DBG_PRINT_FUNC(__VA_ARGS__); } while(0)
@@ -38,6 +39,9 @@ extern "C" {
 #define DBG_PRINTF dbg_printf
 #define DBG_PRINT(...) \
     do { DBG_PRINTF(__VA_ARGS__); dbg_putchar('\n'); } while(0)
+#endif
+#else
+#define DBG_PRINT(...)
 #endif
 
 #if defined(DEBUG) || defined(ENABLE_DEBUG)
