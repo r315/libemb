@@ -11,8 +11,6 @@
 
 
 #define TONE_DMA_REQUEST
-
-#define TONE_DEFAULT_VOLUME     1
 #define FREQ_TO_US(_F)          ((1000000/_F) - 1)
 
 
@@ -166,7 +164,7 @@ uint32_t TONE_PwmInit(tone_pwm_init_t *init){
 
     tone_pwm.tmr = init->tmr;
 
-    TONE_Volume(TONE_DEFAULT_VOLUME);
+    TONE_Volume(tone_pwm.volume);
 
     tone_pwm.tmr->EVEG |= TMR_EVEG_UEVG;
     // Enable DMA Request on update event

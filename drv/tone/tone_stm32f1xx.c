@@ -7,7 +7,6 @@
 #include "gpio.h"
 
 #define FREQ_TO_US(_F)          ((1000000/_F) - 1)
-#define TONE_DEFAULT_VOLUME     1
 
 /**
  * @brief Basic tone generation using Timer and DMA
@@ -156,7 +155,7 @@ uint32_t TONE_PwmInit(tone_pwm_init_t *init)
 
     tone_pwm.tmr = init->tim;
 
-    TONE_Volume(TONE_DEFAULT_VOLUME);
+    TONE_Volume(tone_pwm.volume);
     // Reload counter
     tone_pwm.tmr->EGR |= TIM_EGR_UG;
     // Enable DMA Request on update event
