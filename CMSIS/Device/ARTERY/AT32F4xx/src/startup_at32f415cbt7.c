@@ -11,7 +11,7 @@
 ISR void *vector_table[];
 extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _stack, _estack;
 
-extern void  __libc_init_array();
+WEAK void  __libc_init_array(){}
 WEAK int main(void){}
 
 NORETURN void Reset_Handler(void)
@@ -30,7 +30,7 @@ NORETURN void Reset_Handler(void)
         *dest++ = 0;
 
     __libc_init_array();
-    
+
     main();
 
     while(1){}
@@ -41,7 +41,7 @@ typedef struct {
     uint32_t r0, r1, r2, r3, r12, lr, pc, psr;
 }stackframe_t;
 
-void Stack_Dump(stackframe_t *stack){
+NORETURN void Stack_Dump(stackframe_t *stack){
     (void)stack;
     //GPIOJ->MODER = (1 << 26);
     //HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_13, GPIO_PIN_SET);
@@ -53,7 +53,7 @@ void Stack_Dump(stackframe_t *stack){
     );
 }
 
-void HardFault_Handler(void){
+NORETURN void HardFault_Handler(void){
     asm volatile
     (
         " tst lr, #4                                 \n"        // Check current stack
@@ -163,7 +163,7 @@ ISR void *vector_table[] = {
     0,
     PendSV_Handler,
     SysTick_Handler,
-  
+
     /* External Interrupts */
     WWDG_IRQHandler,                     /* Window Watchdog                             */
     PVD_IRQHandler,                      /* PVD through EXTI Line detect                */
