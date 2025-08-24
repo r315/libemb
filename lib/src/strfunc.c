@@ -39,7 +39,7 @@ uint32_t strToArray(char *str, char **argv, int max_arg)
 			str = skipSpaces(str + 1);
 			if(*str != '\0'){
 				argv[argc++] = str;
-                if(argc == (max_arg - 1)){
+                if(argc == (uint32_t)(max_arg - 1)){
                     break;
                 }
             }

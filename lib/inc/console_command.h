@@ -26,8 +26,8 @@ public:
 	char *toString(void) { return (char*)this->name; }
 	char isNameEqual(char *cmd) { return xstrcmp(cmd, (char*)this->name) == 0; }
 
-	virtual void init(void *params) {}
-	virtual char execute(int argc, char **argv) { return CMD_OK; }
+	virtual void init(void *params) {(void)params; }
+	virtual char execute(int argc, char **argv) {(void)argv; (void)argc; return CMD_OK; }
 	virtual void help(void) {}
 
 	ConsoleCommand() {  }
