@@ -4,6 +4,7 @@
 #include "gpio_at32f4xx.h"
 #include "uart.h"
 #include "gpio.h"
+#include "fifo.h"
 
 #define UART_MODE_BLOCKING      0
 #define UART_MODE_FIFO          1
@@ -111,13 +112,13 @@ void UART_Init(serialbus_t *serialbus){
     fifo_init(&huart->txfifo);
     fifo_init(&huart->rxfifo);
 
-    serialbus->ctrl = huart;
+    serialbus->handle = huart;
 
     NVIC_EnableIRQ(irq);
 }
 
 uint32_t UART_Available(serialbus_t *serialbus){
-    huart_t *huart = (huart_t*)serialbus->ctrl;
+    huart_t *huart = (huart_t*)serialbus->handle;
 #if UART_RX_MODE == UART_MODE_DMA
     DMA_Channel_TypeDef *stream = (DMA_Channel_TypeDef *)huart->dma_rx.stream;
     uint16_t idx = huart->dma_rx.len - stream->CNDTR;
@@ -129,7 +130,7 @@ uint32_t UART_Available(serialbus_t *serialbus){
 
 uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
 {
-    huart_t *huart = (huart_t*)serialbus->ctrl;
+    huart_t *huart = (huart_t*)serialbus->handle;
     const uint8_t *end = buf + len;
 
     while(buf < end){
@@ -147,7 +148,7 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
 
 uint32_t UART_Read(serialbus_t *serialbus, uint8_t *data, uint32_t len)
 {
-    huart_t *huart = (huart_t*)serialbus->ctrl;
+    huart_t *huart = (huart_t*)serialbus->handle;
     uint32_t count = len;
 
 	while(count--){

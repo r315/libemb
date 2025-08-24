@@ -2,7 +2,6 @@
 #define _uart_h_
 
 #include <stdint.h>
-#include "fifo.h"
 
 typedef enum uartx{
     UART_BUS0 = 0,
@@ -12,7 +11,7 @@ typedef enum uartx{
 }uart_e;
 
 typedef struct serialbus {
-    void *ctrl;             // CMSIS compliant controller
+    void *handle;           // Pointer to internal uart handle
     uint8_t  bus;   		// bus number 0,1...
     uint32_t speed;
     union{
@@ -23,8 +22,6 @@ typedef struct serialbus {
         };
         uint32_t cfg;
     };
-    fifo_t rxfifo; //TODO: Remove fifos from here, port f1xx implementation to other chips
-    fifo_t txfifo;
 }serialbus_t;
 
 void UART_Init(serialbus_t *huart);

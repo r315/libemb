@@ -2,13 +2,19 @@
 #include <stdio.h>
 #include "lpc17xx_hal.h"
 #include "uart.h"
+#include "fifo.h"
 
 #define DIVADDVAL_MULVAL(D, M) D | (M << 4)
 
-static serialbus_t *s_uart[4];
+typedef struct huart {
+    LPC_UART_TypeDef *uart;
+    fifo_t txfifo;
+    fifo_t rxfifo;
+}huart_t;
 
-typedef struct FdrPair
-{
+static huart_t huart0, huart1, huart3;
+
+typedef struct FdrPair{
 	uint16_t fr;	 // 1.1 < FR < 1.9
 	uint16_t FdrVal; //(MulVal<<4) | MulVal
 } FdrPair;
@@ -121,15 +127,15 @@ static void frdivLookup(volatile uint32_t *fdr, volatile uint32_t *dlm, volatile
 
 void UART_Init(serialbus_t *serialbus)
 {
-	LPC_UART_TypeDef *puart = NULL;
+	huart_t *huart;
 	IRQn_Type irq;
 	uint32_t pclk;
 
 	switch (serialbus->bus)
 	{
 	case UART_BUS0:
-		puart = (LPC_UART_TypeDef *)LPC_UART0;
-		s_uart[0] = serialbus;
+		huart0.uart = LPC_UART0;
+        huart = &huart0;
 		// Turn on power to UART0
 		PCONP_UART0_ENABLE;
 		// Turn on UART0 peripheral clock
@@ -143,8 +149,8 @@ void UART_Init(serialbus_t *serialbus)
 		break;
 
 	case UART_BUS1:
-		puart = (LPC_UART_TypeDef *)LPC_UART1;
-		s_uart[1] = serialbus;
+        huart1.uart = LPC_UART1;
+        huart = &huart1;
 		PCONP_UART1_ENABLE;
 		CLOCK_SetPCLK(PCLK_UART1, PCLK_4);
 		pclk = CLOCK_GetPCLK(PCLK_UART1);
@@ -172,8 +178,8 @@ void UART_Init(serialbus_t *serialbus)
 #endif
 
 	case UART_BUS3:
-		puart = (LPC_UART_TypeDef *)LPC_UART3;
-		s_uart[3] = serialbus;
+		huart3.uart = LPC_UART3;
+        huart = &huart3;
 		PCONP_UART3_ENABLE;
 		CLOCK_SetPCLK(PCLK_UART3, PCLK_4);
 		pclk = CLOCK_GetPCLK(PCLK_UART3);
@@ -192,23 +198,23 @@ void UART_Init(serialbus_t *serialbus)
 		return;
 	}
 
-	puart->LCR = UART_LCR_DLAB | UART_LCR_WL8;
-	frdivLookup((uint32_t *)&puart->FDR, (uint32_t *)&puart->DLM, (uint32_t *)&puart->DLL, serialbus->speed, pclk);
-	puart->LCR = UART_LCR_WL8; // 8 bits, no Parity, 1 Stop bit
-	puart->FCR = 0;			   // Disable FIFO
+	huart->uart->LCR = UART_LCR_DLAB | UART_LCR_WL8;
+	frdivLookup((uint32_t *)&huart->uart->FDR, (uint32_t *)&huart->uart->DLM, (uint32_t *)&huart->uart->DLL, serialbus->speed, pclk);
+	huart->uart->LCR = UART_LCR_WL8; // 8 bits, no Parity, 1 Stop bit
+	huart->uart->FCR = 0;			   // Disable FIFO
 
 	NVIC_EnableIRQ(irq);
-	serialbus->ctrl = puart;
+	serialbus->handle = huart;
 
-	fifo_init(&serialbus->rxfifo);
-	fifo_init(&serialbus->txfifo);
+	fifo_init(&huart->rxfifo);
+	fifo_init(&huart->txfifo);
 
-	SET_BIT(puart->IER, UART_IER_RBR | UART_IER_THRE);
+	SET_BIT(huart->uart->IER, UART_IER_RBR | UART_IER_THRE);
 }
 
 /*char UART_GetChar(serialbus_t *huart)
 {
-	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
+	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->handle;
 	while ((uart->LSR & UART_LSR_RDR) == 0)
 		;			  // Nothing received so just block
 	return uart->RBR; // Read Receiver buffer register
@@ -216,51 +222,43 @@ void UART_Init(serialbus_t *serialbus)
 
 */
 
-uint32_t UART_Available(serialbus_t *huart)
+uint32_t UART_Available(serialbus_t *serialbus)
 {
+    huart_t *huart = (huart_t *)serialbus->handle;
 	return fifo_avail(&huart->rxfifo);
 }
 
-uint32_t UART_Write(serialbus_t *huart, const uint8_t *buf, uint32_t len){
-	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->ctrl;
+uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len){
+	huart_t *huart = (huart_t *)serialbus->handle;
     const uint8_t *end = buf + len;
 
-	while(buf < end){	
+	while(buf < end){
 		if (fifo_put(&huart->txfifo, *buf)){
 			buf++;
 		}else{
-            fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
+            fifo_get(&huart->txfifo, (uint8_t *)&huart->uart->THR);
             while(fifo_free(&huart->txfifo) == 0);
         }
 	}
 
-	fifo_get(&huart->txfifo, (uint8_t *)&uart->THR);
+	fifo_get(&huart->txfifo, (uint8_t *)&huart->uart->THR);
 	return len;
 }
 
-uint32_t UART_Read(serialbus_t *huart, uint8_t *buf, uint32_t len){
+uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len){
+    huart_t *huart = (huart_t *)serialbus->handle;
     uint32_t count = len;
-	while(count--){        
+	while(count--){
         while(!fifo_get(&huart->rxfifo, buf));
         buf++;
     }
     return len;
 }
 
-static void UART_IRQHandler(void *ptr)
+static void UART_IRQHandler(huart_t *huart)
 {
-	serialbus_t *serialbus;
-	LPC_UART_TypeDef *uart;
 	uint32_t iir, lsr;
-
-	if (ptr == NULL)
-	{
-		return;
-	}
-
-	serialbus = (serialbus_t *)ptr;
-	uart = (LPC_UART_TypeDef *)serialbus->ctrl;
-	iir = uart->IIR; // Read clears interrupt identification
+	iir = huart->uart->IIR; // Read clears interrupt identification
 
 	if ((iir & UART_IIR_STATUS) == 0)
 	{
@@ -269,24 +267,24 @@ static void UART_IRQHandler(void *ptr)
 		{
 
 		case UART_IIR_INTID_THRE:
-			fifo_get(&serialbus->txfifo, (uint8_t *)&uart->THR);
+			fifo_get(&huart->txfifo, (uint8_t *)&huart->uart->THR);
 			break;
 
 		case UART_IIR_INTID_RDA:
-			fifo_put(&serialbus->rxfifo, uart->RBR);
+			fifo_put(&huart->rxfifo, huart->uart->RBR);
 			break;
 
 		case UART_IIR_INTID_RLS:
-			lsr = uart->LSR;
+			lsr = huart->uart->LSR;
 			if (lsr & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_RXFE | UART_LSR_BI))
 			{
 				// errors have occurred, dummy read
-				uart->SCR = uart->RBR;
+				huart->uart->SCR = huart->uart->RBR;
 			}
 			else if (lsr & UART_LSR_RDR)
 			{
 				// Data received
-				fifo_put(&serialbus->rxfifo, uart->RBR);
+				fifo_put(&huart->rxfifo, huart->uart->RBR);
 			}
 			break;
 
@@ -299,15 +297,15 @@ static void UART_IRQHandler(void *ptr)
 }
 
 void UART0_IRQHandler(void){
-	UART_IRQHandler(s_uart[0]);
+	UART_IRQHandler(&huart0);
 }
 
 void UART1_IRQHandler(void){
-	UART_IRQHandler(s_uart[1]);
+	UART_IRQHandler(&huart1);
 }
 
 void UART2_IRQHandler(void){}
 
 void UART3_IRQHandler(void){
-	UART_IRQHandler(s_uart[3]);
+	UART_IRQHandler(&huart3);
 }

@@ -157,7 +157,7 @@ void UART_Init(serialbus_t *serialbus){
             return;
     }
 
-    serialbus->ctrl = huart;
+    serialbus->handle = huart;
     uart_set_baudrate(huart->usart, serialbus->speed);
 
 #if UART_RX_MODE == UART_MODE_DMA
@@ -201,7 +201,7 @@ void UART_Init(serialbus_t *serialbus){
 
 uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
 {
-    huart_t *huart = (huart_t*)serialbus->ctrl;
+    huart_t *huart = (huart_t*)serialbus->handle;
 
 #if UART_TX_MODE == UART_MODE_DMA
     while(DMA_GetTransfers(&huart->dma_tx) != huart->dma_tx.len);
@@ -237,7 +237,7 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
 
 uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len)
 {
-    huart_t *huart = (huart_t*)serialbus->ctrl;
+    huart_t *huart = (huart_t*)serialbus->handle;
     uint32_t count = len;
 #if UART_RX_MODE == UART_MODE_DMA
     while(count--){
@@ -257,7 +257,7 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len)
 }
 
 uint32_t UART_Available(serialbus_t *serialbus){
-    huart_t *huart = (huart_t*)serialbus->ctrl;
+    huart_t *huart = (huart_t*)serialbus->handle;
 #if UART_RX_MODE == UART_MODE_DMA
     DMA_Channel_TypeDef *stream = (DMA_Channel_TypeDef *)huart->dma_rx.stream;
 

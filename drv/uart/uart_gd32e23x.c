@@ -6,19 +6,21 @@
 #include "gd32e23x_rcu.h"
 #include "gd32e23x_usart.h"
 
-#define UART_BUFFER_SIZE        FIFO_SIZE
+#ifndef UART_BUFFER_SIZE
+#define UART_BUFFER_SIZE        128
+#endif
 
-typedef struct {
-    uint32_t uart;
+typedef struct huart{
+    uint32_t usart;
     uint32_t tx_dma;
     uint32_t rx_dma;
     volatile uint16_t rx_rd;
-    uint8_t *txbuffer;
-    uint8_t *rxbuffer;
-}uartgd_t;
+    uint8_t txbuffer[UART_BUFFER_SIZE];
+    uint8_t rxbuffer[UART_BUFFER_SIZE];
+}huart_t;
 
-static uartgd_t uart0 = {USART0, DMA_CH1, DMA_CH2, 0, NULL, NULL};
-static uartgd_t uart1 = {USART1, DMA_CH3, DMA_CH4, 0, NULL, NULL};
+static huart_t uart0 = {USART0, DMA_CH1, DMA_CH2, 0, NULL, NULL};
+static huart_t uart1 = {USART1, DMA_CH3, DMA_CH4, 0, NULL, NULL};
 
 /**
  * API
@@ -26,7 +28,7 @@ static uartgd_t uart1 = {USART1, DMA_CH3, DMA_CH4, 0, NULL, NULL};
 void UART_Init(serialbus_t *serialbus)
 {
     dma_parameter_struct dma_init_struct;
-    uartgd_t *huart;
+    huart_t *huart;
 
     switch(serialbus->bus){
         case UART_BUS0:
@@ -86,18 +88,16 @@ void UART_Init(serialbus_t *serialbus)
             return;
     }
 
-    huart->txbuffer = serialbus->txfifo.buf;
-    huart->rxbuffer = serialbus->rxfifo.buf;
-    serialbus->ctrl = (void*)huart;
+    serialbus->handle = (void*)huart;
 
     rcu_periph_clock_enable(RCU_DMA);
 
-    usart_deinit(huart->uart);
-    usart_baudrate_set(huart->uart, serialbus->speed);
-    usart_receive_config(huart->uart, USART_RECEIVE_ENABLE);
-    usart_transmit_config(huart->uart, USART_TRANSMIT_ENABLE);
+    usart_deinit(huart->usart);
+    usart_baudrate_set(huart->usart, serialbus->speed);
+    usart_receive_config(huart->usart, USART_RECEIVE_ENABLE);
+    usart_transmit_config(huart->usart, USART_TRANSMIT_ENABLE);
 
-    usart_enable(huart->uart);
+    usart_enable(huart->usart);
 
     dma_deinit(huart->tx_dma);
     dma_deinit(huart->rx_dma);
@@ -118,13 +118,13 @@ void UART_Init(serialbus_t *serialbus)
     dma_memory_to_memory_disable(huart->rx_dma);
     dma_channel_enable(huart->rx_dma);
 
-    usart_dma_transmit_config(huart->uart, USART_DENT_ENABLE);
-    usart_dma_receive_config(huart->uart, USART_DENR_ENABLE);
+    usart_dma_transmit_config(huart->usart, USART_DENT_ENABLE);
+    usart_dma_receive_config(huart->usart, USART_DENR_ENABLE);
 }
 
 uint32_t UART_Available(serialbus_t *serialbus)
 {
-    uartgd_t *huart = serialbus->ctrl;
+    huart_t *huart = serialbus->handle;
     uint16_t idx = UART_BUFFER_SIZE - DMA_CHCNT(huart->rx_dma);
     return (idx > huart->rx_rd) ? idx - huart->rx_rd : huart->rx_rd - idx;
 }
@@ -132,7 +132,7 @@ uint32_t UART_Available(serialbus_t *serialbus)
 uint32_t UART_Read(serialbus_t *serialbus, uint8_t *data, uint32_t len)
 {
    uint32_t count = len;
-   uartgd_t *huart = serialbus->ctrl;
+   huart_t *huart = serialbus->handle;
 
 	while(count--){
         while(UART_Available(serialbus) == 0);
@@ -148,12 +148,12 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *data, uint32_t len)
 uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
 {
     dma_parameter_struct dma_init_struct;
-    uartgd_t *huart = serialbus->ctrl;
+    huart_t *huart = serialbus->handle;
 
     if(len == 1){
         /* Single byte, is faster just write it*/
-        while(RESET == usart_flag_get(huart->uart, USART_FLAG_TBE));
-        usart_data_transmit(huart->uart, buf[0]);
+        while(RESET == usart_flag_get(huart->usart, USART_FLAG_TBE));
+        usart_data_transmit(huart->usart, buf[0]);
         //while(SET == usart_flag_get(huart->uart, USART_FLAG_BSY));
     }else {
         /* TX_DMA */
