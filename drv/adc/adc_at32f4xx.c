@@ -114,7 +114,7 @@ void ADC_ChannelLenSet(adctype_t *adc, uint8_t new_lenght)
  *         this parameter can be one of the following values:
  *         ADC1.
  * @param  wait: wait for conversion to finish
- * @retval none
+ * @retval 0: if conversion timedout, 1: otherwise
  */
 uint8_t ADC_Acquire(adctype_t *adc, uint8_t wait)
 {
@@ -137,11 +137,14 @@ uint8_t ADC_Acquire(adctype_t *adc, uint8_t wait)
 
 /**
  * @brief  Get the data of the last acquisition for a given channel
+ * This function gets data independentely of channel position on
+ * preemptive  sequence
  * @param  adc_x: select the adc peripheral.
  *         this parameter can be one of the following values:
  *         ADC1.
+ *
  * @param  ch: channel number
- * @retval none
+ * @retval Channel data or 0 if channel is not on sequence
  */
 uint16_t ADC_ChannelDataGet(adctype_t *adc, uint8_t ch)
 {
