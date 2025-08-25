@@ -175,7 +175,7 @@ void LCD_Scroll(uint16_t y)
 //--------------------------------------------------------
 // initialize lcd
 //--------------------------------------------------------
-void LCD_Init(void *param)
+uint8_t LCD_Init(void *param)
 {
     drvlcd = param;
 
@@ -260,6 +260,8 @@ void LCD_Init(void *param)
 	DelayMs(500);
 
 	LCD_SetOrientation(LCD_PORTRAIT);
+
+    return 1;
 }
 
 uint16_t LCD_GetWidth(void){
