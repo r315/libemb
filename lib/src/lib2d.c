@@ -20,7 +20,7 @@ typedef struct lib2d_s{
 	uint16_t (*drawChar)(uint16_t  x, uint16_t y, uint8_t *char_data, uint16_t *buffer);
     uint32_t buffer_offset;
     uint8_t txt_buf[64];
-    uint16_t buffer[SCRATCH_BUFFER_SIZE]; 
+    uint16_t buffer[SCRATCH_BUFFER_SIZE];
 }lib2d_t;
 
 static lib2d_t lib2d;
@@ -34,9 +34,9 @@ static lib2d_t lib2d;
 static uint16_t drawCharSimple(uint16_t x, uint16_t y, uint8_t *char_data, uint16_t *buffer){
 	uint8_t w,h;
 	uint16_t *pbuf = buffer;
-	
-	for (h=0; h < lib2d.font->h; h++){ 	
-		for(w=0; w < lib2d.font->w; w++){			
+
+	for (h=0; h < lib2d.font->h; h++){
+		for(w=0; w < lib2d.font->w; w++){
 			*pbuf++ = (*char_data & (0x80 >> w)) ? lib2d.forecolor : lib2d.backcolor;
 		}
 		char_data += 1;
@@ -49,14 +49,14 @@ static uint16_t drawCharSimple(uint16_t x, uint16_t y, uint8_t *char_data, uint1
 static uint16_t drawCharTransparent(uint16_t x, uint16_t y, uint8_t *char_data, uint16_t *buffer)
 {
 	uint8_t w,h;
-    
+
     (void)buffer;
 
 	for (h=0; h < lib2d.font->h; h++){
 		for(w=0;w<lib2d.font->w; w++){
 			if(*char_data & (0x80 >> w))
-				LCD_Pixel(x + w, y + h, lib2d.forecolor);							
-		}	
+				LCD_Pixel(x + w, y + h, lib2d.forecolor);
+		}
 		char_data += 1;
 	}
 
@@ -97,7 +97,7 @@ static uint16_t drawCharDouble(uint16_t x, uint16_t y, uint8_t *char_data, uint1
         }
 
         LCD_WriteArea(x, y, lib2d.font->w * 2, lib2d.font->h / 2, lib2d.buffer + lib2d.buffer_offset);
-        y += 4;        
+        y += 4;
         lib2d.buffer_offset ^= (SCRATCH_BUFFER_SIZE / 2); // swap buffer
     }
 
@@ -142,7 +142,7 @@ uint16_t LIB2D_Char(uint16_t x, uint16_t y, uint8_t c)
 //
 //----------------------------------------------------------
 uint16_t LIB2D_Text(uint16_t x, uint16_t y, const char *s)
-{   
+{
     while(*s){
         x = LIB2D_Char(x, y, *s++);
     }
@@ -163,34 +163,34 @@ void LIB2D_Putc(char c)
 		}
 		if(lib2d.sc){
 			LCD_Scroll(lib2d.cy + lib2d.font->h + lib2d.vspace);
-			LCD_FillRect(0, lib2d.cy, LCD_GetWidth(), lib2d.font->h + lib2d.vspace, lib2d.backcolor);		
+			LCD_FillRect(0, lib2d.cy, LCD_GetWidth(), lib2d.font->h + lib2d.vspace, lib2d.backcolor);
 			lib2d.cx = 0;
 		}
 		if(c == '\n')
-			return;	
+			return;
 	}
 	if(c == '\r'){
 		lib2d.cx = 0;
 		return;
-	}	
+	}
 	lib2d.cx = LIB2D_Char(lib2d.cx, lib2d.cy, c);
 }
 //-----------------------------------------------------------
 //
 //-----------------------------------------------------------
 void LIB2D_String(const char *s)
-{   
+{
     while(*s)
-        LIB2D_Putc(*s++);	
+        LIB2D_Putc(*s++);
 }
 //-----------------------------------------------------------
 //
 //-----------------------------------------------------------
 void LIB2D_Printf(const char* fmt, ...){
 	va_list arp;
-	
+
     va_start(arp, fmt);
-	strformater((char*)lib2d.txt_buf, fmt, arp);
+	strformater((char*)lib2d.txt_buf, fmt, arp, sizeof(lib2d.txt_buf));
 	va_end(arp);
 
     LIB2D_String((const char*)lib2d.txt_buf);
@@ -214,7 +214,7 @@ void LIB2D_SetFont(font_t *fnt)
 
 	lib2d.vspace = (h - 1) - lib2d.font->h;
 
-#endif			
+#endif
 }
 //----------------------------------------------------------
 //
@@ -228,11 +228,11 @@ void LIB2D_SetAttribute(uint8_t atr){
 	}
 }
 //----------------------------------------------------------
-// 
+//
 //----------------------------------------------------------
 void LIB2D_Clear(void)
-{	
-    LCD_FillRect(0, 0, LCD_GetWidth(), LCD_GetHeight(), lib2d.backcolor); 
+{
+    LCD_FillRect(0, 0, LCD_GetWidth(), LCD_GetHeight(), lib2d.backcolor);
 }
 //----------------------------------------------------------
 //
@@ -263,7 +263,7 @@ void LIB2D_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2)
 	signed int dy = y2 - y1;
     signed int dx = x2 - x1;
     signed int stepx, stepy;
-    signed int fraction;   
+    signed int fraction;
 
     if (dy < 0) { dy = -dy;  stepy = -1; } else { stepy = 1; }
     if (dx < 0) { dx = -dx;  stepx = -1; } else { stepx = 1; }
@@ -280,39 +280,39 @@ void LIB2D_Line(uint16_t x1, uint16_t y1,  uint16_t x2, uint16_t y2)
 
     dy <<= 1;
     dx <<= 1;
-    
+
     LCD_Pixel(x1, y1, lib2d.forecolor);
 
-    if (dx > dy) 
+    if (dx > dy)
     {
         fraction = dy - (dx >> 1);
-        while (x1 != x2) 
+        while (x1 != x2)
         {
-            if (fraction >= 0) 
+            if (fraction >= 0)
             {
                 y1 += stepy;
                 fraction -= dx;
             }
             x1 += stepx;
-            fraction += dy;	
+            fraction += dy;
             LCD_Pixel(x1, y1, lib2d.forecolor);
         }
-    } 
-    else 
+    }
+    else
     {
         fraction = dx - (dy >> 1);
-        while (y1 != y2) 
+        while (y1 != y2)
         {
-            if (fraction >= 0) 
+            if (fraction >= 0)
             {
                 x1 += stepx;
                 fraction -= dy;
             }
             y1 += stepy;
             fraction += dx;
-            LCD_Pixel(x1, y1, lib2d.forecolor);            
+            LCD_Pixel(x1, y1, lib2d.forecolor);
         }
-    }  
+    }
 }
 //----------------------------------------------------------
 //
@@ -326,10 +326,10 @@ void LIB2D_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h)
 //----------------------------------------------------------
 void LIB2D_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h)
 {
-	LCD_FillRect(x, y, w, 1, lib2d.forecolor);	
-	LCD_FillRect(x + w , y, 1, h+1, lib2d.forecolor);	
-	LCD_FillRect(x, y + h , w, 1, lib2d.forecolor);	
-	LCD_FillRect(x ,y ,1, h, lib2d.forecolor);   
+	LCD_FillRect(x, y, w, 1, lib2d.forecolor);
+	LCD_FillRect(x + w , y, 1, h+1, lib2d.forecolor);
+	LCD_FillRect(x, y + h , w, 1, lib2d.forecolor);
+	LCD_FillRect(x ,y ,1, h, lib2d.forecolor);
 }
 //----------------------------------------------------------
 //
