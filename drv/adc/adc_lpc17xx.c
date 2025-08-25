@@ -18,24 +18,24 @@ static void configAnPin(uint8_t ch){
         bitpos = (6 - (2 * (ch & 1)));
         LPC_PINCON->PINSEL0 &= ~(0x03 << bitpos);
         LPC_PINCON->PINSEL0 |=  (0x02 << bitpos);  // Function2
-    }    
+    }
 }
 
-void ADC_Init(adctype_t *adc){   
+uint8_t ADC_Init(adctype_t *adc){
     PCONP_ADC_ENABLE;
-
+#if 0 // TODO: Fix
     /**
-     * Maximum clock is 13MHz, lower clock 
+     * Maximum clock is 13MHz, lower clock
      * should be used for high impedance sources
      * */
     CLOCK_SetPCLK(PCLK_ADC, PCLK_1);
-    LPC_ADC->CR = ADC_CR_PDN | 
+    LPC_ADC->CR = ADC_CR_PDN |
                     ADC_CR_CLKDIV_SET(CLOCK_GetPCLK(PCLK_ADC) / ADC_DEFAULT_CLK) |
                     ADC_CR_SEL_SET(adc->ch);
 
     for(uint8_t ch = 0; ch < ADC_NUM_OF_CHANNELS; ch++){
         if(adc->ch & (1 << ch)){
-            configAnPin(ch);           
+            configAnPin(ch);
         }
     }
 
@@ -44,24 +44,27 @@ void ADC_Init(adctype_t *adc){
     adc->per = LPC_ADC;
     s_adc = adc;
     NVIC_EnableIRQ(ADC_IRQn);
+#endif
 }
 
 void ADC_Config(adctype_t *adc){
+#if 0 // TODO: Fix
     uint32_t intr = 0;
     for (uint8_t ch = 0; ch < ADC_NUM_OF_CHANNELS; ch++){
         if (adc->ch & (1 << ch)){
             if(adc->eoc) {
                 intr |= (1 << ch);
-            }            
+            }
         }
     }
 
     LPC_ADC->CR = (LPC_ADC->CR & ~ADC_CR_SEL_MSK) | ADC_CR_SEL_SET(intr);
     LPC_ADC->INTEN = intr;
+#endif
 }
 
-void ADC_Start(adctype_t *adc){   
-    ADC_Config(adc); 
+void ADC_Start(adctype_t *adc){
+    ADC_Config(adc);
     LPC_ADC->CR = (LPC_ADC->CR & ~ADC_CR_START_MSK) | ADC_CR_BURST;
 }
 
@@ -70,12 +73,12 @@ void ADC_Stop(adctype_t *adc) {
 }
 
 uint16_t ADC_ConvertSingle(adctype_t *adc) {
-
+#if 0 // TODO: Fix
     for (uint8_t ch = 0; ch < ADC_NUM_OF_CHANNELS; ch++) {
         if (adc->ch & (1 << ch)){
             LPC_ADC->CR &= ~ADC_CR_SEL_MSK;
             LPC_ADC->CR |= (1 << (adc->ch & 7));
-            
+
             if(adc->eoc) {
                 LPC_ADC->INTEN = ADC_INTEN_ADGINTEN;
                 LPC_ADC->CR |= ADC_CR_START_NOW;
@@ -84,11 +87,11 @@ uint16_t ADC_ConvertSingle(adctype_t *adc) {
                 LPC_ADC->INTEN = 0;
                 LPC_ADC->CR |= ADC_CR_START_NOW;
                 while(!(LPC_ADC->GDR & ADC_DR_DONE));
-                return (LPC_ADC->GDR >> 4) & 0xFFF; 
+                return (LPC_ADC->GDR >> 4) & 0xFFF;
             }
-        }    
+        }
     }
-    
+#endif
     return 0xFFFF;
 }
 

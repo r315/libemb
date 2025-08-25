@@ -16,9 +16,10 @@ typedef struct {
 }adctype_t;
 
 /**
- * @brief
- *
- **/
+ * @brief Initialyzes adc peripheral
+ * @param adc pointer to handle structure
+ * @return 1 on success, o otherwise
+ */
 uint8_t ADC_Init(adctype_t *adc);
 
 /**
