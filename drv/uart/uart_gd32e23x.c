@@ -19,8 +19,8 @@ typedef struct huart{
     uint8_t rxbuffer[UART_BUFFER_SIZE];
 }huart_t;
 
-static huart_t uart0 = {USART0, DMA_CH1, DMA_CH2, 0, NULL, NULL};
-static huart_t uart1 = {USART1, DMA_CH3, DMA_CH4, 0, NULL, NULL};
+static huart_t uart0 = {USART0, DMA_CH1, DMA_CH2, 0};
+static huart_t uart1 = {USART1, DMA_CH3, DMA_CH4, 0};
 
 /**
  * API
@@ -108,7 +108,7 @@ void UART_Init(serialbus_t *serialbus)
     dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;
     dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;
     dma_init_struct.number = UART_BUFFER_SIZE;
-    dma_init_struct.periph_addr = (uint32_t)&USART_RDATA(huart->uart);
+    dma_init_struct.periph_addr = (uint32_t)&USART_RDATA(huart->usart);
     dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
     dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;
     dma_init_struct.priority = DMA_PRIORITY_ULTRA_HIGH;
@@ -174,7 +174,7 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
         dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;
         dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;
         dma_init_struct.number = len;
-        dma_init_struct.periph_addr = (uint32_t)&USART_TDATA(huart->uart);
+        dma_init_struct.periph_addr = (uint32_t)&USART_TDATA(huart->usart);
         dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
         dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;
         dma_init_struct.priority = DMA_PRIORITY_LOW;

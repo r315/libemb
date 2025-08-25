@@ -149,7 +149,7 @@ void UART_Init(serialbus_t *serialbus)
 		break;
 
 	case UART_BUS1:
-        huart1.uart = LPC_UART1;
+        huart1.uart = (LPC_UART_TypeDef*)LPC_UART1;
         huart = &huart1;
 		PCONP_UART1_ENABLE;
 		CLOCK_SetPCLK(PCLK_UART1, PCLK_4);
