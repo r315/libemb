@@ -61,4 +61,6 @@ enum{
 
 extern const drvlcd_t ssd13xx_drv;
 
+void LCD_Update(void);
+
 #endif

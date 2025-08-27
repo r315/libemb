@@ -12,7 +12,6 @@ typedef struct ssd13xx_frame{
 
 
 extern void DelayMs(uint32_t ms);
-void LCD_Update(void);
 
 const drvlcd_t ssd13xx_drv = {
     .init = LCD_Init,
