@@ -62,7 +62,7 @@ static void uart_set_baudrate(USART_TypeDef *usart, uint32_t speed)
 }
 
 void UART_Init(serialbus_t *serialbus){
-    huart_t *huart;
+    huart_t *huart = NULL;
 
 #if UART_RX_MODE == UART_MODE_DMA
     uint32_t rx_req;
@@ -71,7 +71,7 @@ void UART_Init(serialbus_t *serialbus){
     uint32_t tx_req;
 #endif
 #if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
-    IRQn_Type irq;
+    IRQn_Type irq = 0;
 #endif
 
     switch(serialbus->bus){
@@ -117,6 +117,7 @@ void UART_Init(serialbus_t *serialbus){
             GPIOA->CRL = (GPIOA->CRL & ~(0xFF << 8)) | (GPIO_IN_PU << 12) | (GPIO_OUT_AF << 8);
             GPIOA->BSRR = GPIO_PIN_3;
             huart = &huart2;
+            huart->usart = USART2;
         #if UART_RX_MODE == UART_MODE_DMA
             rx_req = DMA1_REQ_USART2_RX;
         #endif
@@ -144,6 +145,7 @@ void UART_Init(serialbus_t *serialbus){
             GPIOB->BSRR = GPIO_PIN_11;
             break;
             huart = &huart3;
+            huart->usart = USART3;
         #if UART_RX_MODE == UART_MODE_DMA
             rx_req = DMA1_REQ_USART3_RX;
         #endif
@@ -153,6 +155,8 @@ void UART_Init(serialbus_t *serialbus){
         #if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
             irq = USART3_IRQn;
         #endif
+            break;
+
         default:
             return;
     }
