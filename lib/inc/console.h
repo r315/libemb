@@ -10,8 +10,8 @@ extern "C" {
 #include "console_command.h"
 
 
-#define NO        0
-#define YES       1
+#define NO      0
+#define YES     1
 
 #ifndef NULL
 #define NULL    ((void *)0)
@@ -84,6 +84,8 @@ class Console {
         int println(const char*);
 		int printf(const char*, ...);
         int printchar(int c);
+        void hexprint(const uint8_t *addr, uint32_t len, uint8_t ascii);
+        void hexdump(const uint8_t *addr, uint32_t len, uint8_t ncols, uint8_t ascii);
 		uint8_t available(void);
         uint8_t getchNonBlocking(char *c);
 

@@ -132,6 +132,43 @@ void Console::setOutput(stdinout_t *sp){
 }
 
 /**
+ * @brief Prints memory raw bytes in a single line
+ * @param addr Pointer to first byte
+ * @param len   Number of bytes to print
+ * @param ascii  Print ascci after byes
+ */
+void Console::hexprint(const uint8_t *addr, uint32_t len, uint8_t ascii)
+{
+    uint32_t i;
+
+    for(i= 0 ; i < len; i++){
+		this->printf("%02X ",*(addr + i));
+	}
+
+    if(ascii){
+        for(i = 0; i < len; i++){
+            if(*addr > (' '-1) && *addr < 0x7F)
+			this->printf("%c", *addr);
+            else{
+                this->writechar('.');
+            }
+            addr++;
+        }
+	}
+
+	this->writechar('\n');
+}
+
+void Console::hexdump(const uint8_t *mem, uint32_t len, uint8_t ncols, uint8_t ascii)
+{
+	for(uint32_t i = 0; i < len; i += ncols){
+		this->printf("%02X: ",i);
+		hexprint(mem, ncols, ascii);
+		mem += ncols;
+	}
+}
+
+/**
  *
  * */
 int Console::print(const char* str)
