@@ -48,18 +48,18 @@ extern "C" {
 #define DBG_INF(...) DBG_PRINT(VT100_GREEN "[INFO] " VT100_NORMAL __VA_ARGS__)
 #define DBG_WRN(...) DBG_PRINT(VT100_YELLOW "[WARN] " VT100_NORMAL __VA_ARGS__)
 #define DBG_ERR(...) DBG_PRINT(VT100_RED "[ERROR] " VT100_NORMAL __VA_ARGS__)
-#define DBG_DUMP_MEM dbg_HexDump
-#define DBG_DUMP_MEM_LINE dbg_HexDumpLine
+#define DBG_HEXDUMP dbg_hexdump
+#define DBG_HEXPRINT dbg_hexprint
 #else
 #define DBG_INF(...)
 #define DBG_WRN(...)
 #define DBG_ERR(...)
-#define DBG_DUMP_MEM(...)
-#define DBG_DUMP_MEM_LINE(...)
+#define DBG_HEXDUMP(...)
+#define DBG_HEXPRINT(...)
 #endif
 
-void dbg_HexDump(const uint8_t *mem, uint32_t len);
-void dbg_HexDumpLine(const uint8_t *mem, uint32_t len, uint8_t print_ascii);
+void dbg_hexdump(const uint8_t *mem, uint32_t len, uint8_t ncols, uint8_t ascii);
+void dbg_hexprint(const uint8_t *mem, uint32_t len, uint8_t ascii);
 void dbg_putchar(char);
 int  dbg_printf(const char*, ...);
 int  dbg_println(const char*);
