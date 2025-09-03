@@ -24,6 +24,13 @@ extern "C" {
 
 #include <stdint.h>
 
+/**
+ * Gets optimal number of bytes for an nvdata block
+ * NOTE: Some flash can only be written 16bit at once, for all
+ * applications work this rounds up to nearest four byte alignent.
+ */
+#define NVDATA_BLK_SZ(size)  (((size) + 1 + 3) & ~3)
+
 enum nvdata_e{
     NVDATA_EMPTY = 0xFF,
     NVDATA_VALID = 0xA5,
@@ -33,7 +40,7 @@ enum nvdata_e{
 
 //__attribute__((aligned(32)))
 typedef struct nvdata_block {
-    uint32_t size;      // number of data bytes
+    uint32_t size;      // Total size of block in bytes, data + 1 state byte
 	uint8_t *next;      // Next free block
 	uint8_t *data;      // data + state
 }nvdata_block_t;

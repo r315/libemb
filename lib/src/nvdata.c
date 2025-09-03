@@ -50,7 +50,7 @@ uint32_t NV_Init(nvdata_t *nv) {
     uint8_t *lastWritten = NULL;
     // Erase nvdata buffer
     nvdata->nvb.next = NULL;
-    memset(nvdata->nvb.data, 0xff, NVDATA_SIZE);
+    memset(nvdata->nvb.data, 0xff, NVDATA_BLOCK_SIZE);
     // initialize flash if needed
     if(nvdata->sector.init){
         nvdata->sector.init();
