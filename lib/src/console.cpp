@@ -132,6 +132,24 @@ void Console::setOutput(stdinout_t *sp){
 }
 
 /**
+ * @brief
+ *
+ * @param addr
+ * @param len
+ */
+void Console::asciiprint(const uint8_t *addr, uint32_t len)
+{
+    for(uint32_t i = 0; i < len; i++){
+        if(*addr > (' '-1) && *addr < 0x7F){
+            this->printf("%c", *addr);
+        }else{
+            this->writechar('.');
+        }
+        addr++;
+    }
+}
+
+/**
  * @brief Prints memory raw bytes in a single line
  * @param addr Pointer to first byte
  * @param len   Number of bytes to print
@@ -146,14 +164,7 @@ void Console::hexprint(const uint8_t *addr, uint32_t len, uint8_t ascii)
 	}
 
     if(ascii){
-        for(i = 0; i < len; i++){
-            if(*addr > (' '-1) && *addr < 0x7F)
-			this->printf("%c", *addr);
-            else{
-                this->writechar('.');
-            }
-            addr++;
-        }
+        this->asciiprint(addr, len);
 	}
 
 	this->writechar('\n');
@@ -163,7 +174,25 @@ void Console::hexdump(const uint8_t *mem, uint32_t len, uint8_t ncols, uint8_t a
 {
 	for(uint32_t i = 0; i < len; i += ncols){
 		this->printf("%02X: ",i);
-		hexprint(mem, ncols, ascii);
+        uint32_t count = len - i;
+        if(count > ncols){
+            count = ncols;
+            hexprint(mem, count, ascii);
+        }else{
+            for(uint32_t k= 0 ; k < count; k++){
+                this->printf("%02X ", *(mem + k));
+            }
+
+            for(uint32_t k= 0 ; k < ncols - count; k++){
+                this->printf("   ");
+            }
+
+            if(ascii){
+                asciiprint(mem, count);
+            }
+
+            this->writechar('\n');
+        }
 		mem += ncols;
 	}
 }

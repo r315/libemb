@@ -84,6 +84,7 @@ class Console {
         int println(const char*);
 		int printf(const char*, ...);
         int printchar(int c);
+        void asciiprint(const uint8_t *mem, uint32_t len);
         void hexprint(const uint8_t *addr, uint32_t len, uint8_t ascii);
         void hexdump(const uint8_t *addr, uint32_t len, uint8_t ncols, uint8_t ascii);
 		uint8_t available(void);

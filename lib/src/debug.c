@@ -27,23 +27,26 @@ void dbg_init(const stdinout_t *stdo)
 	}
 }
 
+static void dbg_asciiprint(const uint8_t *mem, uint32_t len)
+{
+    for(uint32_t i = 0; i < len; i++){
+        if(*mem > (' '-1) && *mem < 0x7F)
+        dbg_printf("%c", *mem);
+        else{
+            dbg_putchar('.');
+        }
+        mem++;
+    }
+}
+
 void dbg_hexprint(const uint8_t *mem, uint32_t len, uint8_t ascii)
 {
-    uint32_t i;
-
-    for(i= 0 ; i < len; i++){
-		dbg_printf("%02X ",*(mem + i));
+    for(uint32_t i= 0 ; i < len; i++){
+		dbg_printf("%02X ", *(mem + i));
 	}
 
     if(ascii){
-        for(i = 0; i < len; i++){
-            if(*mem > (' '-1) && *mem < 0x7F)
-			dbg_printf("%c", *mem);
-            else{
-                dbg_putchar('.');
-            }
-            mem++;
-        }
+        dbg_asciiprint(mem, len);
 	}
 
 	dbg_putchar('\n');
@@ -52,10 +55,27 @@ void dbg_hexprint(const uint8_t *mem, uint32_t len, uint8_t ascii)
 
 void dbg_hexdump(const uint8_t *addr, uint32_t len, uint8_t ncols, uint8_t ascii)
 {
-    //dbg_printf("\nDump address: 0x%X \n\n",(uint32_t)&mem[0]);
 	for(uint32_t i = 0; i < len; i += ncols){
-		dbg_printf("%02X: ",i);
-		dbg_hexprint(addr, ncols, ascii);
+		dbg_printf("%02X: ", i);
+        uint32_t count = len - i;
+        if(count > ncols){
+            count = ncols;
+            dbg_hexprint(addr, count, ascii);
+        }else{
+            for(uint32_t k= 0 ; k < count; k++){
+                dbg_printf("%02X ", *(addr + k));
+            }
+
+            for(uint32_t k= 0 ; k < ncols - count; k++){
+                dbg_printf("   ");
+            }
+
+            if(ascii){
+                dbg_asciiprint(addr, count);
+            }
+
+            dbg_putchar('\n');
+        }
 		addr += ncols;
 	}
 }
