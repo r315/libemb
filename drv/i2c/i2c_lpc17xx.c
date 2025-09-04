@@ -129,7 +129,7 @@ int8_t I2C_StartStateMachine(I2C_Controller *i2cifc, uint8_t op, uint8_t *data, 
  * @brief this state machine only process write and read sequences
  * Write  |S| dev+W | data | data+n |P|
  * Read   |S| dev+R | data | data+n |P|
- * TODO: Furder tests
+ * TODO: Further tests
  **/
 static void I2C_StateMachine(I2C_Controller *i2cifc){
 
