@@ -43,9 +43,14 @@ typedef struct {
 #endif
 }huart_t;
 
-
 static huart_t huart1, huart2, huart3;
 
+/**
+ * @brief Configures usart to operate on a given
+ * speed
+ * @param usart
+ * @param speed
+ */
 static void uart_set_baudrate(USART_TypeDef *usart, uint32_t speed)
 {
     float uartdiv = (float)(SystemCoreClock/speed) / 32;
@@ -61,6 +66,10 @@ static void uart_set_baudrate(USART_TypeDef *usart, uint32_t speed)
     usart->BRR = (mantissa << 4) | frac;
 }
 
+/**
+ * @brief Initializes usart
+ * @param serialbus
+ */
 void UART_Init(serialbus_t *serialbus){
     huart_t *huart = NULL;
 
@@ -79,13 +88,6 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
             RCC->APB2RSTR |= RCC_APB2RSTR_USART1RST;
             RCC->APB2RSTR &= ~RCC_APB2RSTR_USART1RST;
-        #ifdef UART_DMA
-            RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-            DMA1_Channel4->CCR = 0;
-            DMA1_Channel4->CPAR = (uint32_t)&USART1->DR;
-            //DMA1_Channel4->CMAR = (uint32_t)tx_buf;
-            DMA1_Channel4->CNDTR = 0;
-        #endif
             /* PA9 -> TX / PA10 <- RX */
             GPIOA->CRH = (GPIOA->CRH & ~(0xFF << 4)) | (GPIO_IN_PU << 8) | (GPIO_OUT_AF << 4);
             GPIOA->BSRR = GPIO_PIN_10; // PU
@@ -106,13 +108,6 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
             RCC->APB1RSTR |= RCC_APB1RSTR_USART2RST;
             RCC->APB1RSTR &= ~RCC_APB1RSTR_USART2RST;
-        #ifdef UART_DMA // TODO DMA for this
-            RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-            DMA1_Channel4->CCR = 0;
-            DMA1_Channel4->CPAR = (uint32_t)&USART1->DR;
-            //DMA1_Channel4->CMAR = (uint32_t)tx_buf;
-            DMA1_Channel4->CNDTR = 0;
-        #endif
             /* PA2 -> TX / PA3 <- RX */
             GPIOA->CRL = (GPIOA->CRL & ~(0xFF << 8)) | (GPIO_IN_PU << 12) | (GPIO_OUT_AF << 8);
             GPIOA->BSRR = GPIO_PIN_3;
@@ -133,17 +128,9 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
             RCC->APB1RSTR |= RCC_APB1RSTR_USART3RST;
             RCC->APB1RSTR &= ~RCC_APB1RSTR_USART3RST;
-        #ifdef UART_DMA // TODO DMA for this
-            RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-            DMA1_Channel4->CCR = 0;
-            DMA1_Channel4->CPAR = (uint32_t)&USART1->DR;
-            //DMA1_Channel4->CMAR = (uint32_t)tx_buf;
-            DMA1_Channel4->CNDTR = 0;
-        #endif
             /* PB10 -> TX / PB11 <- RX */
             GPIOB->CRH = (GPIOB->CRH & ~(0xFF << 8)) | (GPIO_IN_PU << 12) | (GPIO_OUT_AF << 8);
             GPIOB->BSRR = GPIO_PIN_11;
-            break;
             huart = &huart3;
             huart->usart = USART3;
         #if UART_RX_MODE == UART_MODE_DMA
@@ -203,6 +190,14 @@ void UART_Init(serialbus_t *serialbus){
 #endif
 }
 
+/**
+ * @brief Writes bytes to usart
+ *
+ * @param serialbus
+ * @param buf
+ * @param len
+ * @return
+ */
 uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
 {
     huart_t *huart = (huart_t*)serialbus->handle;
@@ -239,6 +234,15 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
     return len;
 }
 
+/**
+ * @brief Reads available bytes, if none available
+ * blocks until requested number is available
+ *
+ * @param serialbus
+ * @param buf
+ * @param len
+ * @return
+ */
 uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len)
 {
     huart_t *huart = (huart_t*)serialbus->handle;
@@ -260,6 +264,11 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len)
     return len;
 }
 
+/**
+ * @brief Checks how many bytes are available to be read
+ * @param serialbus
+ * @return
+ */
 uint32_t UART_Available(serialbus_t *serialbus){
     huart_t *huart = (huart_t*)serialbus->handle;
 #if UART_RX_MODE == UART_MODE_DMA
@@ -272,6 +281,10 @@ uint32_t UART_Available(serialbus_t *serialbus){
 #endif
 }
 
+/**
+ * @brief Common interrupt handler for fifo mode
+ * @param huart
+ */
 static void UART_IRQHandler(huart_t *huart)
 {
     USART_TypeDef *usart = huart->usart;
@@ -301,6 +314,9 @@ static void UART_IRQHandler(huart_t *huart)
     usart->SR = ~(USART_SR_RXNE | USART_SR_TXE | USART_SR_CTS | USART_SR_LBD);
 }
 
+/**
+ * @brief Usart interrupt handlers
+ */
 void USART1_IRQHandler(void){
     UART_IRQHandler(&huart1);
 }
