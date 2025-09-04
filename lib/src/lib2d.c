@@ -190,7 +190,7 @@ void LIB2D_Printf(const char* fmt, ...){
 	va_list arp;
 
     va_start(arp, fmt);
-	strformater((char*)lib2d.txt_buf, fmt, arp, sizeof(lib2d.txt_buf));
+	strformater((char*)lib2d.txt_buf, fmt, sizeof(lib2d.txt_buf), arp);
 	va_end(arp);
 
     LIB2D_String((const char*)lib2d.txt_buf);

@@ -28,7 +28,7 @@ extern "C" {
 	uint32_t i2ia(char *dst, int32_t val, int radix, int ndig);
 	char *chrinstr(const char *str, char c);
 	char *strsub(char *str, const char token, uint8_t len, char **saveptr);
-	uint32_t strformater(char *dst, const char* fmt, va_list arp, int len);
+	uint32_t strformater(char *dst, const char* fmt, int len, va_list arp);
 	void memset16(uint16_t *dst, uint16_t c, uint32_t n);
 	void memcpy16(uint16_t *dst, uint16_t *src, uint32_t n);
 	void memset32(uint32_t *dst, uint32_t c, uint32_t n);

@@ -527,103 +527,91 @@ uint32_t d2da(char *dst, double f, uint8_t places){
  *
  * TODO: fix print percent sign (%)
  * */
-uint32_t strformater(char *dst, const char* fmt, va_list arp, int len)
+uint32_t strformater(char *dst, const char* fmt, int len, va_list arp)
 {
 	int d, r, w, s, l, f;
-	char *p, *start;
-	start = dst;
+    char *p, *start = dst;
+    char *end = dst + (len > 0 ? len - 1 : 0); // leave space for '\0'
 
-	while ((d = *fmt++) != '\0') {
-        if((dst - start) >= len){
-            break;
+    if (len <= 0) {
+        return 0;  // nothing can be written
+    }
+
+    while ((d = *fmt++) != '\0') {
+        if (dst >= end) break;  // buffer full
+
+        if (d != '%') {
+            *dst++ = (char)d;
+            continue;
         }
 
-		if (d != '%') {
-			*(dst++) = d;
-			continue;
-		}
+        d = *fmt++;
+        f = w = r = s = l = 0;
 
-		d = *fmt++;
+        if (d == '.') { d = *fmt++; f = 1; }
+        if (d == '0') { d = *fmt++; s = 1; }
 
-		f = w = r = s = l = 0;
+        while ((d >= '0') && (d <= '9')) {
+            w = w * 10 + (d - '0');
+            d = *fmt++;
+        }
 
-		if (d == '.') {
-			d = *fmt++; f = 1;
-		}
+        if (d == 'l') { l = 1; d = *fmt++; }
+        if (d == '\0') break;
 
-		if (d == '0') {
-			d = *fmt++; s = 1;
-		}
+        if (d == 's') {
+            p = va_arg(arp, char*);
+            while (*p && dst < end) {
+                *dst++ = *p++;
+            }
+            continue;
+        }
 
-		while ((d >= '0') && (d <= '9')) {
-			w = w * 10 + (d - '0');
-			d = *fmt++;
-		}
+        if (d == 'c') {
+            if (dst < end) {
+                *dst++ = (char)va_arg(arp, int);
+            }
+            continue;
+        }
 
-		if (d == 'l') {
-			l = 1;
-			d = *fmt++;
-		}
+        if (d == 'u') r = 10;
+        if (d == 'd') r = -10;
+        if (d == 'X' || d == 'x') r = 16;
+        if (d == 'b') r = 2;
 
-		if (d == '\0'){
-			break;
-		}
+        if (d == 'f') {
+            if (!f) w = FLOAT_MAX_PRECISION;
+            if (dst < end) {
+                int space = end - dst;
+                int written = d2da(dst, va_arg(arp, double), w);
+                if (written >= space) written = space;
+                dst += written;
+            }
+            continue;
+        }
 
-		if (d == 's') {
-			p = va_arg(arp, char*);
-			while(*p){
-				*(dst++) = *(p++);
-			}
-			continue;
-		}
+        if (r == 0) break;
+        if (s) w = -w;
 
-		if (d == 'c') {
-			*(dst++) = (char)va_arg(arp, int);
-			continue;
-		}
+        if (dst < end) {
+            int space = end - dst;
+            int written;
+            if (l) {
+                written = i2ia(dst, (long)va_arg(arp, long), r, w);
+            } else {
+                if (r > 0)
+                    written = i2ia(dst, (unsigned long)va_arg(arp, int), r, w);
+                else
+                    written = i2ia(dst, (long)va_arg(arp, int), r, w);
+            }
+            if (written >= space) written = space;
+            dst += written;
+        }
+    }
 
-		if (d == 'u') r = 10;
-		if (d == 'd') r = -10;
-		if (d == 'X' || d == 'x') r = 16;
-		if (d == 'b') r = 2;
-		if (d == 'f') {
-			if (!f)
-				w = FLOAT_MAX_PRECISION;
-			dst += d2da(dst, va_arg(arp, double), w); // Note: float is promoted to double for varargs
-			continue;
-		}
-
-		if (r == 0){
-			break;
-		}
-
-		if (s) w = -w;
-
-		if (l) {
-			dst += i2ia(dst, (long)va_arg(arp, long), r, w);
-		}
-		else {
-			if (r > 0)
-				dst += i2ia(dst, (unsigned long)va_arg(arp, int), r, w);
-			else
-				dst += i2ia(dst, (long)va_arg(arp, int), r, w);
-		}
-	}
-
-	*dst = '\0';
-	return dst - start;
+    *dst = '\0';  // always terminate
+    return (uint32_t)(dst - start);
 }
-
-/**
- * @brief To be removed, it has no usage
- * *
-void xsprintf(char *out, const char* fmt, ...){
-	va_list arp;
-	va_start(arp, fmt);
-	strformater(out, fmt, arp);
-	va_end(arp);
-}
-*/
 
 //-----------------------------------------------------------
 //

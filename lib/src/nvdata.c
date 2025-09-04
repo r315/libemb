@@ -39,15 +39,19 @@ static nvdata_t *nvdata;
  * @return :    0 if no valid data or sector was initialized, data size
  *                 if valid data read
  */
-uint32_t NV_Init(nvdata_t *nv) {
+uint32_t NV_Init(nvdata_t *nv)
+{
+    uint8_t *ptr;
+    uint8_t *lastWritten;
+
     if(nv == NULL)
         return 0;
 
     nvdata = nv;
 
-    // Get first block status byte, aka last byte of block
-    uint8_t *ptr = ((uint8_t*)nvdata->sector.start + NVDATA_SIZE);
-    uint8_t *lastWritten = NULL;
+    DBG_NVDATA_INF("Sector: 0x%lx block: %ubytes", nvdata->sector.start, nvdata->nvb.size);
+
+    lastWritten = NULL;
     // Erase nvdata buffer
     nvdata->nvb.next = NULL;
     memset(nvdata->nvb.data, 0xff, NVDATA_BLOCK_SIZE);
@@ -55,8 +59,8 @@ uint32_t NV_Init(nvdata_t *nv) {
     if(nvdata->sector.init){
         nvdata->sector.init();
     }
-
-    DBG_NVDATA_INF("Sector 0x%lx, block size is %u bytes", nvdata->sector.start, nvdata->nvb.size);
+    // Get first block status byte, aka last byte of block
+    ptr = ((uint8_t*)nvdata->sector.start + NVDATA_SIZE);
     // Iterate blocks starting from the end of first block
     do {
         if (*ptr == NVDATA_VALID) {
