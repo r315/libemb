@@ -80,23 +80,6 @@ uint8_t LCD_Init(void *param){
     ssd13xx_command(SSD1306_SETCONTRAST);
     ssd13xx_command(0x8F);                         // 0x01 to 0xFF
 
-
-#if 0 // TODO: Fix for ssd1306, check if this commads are needed
-    ssd13xx_command(SSD1306_SETDISPLAYOFFSET);
-    ssd13xx_command(0x0);                                   // no offset
-
-
-    ssd13xx_command(SSD1306_SETCOMPINS);                    // 0xDA
-    ssd13xx_command(0x02);
-
-    ssd13xx_command(SSD1306_DISPLAYALLON_RESUME);           // 0xA4
-
-    ssd13xx_command(SSD1306_NORMALDISPLAY);                 // 0xA6
-
-    ssd13xx_command(SSD1306_SETDISPLAYCLOCKDIV);            // 0xD5
-    ssd13xx_command(0x80);                                  // the suggested ratio 0x80
-#endif
-
     ssd13xx_command(SSD1306_DEACTIVATE_SCROLL);
 
     for(uint16_t i = 0; i < drvlcdi2c->w * drvlcdi2c->h / 8; i++){
@@ -199,4 +182,17 @@ void LCD_Update(void)
 
     ssd13xx_fb.ctrl = SSD13xx_CTRL_DC;
     I2C_Write(&drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
+}
+
+void LCD_Invert(uint8_t on)
+{
+    ssd13xx_command( on ?
+        SSD1306_INVERTDISPLAY :
+        SSD1306_NORMALDISPLAY);
+}
+
+void LCD_SetComPin(uint8_t compin)
+{
+    ssd13xx_command(SSD1306_SETCOMPINS);
+    ssd13xx_command((compin & 0x30) | 0x02);
 }

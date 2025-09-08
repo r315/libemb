@@ -50,7 +50,11 @@
 #define SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL 0x29
 #define SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL  0x2A
 
-#define SSD1306_ACK_RETRIES             50;
+#define SSD1306_ACK_RETRIES             50
+
+/* Com Pins HW configuration */
+#define SSD13xx_COMPINS_ALTERNATE       (1<<4)
+#define SSD13xx_COMPINS_LR              (1<<5)
 
 
 enum{
@@ -62,5 +66,7 @@ enum{
 extern const drvlcd_t ssd13xx_drv;
 
 void LCD_Update(void);
+void LCD_Invert(uint8_t on);
+void LCD_SetComPin(uint8_t compin);
 
 #endif
