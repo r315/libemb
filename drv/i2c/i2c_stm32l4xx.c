@@ -45,7 +45,7 @@ void I2C_Init (i2cbus_t *i2c){
 		default :
 		case I2C_IF0:
 			hi2cx->Instance = I2C1;
-            i2c->peripheral = hi2cx;
+            i2c->handle = hi2cx;
 			__HAL_RCC_I2C1_CLK_ENABLE();
             __HAL_RCC_GPIOB_CLK_ENABLE();
 
@@ -73,11 +73,11 @@ void I2C_Init (i2cbus_t *i2c){
 }
 
 uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t size){
-    return (HAL_I2C_Master_Transmit(i2c->peripheral, addr, (uint8_t*)data, size, 100) == HAL_OK) ? size : 0;
+    return (HAL_I2C_Master_Transmit(i2c->handle, addr, (uint8_t*)data, size, 100) == HAL_OK) ? size : 0;
 }
 
 uint16_t I2C_Read(i2cbus_t *i2c, uint8_t addr, uint8_t *data, uint16_t size){
-	return (HAL_I2C_Master_Receive(i2c->peripheral, addr, data, size, 100) == HAL_OK) ? size : 0;
+	return (HAL_I2C_Master_Receive(i2c->handle, addr, data, size, 100) == HAL_OK) ? size : 0;
 }
 
 void I2C_Reset(i2cbus_t *i2cbus){

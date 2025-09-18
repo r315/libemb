@@ -61,24 +61,24 @@ void I2C_Init(i2cbus_t *i2c){
 	ctrl->interface = i2cx;
 	ctrl->state = I2C_IDLE;
 
-	i2c->peripheral = ctrl;
+	i2c->handle = ctrl;
 
 	NVIC_EnableIRQ(irq);
 }
 
 
 void I2C_ReadIT(i2cbus_t *i2c, uint8_t *data, uint32_t size, void (*cb)(void)){
-	((I2C_Controller*)i2c->peripheral)->cb = cb;
-	I2C_StartStateMachine( i2c->peripheral, DATA_READ, data, size);
+	((I2C_Controller*)i2c->handle)->cb = cb;
+	I2C_StartStateMachine( i2c->handle, DATA_READ, data, size);
 }
 
 void I2C_WriteIT(i2cbus_t *i2c, const uint8_t *data, uint32_t size, void (*cb)(void)){
-	((I2C_Controller*)i2c->peripheral)->cb = cb;
-	I2C_StartStateMachine( i2c->peripheral, DATA_WRITE, (uint8_t*)data, size);
+	((I2C_Controller*)i2c->handle)->cb = cb;
+	I2C_StartStateMachine( i2c->handle, DATA_WRITE, (uint8_t*)data, size);
 }
 
 uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t size){
-	I2C_Controller *ctrl = (I2C_Controller*)i2c->peripheral;
+	I2C_Controller *ctrl = (I2C_Controller*)i2c->handle;
 	ctrl->device = addr;
 	I2C_WriteIT(i2c, data, size, NULL);
 	while(ctrl->state != I2C_IDLE){
@@ -90,7 +90,7 @@ uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t si
 }
 
 uint16_t I2C_Read(i2cbus_t *i2c, uint8_t addr, uint8_t *data, uint16_t size){
-	I2C_Controller *ctrl = (I2C_Controller*)i2c->peripheral;
+	I2C_Controller *ctrl = (I2C_Controller*)i2c->handle;
 	ctrl->device = addr;
 	I2C_ReadIT(i2c, data, size, NULL);
 	while(ctrl->state != I2C_IDLE ){

@@ -25,7 +25,7 @@ typedef enum {
 }i2cbusnum_t;
 
 typedef struct {
-    void *peripheral;
+    void *handle;
     uint8_t addr;               // own address
     uint32_t speed;
     i2cbusnum_t bus_num;        // Bus number
