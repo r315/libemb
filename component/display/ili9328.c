@@ -175,9 +175,9 @@ void LCD_Scroll(uint16_t y)
 //--------------------------------------------------------
 // initialize lcd
 //--------------------------------------------------------
-uint8_t LCD_Init(void *param)
+uint8_t LCD_Init(void *driver)
 {
-    drvlcd = param;
+    drvlcd = driver;
 
 	LCD_CS1;
     LCD_WR1;

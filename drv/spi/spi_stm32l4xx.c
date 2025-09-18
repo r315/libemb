@@ -12,143 +12,150 @@
 #define PCLK_CLK_DIV64          (5 << 3)
 #define PCLK_CLK_DIV128         (6 << 3)
 #define PCLK_CLK_DIV256         (7 << 3)
-#define SPIDEV_SET_FLAG(_D, _F) _D->flags |= _F
-#define SPIDEV_CLR_FLAG(_D, _F) _D->flags &= ~(_F)
-#define SPIDEV_GET_FLAG(_D, _F) !! (_D->flags & _F)
 
+typedef struct{
+    SPI_TypeDef *spi;
+    dmatype_t dma_tx;
+    void (*eot)(void);          // User end of transfer call back
+    uint32_t trf_counter;       // Transfer counter, used when data so be transferred is greater than 65535
+    uint16_t data_word;
+}hspi_t;
 
-static spibus_t *spi_eot[2];
+static hspi_t hspia = {
+    .spi = SPI1,
+    .trf_counter = 0,
+    .eot = NULL
+}, hspib = {
+    .spi = SPI2,
+    .trf_counter = 0,
+    .eot = NULL
+};
 
 /**
  * @brief DMA Interrupt handler
  * */
-void SPI_DMA_IRQHandler(spibus_t *spidev){
-    SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.stream;
-    
+void SPI_DMA_IRQHandler(hspi_t *hspi)
+{
+    SPI_TypeDef *spi = hspi->spi;
+    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)hspi->dma_tx.stream;
+
     dma_channel->CCR &= ~(DMA_CCR_EN);
-        
-    if(spidev->trf_counter > 0x10000UL){
-        spidev->trf_counter -= 0x10000UL;
-        dma_channel->CNDTR = (spidev->trf_counter > 0x10000UL) ? 0xFFFFUL : spidev->trf_counter;
+
+    if(hspi->trf_counter > 0x10000UL){
+        hspi->trf_counter -= 0x10000UL;
+        dma_channel->CNDTR = (hspi->trf_counter > 0x10000UL) ? 0xFFFFUL : hspi->trf_counter;
         dma_channel->CCR |= DMA_CCR_EN;
-    }else{        
+    }else{
         if(spi->SR & SPI_SR_OVR){
             //dummy read for clearing OVR flag
-            spidev->trf_counter = spi->DR;
+            hspi->trf_counter = spi->DR;
         }
-        
-        spidev->trf_counter = 0;
 
-        if(spidev->eot_cb){
-            spidev->eot_cb();
+        hspi->trf_counter = 0;
+
+        if(hspi->eot){
+            hspi->eot();
         }
-        
-        SPIDEV_CLR_FLAG(spidev, SPI_BUSY | SPI_DMA_NO_MINC);
     }
 }
 
 /**
- * @brief Configures baud rate by dividing Fpckl
- * by 2, 4, 8, 16, 32, 64, 128 or 256.
- * 
- * spi peripheral must be enabled afterwards 
- * 
- * */
-static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq){
-
+ * @brief Calculate divisor values and configure spi speed
+ *
+ * @param spi       spi instance
+ * @param freq      desired frequency in kHz
+ */
+static void SPI_SetFreq(SPI_TypeDef *spi, uint32_t freq)
+{
     uint32_t div = (SystemCoreClock/1000)/freq;
     uint32_t br = 8;
 
-    if(div > 256){
-        div = 256;
-    }
-
-    if(div < 2){
-        div = 2;
-    }
+    // Constrain divisor
+    if(div > 256){ div = 256; }
+    if(div < 2){ div = 2; }
 
     while(br){
-        if((div & (1 << br)) != 0){
+        if(div & (uint32_t)(1 << br)){
             break;
         }
         br--;
-    }    
+    }
 
     spi->CR1 &= ~(SPI_CR1_SPE | PCLK_CLK_DIV256);
     spi->CR1 |= (br << SPI_CR1_BR_Pos);
 }
 
-static inline void spi1Eot(void){ SPI_DMA_IRQHandler(spi_eot[0]);}
-static inline void spi2Eot(void){ SPI_DMA_IRQHandler(spi_eot[1]);}
+static inline void spi1Eot(void){ SPI_DMA_IRQHandler(&hspia);}
+static inline void spi2Eot(void){ SPI_DMA_IRQHandler(&hspib);}
 
 /**
- * Public API
+ * @brief Configures spi peripheral according
+ * spibus parameters. GPIO pins must be configured
+ * by application (I was lazy to implement here)
  * */
+uint32_t SPI_Init(spibus_t *spibus){
+    hspi_t *hspi;
 
-/**
- * @brief Init
- * */
-void SPI_Init(spibus_t *spidev){
-    SPI_TypeDef *spi;
-    
-    switch(spidev->bus){
+    switch(spibus->bus){
         case SPI_BUS0:
-            //__HAL_RCC_SPI1_CLK_ENABLE();
             RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
-            spi = SPI1;
-            spi_eot[0] = spidev;
+            hspi = &hspia;
             break;
 
         case SPI_BUS1:
-            //__HAL_RCC_SPI2_CLK_ENABLE();
             RCC->APB1ENR1 |= RCC_APB1ENR1_SPI2EN;
-            spi = SPI2;
-            spi_eot[1] = spidev;
+            hspi = &hspib;
             break;
 
-        default : 
-            return;
+        default :
+            return SPI_ERR_PARM;
     }
 
-    spi->CR1 = SPI_CR1_MSTR;
-    spi->CR2 = (7 << SPI_CR2_DS_Pos);        // Transfer 8-bit
+    hspi->spi->CR1 = SPI_CR1_MSTR;
+    hspi->spi->CR2 = (7 << SPI_CR2_DS_Pos);        // Transfer 8-bit
 
-    SPI_SetFreq(spi, spidev->freq);
+    SPI_SetFreq(hspi->spi, spibus->freq);
 
-    if(spidev->flags & SPI_HW_CS){
-        spi->CR2 |= SPI_CR2_NSSP | SPI_CR2_SSOE;
+    if(spibus->cfg & SPI_CFG_CS){
+        hspi->spi->CR2 |= SPI_CR2_NSSP | SPI_CR2_SSOE;
     }else{
-        spi->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;                            
-    }            
+        hspi->spi->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;
+    }
 
-    spi->CR1 |= SPI_CR1_SPE;
+    hspi->spi->CR1 |= SPI_CR1_SPE;
 
-    spidev->dma.dst = (void*)&spi->DR;
-    spidev->dma.dsize = DMA_CCR_PSIZE_16;
-    spidev->dma.src = NULL;
-    spidev->dma.ssize = DMA_CCR_MSIZE_16;
-    spidev->dma.dir = DMA_DIR_M2P;
-    spidev->dma.eot = (spi == SPI1) ? spi1Eot : spi2Eot;
-    
-    DMA_Config(&spidev->dma, DMA2_REQ_SPI1_TX);
+    hspi->dma_tx.dst = (void*)&hspi->spi->DR;
+    hspi->dma_tx.dsize = DMA_CCR_PSIZE_16;
+    hspi->dma_tx.src = NULL;
+    hspi->dma_tx.ssize = DMA_CCR_MSIZE_16;
+    hspi->dma_tx.dir = DMA_DIR_M2P;
 
-    spidev->flags |= SPI_ENABLED;
-    spidev->ctrl = spi;
+    if(hspi->spi == SPI1){
+        hspi->dma_tx.eot = spi1Eot;
+        DMA_Config(&hspi->dma_tx, DMA2_REQ_SPI1_TX); // Use DMA2 to avoid conflict with usart
+    }else{
+        hspi->dma_tx.eot = spi2Eot;
+        DMA_Config(&hspi->dma_tx, DMA1_REQ_SPI2_TX);
+    }
 
-    spi->CR2 |= SPI_CR2_TXDMAEN;
+    spibus->handle = hspi;
+
+    hspi->spi->CR2 |= SPI_CR2_TXDMAEN;
+
+    return SPI_OK;
 }
 
 /**
  * @brief Write data to SPI
- * 
+ *
  * \param data  : Pointer to data
  * \param count : total number of bytes to transfer
  * */
-void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
-    SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
+void SPI_Transfer(spibus_t *spibus, uint8_t *src, uint32_t count)
+{
+    SPI_TypeDef *spi = ((hspi_t*)spibus->handle)->spi;
 
-    if(spidev->flags & SPI_16BIT){
+    if(spibus->cfg & SPI_CFG_TRF_16BIT){
         spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
         while(count--){
             *((__IO uint16_t *)&spi->DR) = *(uint16_t*)src++;
@@ -160,53 +167,65 @@ void SPI_Transfer(spibus_t *spidev, uint8_t *src, uint32_t count){
             *((__IO uint8_t *)&spi->DR) = *src++;
             while((spi->SR & SPI_SR_BSY) != 0);
         }
-    } 
+    }
 }
 
 /**
  * @brief Write data to SPI using DMA controller
- * 
+ *
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
-void SPI_TransferDMA(spibus_t *spidev, uint8_t *src, uint32_t count){
-    static uint16_t _data;
-    SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
-    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)spidev->dma.stream;
+void SPI_TransferDMA(spibus_t *spibus, uint8_t *src, uint32_t count)
+{
+    hspi_t *hspi = (hspi_t*)spibus->handle;
+    SPI_TypeDef *spi = hspi->spi;
+    DMA_Channel_TypeDef *dma_channel = hspi->dma_tx.stream;
 
-    if(spidev->flags & SPI_16BIT){
+    if(spibus->cfg & SPI_CFG_TRF_16BIT){
         spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
-        _data = *(uint16_t*)src;
+        hspi->data_word = *(uint16_t*)src;
     }else{
         spi->CR2 &= ~SPI_CR2_DS;        // Invalid forced 8-bit
-        _data = *(uint8_t*)src;
+        hspi->data_word = *(uint8_t*)src;
     }
 
-    if(spidev->flags & SPI_DMA_NO_MINC){
-        src = (uint8_t*)&_data;
+    if(spibus->cfg & SPI_CFG_TRF_CONST){
+        src = (uint8_t*)&hspi->data_word;
         dma_channel->CCR &= ~(DMA_CCR_MINC);
     }else{
         dma_channel->CCR |= DMA_CCR_MINC;
     }
 
-    spidev->trf_counter = count;    
+    hspi->trf_counter = count;
     dma_channel->CMAR = (uint32_t)src;
-    dma_channel->CNDTR = (spidev->trf_counter > 0x10000) ? 0xFFFF : spidev->trf_counter;
-    
+    dma_channel->CNDTR = (hspi->trf_counter > 0x10000) ? 0xFFFF : hspi->trf_counter;
+
     dma_channel->CCR |= DMA_CCR_EN;
-    SPIDEV_SET_FLAG(spidev, SPI_BUSY);
 }
 
 /**
  * @brief Wait for end of DMA transfer
  * */
-void SPI_WaitEOT(spibus_t *spidev){    
+void SPI_WaitEOT(spibus_t *spibus)
+{
 #if 1
-    SPI_TypeDef *spi = (SPI_TypeDef*)spidev->ctrl;
+    SPI_TypeDef *spi = ((hspi_t*)spibus->handle)->spi;
     while(spi->SR & SPI_SR_BSY){
 #else
-    while(SPIDEV_GET_FLAG(spidev, SPI_BUSY)){
+    while(SPIDEV_GET_FLAG(spibus, SPI_BUSY)){
 #endif
     //LED_TOGGLE;
     }
+}
+
+/**
+ * @brief Configure a end of transfer callback
+ * @param spibus
+ * @param eot
+ */
+void SPI_SetEOT(spibus_t *spibus, void(*eot)(void))
+{
+    hspi_t *hspi = spibus->handle;
+    hspi->eot = eot;
 }

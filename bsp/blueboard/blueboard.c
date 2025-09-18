@@ -142,7 +142,6 @@ void BB_SPI_WaitEOT(){
 }
 
 void BB_SPI_SetFrequency(uint32_t freq){
-    spibus_1.flags &= ~SPI_ENABLED;
     spibus_1.freq = freq;
     SPI_Init(&spibus_1);
 }

@@ -15,12 +15,15 @@
 
 /**
  * DMA Requests
+ * Channel Number = DMA Channel - 1
  * */
 #define DMA1_REQ_TIM1_CH1               ((0 << DMA_NUMBER_POS) | (1 << DMA_CHANNEL_POS) | (7 << DMA_SOURCE_POS))
 #define DMA1_REQ_TIM1_CH2               ((0 << DMA_NUMBER_POS) | (2 << DMA_CHANNEL_POS) | (7 << DMA_SOURCE_POS))
 #define DMA1_REQ_TIM1_CH3               ((0 << DMA_NUMBER_POS) | (6 << DMA_CHANNEL_POS) | (7 << DMA_SOURCE_POS))
 #define DMA1_REQ_TIM1_CH4               ((0 << DMA_NUMBER_POS) | (3 << DMA_CHANNEL_POS) | (7 << DMA_SOURCE_POS))
 #define DMA1_REQ_TIM2_CH1               ((0 << DMA_NUMBER_POS) | (4 << DMA_CHANNEL_POS) | (4 << DMA_SOURCE_POS))
+#define DMA1_REQ_SPI1_TX                ((0 << DMA_NUMBER_POS) | (2 << DMA_CHANNEL_POS) | (1 << DMA_SOURCE_POS))
+#define DMA1_REQ_SPI2_TX                ((0 << DMA_NUMBER_POS) | (4 << DMA_CHANNEL_POS) | (1 << DMA_SOURCE_POS))
 #define DMA2_REQ_SPI1_TX                ((1 << DMA_NUMBER_POS) | (3 << DMA_CHANNEL_POS) | (4 << DMA_SOURCE_POS))
 
 #define DMA_CCR_PSIZE_8                 0
