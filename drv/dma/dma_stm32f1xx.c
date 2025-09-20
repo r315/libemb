@@ -21,7 +21,7 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
     uint8_t ch_num;
 
     if((request & DMA_NUMBER_MASK) == 0){
-        __HAL_RCC_DMA1_CLK_ENABLE();
+        RCC->AHBENR |= RCC_AHBENR_DMA1EN;
         dma->per = DMA1;
     }
     //else{ Not avialable

@@ -90,7 +90,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB2RSTR &= ~RCC_APB2RSTR_USART1RST;
             /* PA9 -> TX / PA10 <- RX */
             GPIOA->CRH = (GPIOA->CRH & ~(0xFF << 4)) | (GPIO_IN_PU << 8) | (GPIO_OUT_AF << 4);
-            GPIOA->BSRR = GPIO_PIN_10; // PU
+            GPIOA->BSRR = (1 << 10); // PU
             huart = &huart1;
             huart->usart = USART1;
         #if UART_RX_MODE == UART_MODE_DMA
@@ -110,7 +110,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB1RSTR &= ~RCC_APB1RSTR_USART2RST;
             /* PA2 -> TX / PA3 <- RX */
             GPIOA->CRL = (GPIOA->CRL & ~(0xFF << 8)) | (GPIO_IN_PU << 12) | (GPIO_OUT_AF << 8);
-            GPIOA->BSRR = GPIO_PIN_3;
+            GPIOA->BSRR = (1 << 3);
             huart = &huart2;
             huart->usart = USART2;
         #if UART_RX_MODE == UART_MODE_DMA
@@ -130,7 +130,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB1RSTR &= ~RCC_APB1RSTR_USART3RST;
             /* PB10 -> TX / PB11 <- RX */
             GPIOB->CRH = (GPIOB->CRH & ~(0xFF << 8)) | (GPIO_IN_PU << 12) | (GPIO_OUT_AF << 8);
-            GPIOB->BSRR = GPIO_PIN_11;
+            GPIOB->BSRR = (1 << 11);
             huart = &huart3;
             huart->usart = USART3;
         #if UART_RX_MODE == UART_MODE_DMA
