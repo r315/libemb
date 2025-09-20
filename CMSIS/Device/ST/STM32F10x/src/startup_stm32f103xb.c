@@ -102,8 +102,8 @@ volatile uint32_t *src, *dest;
 
     /* Configure and enable PLL oscillator (sysclk = 72Mhz) */
 
-    RCC->CFGR = //(4 << 24) |                 // MCO = sysclk
-#ifdef XTAL12MHZ
+    RCC->CFGR =
+#ifdef HSE12MHZ
                 (4 << 18) |                 // PLLMUL = 6
 #else
                 (7 << 18) |                 // PLLMUL = 9
@@ -152,44 +152,58 @@ volatile uint32_t *src, *dest;
     main();
 #endif
     /* case returns... */
-    __asm("b .");
-}
-
-void HardFault_Handler(void){
-    __asm volatile
-    (
-        " tst lr, #4                                 \n"        // Check current stack
-        " ite eq                                     \n"
-        " mrseq r0, msp                              \n"        // Move msp to r0 ??
-        " mrsne r0, psp                              \n"        // Move psp to r0 ??
-        " b stackTrace                               \n"
-    );
-}
-
-void errorHandler(void){
-    while (1){
-        __asm("nop");
-    }
-}
-
-void defaultHandler(void){
-    while (1){
-        __asm("nop");
-    }
+    __asm volatile("b .");
 }
 
 typedef struct {
     uint32_t r0, r1, r2, r3, r12, lr, pc, psr;
 }stackframe_t;
 
-WEAK void stackTrace(stackframe_t *stack){
-   (void)stack;
+void RegistersDump(stackframe_t *regs)
+{
+    (void)regs;
+
     __asm volatile
     (
         "bkpt #01 \n"
         "b . \n"
     );
 }
+
+NAKED void HardFault_Handler(void){
+    __asm volatile
+    (
+        " tst lr, #4                                 \n"        // Check current stack
+        " ite eq                                     \n"
+        " mrseq r0, msp                              \n"        // Move msp to r0 ??
+        " mrsne r0, psp                              \n"        // Move psp to r0 ??
+        " ldr r1, [r0, #24]                          \n"        // Get address were exception happen ?
+        " ldr r2, dumpHandler_address                \n"
+        " bx r2                                      \n"
+        " dumpHandler_address: .word RegistersDump   \n"
+    );
+}
+
+void errorHandler(void){
+    __asm volatile
+    (
+        "bkpt #01 \n"
+        "b .      \n"
+    );
+}
+
+void defaultHandler(void){
+    volatile uint8_t isr_number = (SCB->ICSR & 255) - 16;
+    // See position number on Table 61 from RM0008
+    (void)isr_number;
+
+    __asm volatile
+    (
+        "bkpt #01 \n"
+        "b .      \n"
+    );
+}
+
 
 WEAK void NMI_Handler(void);
 //WEAK void HardFault_Handler(void);
