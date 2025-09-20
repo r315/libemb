@@ -34,7 +34,7 @@ static uint8_t ssd1306_waitPowerUp(void)
 
     while(count--){
         DelayMs(100);
-        if(I2C_Write(&drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&data, 2) == 2)
+        if(I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&data, 2) == 2)
             return 1;
     }
     return 0;
@@ -47,7 +47,7 @@ static void ssd13xx_command(uint8_t c)
 	data[0] = 0x00;   // Co = 0, D/C = 0
 	data[1] = c;
 
-    I2C_Write(&drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, data, 2);
+    I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, data, 2);
 }
 
 
@@ -55,7 +55,7 @@ uint8_t LCD_Init(void *param){
 
     drvlcdi2c = (drvlcdi2c_t*)param;
 
-    if(!ssd1306_waitPowerUp() || drvlcdi2c == NULL){
+    if(drvlcdi2c == NULL || !ssd1306_waitPowerUp()){
         return 0;
     }
 
@@ -181,7 +181,7 @@ void LCD_Update(void)
     ssd13xx_command(drvlcdi2c->h / 8 - 1);
 
     ssd13xx_fb.ctrl = SSD13xx_CTRL_DC;
-    I2C_Write(&drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
+    I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
 }
 
 void LCD_Invert(uint8_t on)
