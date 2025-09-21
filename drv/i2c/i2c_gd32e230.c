@@ -271,7 +271,7 @@ void I2C_Init(i2cbus_t *i2c)
             break;
 
         default:
-            return;
+            return I2C_ERR_PARM;
     }
 
     i2c_init_gpio(i2c->bus_num);
@@ -283,6 +283,8 @@ void I2C_Init(i2cbus_t *i2c)
     i2c_mode_addr_config(hi2cx.periph, I2C_I2CMODE_ENABLE, I2C_ADDFORMAT_7BITS, I2Cx_OWN_ADDRESS7);
     /* enable I2C0 */
     i2c_enable(hi2cx.periph);
+
+    return I2C_OK;
 }
 
 uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t size)

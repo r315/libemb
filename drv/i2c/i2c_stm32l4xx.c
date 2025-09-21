@@ -22,7 +22,7 @@
 
 static I2C_HandleTypeDef hi2c[I2C_MAX_ITF];
 
-void I2C_Init (i2cbus_t *i2c){
+uint32_t I2C_Init (i2cbus_t *i2c){
 
     GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -43,6 +43,8 @@ void I2C_Init (i2cbus_t *i2c){
 
 	switch(i2c->bus_num){
 		default :
+            return I2C_ERR_PARM;
+
 		case I2C_IF0:
 			hi2cx->Instance = I2C1;
             i2c->handle = hi2cx;
@@ -63,13 +65,15 @@ void I2C_Init (i2cbus_t *i2c){
 
     if(HAL_I2C_Init(hi2cx) != HAL_OK)
     {
-        return;
+        return I2C_ERR;
     }
 
     GPIO_InitStruct.Mode      = GPIO_MODE_AF_OD;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     HAL_I2CEx_ConfigAnalogFilter(hi2cx, I2C_ANALOGFILTER_ENABLE);
+
+    return I2C_OK;
 }
 
 uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t size){

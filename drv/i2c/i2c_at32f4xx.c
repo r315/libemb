@@ -42,7 +42,7 @@ static void i2c_gpio_init(i2cbus_t *i2cbus)
     }
 }
 
-void I2C_Init (i2cbus_t *i2cbus){
+uint32_t I2C_Init (i2cbus_t *i2cbus){
     I2C_Type *i2c;
     I2C_InitType  init;
 
@@ -60,7 +60,7 @@ void I2C_Init (i2cbus_t *i2cbus){
             break;
 
 		default:
-			return;
+			return I2C_ERR_PARM;
 	}
 
     i2cbus->peripheral = i2c;
@@ -77,6 +77,8 @@ void I2C_Init (i2cbus_t *i2cbus){
     I2C_Initialize(i2c, &init);
 
     i2c_gpio_init(i2cbus);
+
+    return I2C_OK;
 }
 
 void static i2c_reset_on_error(i2cbus_t *i2cbus, I2C_StatusType lastres){

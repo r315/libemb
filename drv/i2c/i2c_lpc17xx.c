@@ -23,13 +23,15 @@ static void i2cClock(LPC_I2C_TypeDef *i2cx, uint32_t freq){
 	i2cx->SCLL = ((SystemCoreClock/2)/freq)>>2;
 }
 
-void I2C_Init(i2cbus_t *i2c){
+uint32_t I2C_Init(i2cbus_t *i2c){
 	LPC_I2C_TypeDef *i2cx;
 	I2C_Controller *ctrl;
 	IRQn_Type irq;
 
 	switch(i2c->bus_num){
 		default :
+            return I2C_ERR_PARM;
+
 		case I2C_IF0:
 			i2cx = LPC_I2C0;
 			PCONP_I2C0_ENABLE;
@@ -64,6 +66,8 @@ void I2C_Init(i2cbus_t *i2c){
 	i2c->handle = ctrl;
 
 	NVIC_EnableIRQ(irq);
+
+    return I2C_OK;
 }
 
 

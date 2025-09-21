@@ -16,30 +16,41 @@ extern "C" {
 
 #include <stdint.h>
 
-
-typedef enum {
+enum i2cx{
     I2C_BUS0 = 0,
     I2C_BUS1,
     I2C_BUS2,
     I2C_BUS3
-}i2cbusnum_t;
+};
+
+enum i2cerr_e {
+    I2C_OK,
+    I2C_ERR,
+    I2C_ERR_PARM,
+    I2C_ERR_BUSY,
+    I2C_ERR_TIMEOUT,
+    I2C_ERR_START,
+    I2C_ERR_STOP,
+    I2C_ERR_ADDR,
+    I2C_ERR_ACK,
+    I2C_ERR_TXE
+};
 
 typedef struct {
     void *handle;
-    uint8_t addr;               // own address
+    uint8_t addr;       // own address
     uint32_t speed;
-    i2cbusnum_t bus_num;        // Bus number
+    uint8_t bus_num;    // Bus number
 }i2cbus_t;
 
-
-void I2C_Init(i2cbus_t *i2c);
+uint32_t I2C_Init(i2cbus_t *i2c);
 void I2C_Reset(i2cbus_t *i2c);
 /**
  * @brief Basic I2C transfers
  *
  * @param i2c   Structure that holds i2c handler
  * @param addr  7-bit Device address
- * @param data  Data to ve sent/received
+ * @param data  Data to be sent/received
  * @param size  Number of bytes in data
  * @return uint16_t number of bytes transfered
  */
