@@ -371,6 +371,10 @@ con_res_t Console::scanForLine(void) {
             return CON_LINE;
         }
 #endif
+        // Ignore TAB, implement tab completion??
+        if (c == '\t'){
+            continue;
+        }
         // Handle normal character
 		if (m_line_len < (CONSOLE_WIDTH - 1)) {
             if(!m_line_edit){
