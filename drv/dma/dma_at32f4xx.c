@@ -108,9 +108,9 @@ uint32_t DMA_GetTransfers(dmatype_t *dma)
     return dma->len - stream->TCNT;
 }
 
-static inline void dma_irq_handler(uint8_t ch_num)
+static inline void dma_irq_handler(dmatype_t *dma)
 {
-    DMA_Channel_Type *stream;
+    DMA_Channel_Type *stream = dma->stream;
     uint32_t ctrl = stream->CHCTRL;
 
     if(!(ctrl & DMA_CHCTRL1_CIRM)){

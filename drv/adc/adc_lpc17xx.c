@@ -3,7 +3,7 @@
 #include "adc.h"
 
 static adctype_t *s_adc;
-
+#if 0
 static void configAnPin(uint8_t ch){
     uint8_t bitpos;
 
@@ -20,10 +20,11 @@ static void configAnPin(uint8_t ch){
         LPC_PINCON->PINSEL0 |=  (0x02 << bitpos);  // Function2
     }
 }
+#endif
 
 uint8_t ADC_Init(adctype_t *adc){
-    PCONP_ADC_ENABLE;
 #if 0 // TODO: Fix
+    PCONP_ADC_ENABLE;
     /**
      * Maximum clock is 13MHz, lower clock
      * should be used for high impedance sources
@@ -45,6 +46,7 @@ uint8_t ADC_Init(adctype_t *adc){
     s_adc = adc;
     NVIC_EnableIRQ(ADC_IRQn);
 #endif
+    return 0;
 }
 
 void ADC_Config(adctype_t *adc){

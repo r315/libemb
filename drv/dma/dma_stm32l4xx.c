@@ -23,7 +23,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
     request = (request &  DMA_NUMBER_MASK) >> DMA_NUMBER_POS;
 
     if(hdma[ch_num] && hdma[ch_num] != dma){
-        return; // request is already in use
+        return 0; // request is already in use
     }
 
     if(dma->stream == NULL){
