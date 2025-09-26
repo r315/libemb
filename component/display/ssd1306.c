@@ -181,7 +181,11 @@ void LCD_Update(void)
     ssd13xx_command(drvlcdi2c->h / 8 - 1);
 
     ssd13xx_fb.ctrl = SSD13xx_CTRL_DC;
-    I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
+    if(drvlcdi2c->i2cdev->cfg & I2C_CFG_DMA){
+        I2C_TransmitDMA(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
+    }else{
+        I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
+    }
 }
 
 void LCD_Invert(uint8_t on)
