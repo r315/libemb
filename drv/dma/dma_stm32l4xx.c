@@ -14,7 +14,7 @@ static dmatype_t *hdma[DMA_NUM_CHANNELS];
  *                   [7:4] -> Channel number
  *                   [3:0] -> Request source
  * */
-void DMA_Config(dmatype_t *dma, uint32_t request){
+uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
     DMA_Channel_TypeDef *stream;
     uint8_t ch_num = (request & DMA_CHANNEL_MASK) >> DMA_CHANNEL_POS;
     uint8_t source = (request & DMA_SOURCE_MASK) >> DMA_SOURCE_POS;
@@ -78,6 +78,8 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
     }
 
     hdma[(request * DMA1_MAX_CHANNELS) + ch_num] = dma;
+
+    return 1;
 }
 
 static inline void dma_irq_handler(dmatype_t *dma)

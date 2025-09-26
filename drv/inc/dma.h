@@ -8,13 +8,12 @@ typedef struct dmactrl{
    void *stream;
    void *src;
    void *dst;
-   uint32_t len;
+   uint32_t len;            // Number of elements on transfer, rename to count?
    struct {
       uint32_t ssize : 5;
       uint32_t dsize : 5;
       uint32_t dir : 2;
       uint32_t single : 1;  // Single transfer
-      uint32_t constant;    // Transfer is constant value
    };
    void (*eot)(void);
 }dmatype_t;
@@ -31,12 +30,14 @@ enum {
  * \param ctrl    : pointer to hold controller and channel
  * \param req     : Request peripheral
  * */
-void DMA_Config(dmatype_t *dma, uint32_t req);
+uint32_t DMA_Config(dmatype_t *dma, uint32_t req);
 
 void DMA_Start(dmatype_t *dma);
 
 void DMA_Cancel(dmatype_t *dma);
 
 uint32_t DMA_GetTransfers(dmatype_t *dma);
+void DMA_SetSrc(dmatype_t *dma, void *src);
+void DMA_SetDst(dmatype_t *dma, void *src);
 
 #endif /* _dma_h_ */

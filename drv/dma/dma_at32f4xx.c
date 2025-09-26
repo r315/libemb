@@ -14,7 +14,7 @@ static dmatype_t *hdma[DMA_NUM_CHANNELS];
  *                   [7:4] -> Channel number
  *                   [3:0] -> Request source
  * */
-void DMA_Config(dmatype_t *dma, uint32_t request){
+uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
     DMA_Channel_Type *stream;
     uint8_t ch_num;
     IRQn_Type irqn;
@@ -22,7 +22,7 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
     ch_num = (request & DMA_CHANNEL_MASK) >> DMA_CHANNEL_POS;
 
     if(hdma[ch_num] && hdma[ch_num] != dma){
-        return; // request is already in use
+        return 0; // request is already in use
     }
 
 
@@ -83,6 +83,8 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
     dma->stream = stream;
 
     hdma[ch_num] = dma;
+
+    return 1;
 }
 
 void DMA_Start(dmatype_t *dma)

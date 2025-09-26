@@ -12,8 +12,8 @@ static eot_t s_eot[DMA_MAX_CHANNELS];
 
 /**
  * @brief DMA Controller initialization.
- * 
- * @param dma 
+ *
+ * @param dma
  */
 void DMA_Init(dmatype_t *dma){
     PCONP_GPDMA_ENABLE;
@@ -26,12 +26,12 @@ void DMA_Init(dmatype_t *dma){
 }
 
 /**
- * @brief 
- * 
- * @param dma 
+ * @brief
+ *
+ * @param dma
  * @param req   Peripheral Identification, low 4 bit dst, upper 4 bit src for P2P
  */
-void DMA_Config(dmatype_t *dma, uint32_t req){
+uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
     LPC_GPDMACH_TypeDef *dmach = NULL;
     uint8_t ch_num = DMA_MAX_CHANNELS - 1;
 
@@ -41,11 +41,11 @@ void DMA_Config(dmatype_t *dma, uint32_t req){
                 break;
             }
         }while((ch_num--) != 0);
-        
+
         if(ch_num == 255){
-            return; // no channels available
+            return 0; // no channels available
         }
-    }else{        
+    }else{
         for (ch_num = 0; ch_num < DMA_MAX_CHANNELS; ch_num++){
             if(s_dmachs[ch_num] == dma->stream){
                 break;
@@ -53,26 +53,26 @@ void DMA_Config(dmatype_t *dma, uint32_t req){
         }
 
         if((LPC_GPDMA->EnbldChns & (1 << ch_num))){
-            return; // channel in use
+            return 0; // channel in use
         }
     }
-    
+
     dmach = (LPC_GPDMACH_TypeDef*)s_dmachs[ch_num];
 
     /* Clear any error */
     LPC_GPDMA->IntTCClear = (1 << ch_num);
     LPC_GPDMA->IntErrClr = (1 << ch_num);
-	
+
 	/* Configure control, Note transfer size not visible
     if channel is disabled */
 	uint32_t control, config;
 
-    control =   DMA_CONTROL_SET_DWIDTH(dma->dsize) | 
+    control =   DMA_CONTROL_SET_DWIDTH(dma->dsize) |
                 DMA_CONTROL_SET_SWIDTH(dma->ssize) |
                 DMA_CONTROL_SET_TRANSFER(dma->len);
 
-    config =    0;    
-    
+    config =    0;
+
     switch(dma->dir){
         case DMA_DIR_P2P:
             config |=   DMA_CONFIG_SET_TYPE(DMA_CONFIG_P2P) |
@@ -105,29 +105,31 @@ void DMA_Config(dmatype_t *dma, uint32_t req){
         control |= DMA_CONTROL_I;
         config |= DMA_CONFIG_ITC;
     }
-    
+
     if(dma->single == 0){
         s_lli[ch_num].src = (uint32_t)dma->src;
         s_lli[ch_num].dst = (uint32_t)dma->dst;
         s_lli[ch_num].lli = (uint32_t)&s_lli[ch_num];
         s_lli[ch_num].ctl = control;
         dmach->CLLI = s_lli[ch_num].lli;
-    }else{       
+    }else{
         dmach->CLLI = 0;
     }
 
     dmach->CSrcAddr = (uint32_t)dma->src;
-	dmach->CDestAddr = (uint32_t)dma->dst;   
+	dmach->CDestAddr = (uint32_t)dma->dst;
 
-    dmach->CControl = control; 
+    dmach->CControl = control;
     dmach->CConfig = config;
     dma->stream = dmach;
+
+    return 1;
 }
 
 /**
- * @brief 
- * 
- * @param dma 
+ * @brief
+ *
+ * @param dma
  */
 void DMA_Start(dmatype_t *dma){
     if(dma->len > 0){
@@ -136,9 +138,9 @@ void DMA_Start(dmatype_t *dma){
 }
 
 /**
- * @brief 
- * 
- * @param ch 
+ * @brief
+ *
+ * @param ch
  */
 void DMA_Cancel(dmatype_t *ch){
     LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)ch->stream;
@@ -146,7 +148,7 @@ void DMA_Cancel(dmatype_t *ch){
     #if 0 // forced stop
     ((LPC_GPDMACH_TypeDef *)ch->stream)->CConfig &= ~DMA_CONFIG_E;
     #else
-    
+
     if(!(stream->CConfig & DMA_CONFIG_E)){
         return;
     }
@@ -159,7 +161,7 @@ void DMA_Cancel(dmatype_t *ch){
 
 /**
  * @brief HW Handler
- * 
+ *
  */
 void DMA_IRQHandler(void){
     for(uint8_t ch = 0, ch_msk = 1; ch < DMA_MAX_CHANNELS; ch++, ch_msk <<= 1){
@@ -175,5 +177,5 @@ void DMA_IRQHandler(void){
                 LPC_GPDMA->IntErrClr = ch_msk;
             }
         }
-    }    
+    }
 }

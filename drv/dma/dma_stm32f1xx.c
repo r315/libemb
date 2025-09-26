@@ -16,7 +16,7 @@ static dmatype_t *hdma[DMA_NUM_CHANNELS];
  *                   [3:0] -> Channel number
  * \return 1: if request suceeded, 0: otherwise
  * */
-void DMA_Config(dmatype_t *dma, uint32_t request){
+uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
     DMA_Channel_TypeDef *stream;
     uint8_t ch_num;
 
@@ -24,8 +24,8 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
         return 0; // only DMA1
     }
 
-        RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-        dma->per = DMA1;
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+    dma->per = DMA1;
 
     ch_num = (request & DMA_CHANNEL_MASK) >> DMA_CHANNEL_POS;
 
@@ -69,21 +69,33 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
             break;
     }
     // Enable interrupt for eot
-        config |= DMA_CCR_TCIE;
-        NVIC_EnableIRQ(DMA1_Channel1_IRQn + ch_num);
+    config |= DMA_CCR_TCIE;
+    NVIC_EnableIRQ(DMA1_Channel1_IRQn + ch_num);
 
     stream->CCR = config;
     dma->stream = stream;
 
     hdma[ch_num] = dma;
 
+    return 1;
 }
 
 void DMA_Start(dmatype_t *dma)
 {
     DMA_Channel_TypeDef *stream = dma->stream;
+    uint32_t cfg = stream->CCR & ~(DMA_CCR_MINC | DMA_CCR_CIRC);
+
     stream->CNDTR = dma->len;
-    stream->CCR |= DMA_CCR_EN;
+
+    if(!dma->single){
+        cfg |= DMA_CCR_CIRC;
+    }
+
+    if(dma->dir != DMA_DIR_P2P){
+        cfg |= DMA_CCR_MINC;
+    }
+
+    stream->CCR = cfg | DMA_CCR_EN;
 }
 
 void DMA_Cancel(dmatype_t *dma)
@@ -96,6 +108,52 @@ uint32_t DMA_GetTransfers(dmatype_t *dma)
 {
     DMA_Channel_TypeDef *stream = dma->stream;
     return dma->len - stream->CNDTR;
+}
+
+void DMA_SetSrc(dmatype_t *dma, void *src)
+{
+    DMA_Channel_TypeDef *stream = dma->stream;
+
+    switch(dma->dir){
+        case DMA_DIR_P2P:
+            stream->CPAR = (uint32_t)src;
+            break;
+
+        case DMA_DIR_P2M:
+            stream->CPAR = (uint32_t)src;
+            break;
+
+        case DMA_DIR_M2P:
+            stream->CMAR = (uint32_t)src;
+            break;
+
+        case DMA_DIR_M2M:
+            stream->CPAR = (uint32_t)src;
+            break;
+    }
+}
+
+void DMA_SetDst(dmatype_t *dma, void *dst)
+{
+    DMA_Channel_TypeDef *stream = dma->stream;
+
+    switch(dma->dir){
+        case DMA_DIR_P2P:
+            stream->CMAR = (uint32_t)dst;
+            break;
+
+        case DMA_DIR_P2M:
+            stream->CMAR = (uint32_t)dst;
+            break;
+
+        case DMA_DIR_M2P:
+            stream->CPAR = (uint32_t)dst;
+            break;
+
+        case DMA_DIR_M2M:
+            stream->CMAR = (uint32_t)dst;
+            break;
+    }
 }
 
 
