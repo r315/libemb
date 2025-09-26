@@ -9,7 +9,7 @@
 
 
 #define DMA1_MAX_CHANNELS   7
-#define DMA2_MAX_CHANNELS   5
+#define DMA2_MAX_CHANNELS   0 /* None on f103xx with flash < 256kB */
 #define DMA_NUM_CHANNELS    (DMA1_MAX_CHANNELS + DMA2_MAX_CHANNELS)
 
 /**

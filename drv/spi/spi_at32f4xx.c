@@ -48,8 +48,6 @@ void SPI_DMA_IRQHandler(hspi_t *hspi)
     SPI_Type *spi = hspi->spi;
     DMA_Channel_Type *dma = hspi->dma_tx.per;
 
-    dma->CHCTRL &= ~(DMA_CHCTRL1_CHEN);
-
     if(hspi->trf_counter > 0x10000UL){
         hspi->trf_counter -= 0x10000UL;
         dma->TCNT = (hspi->trf_counter > 0x10000UL) ? 0xFFFFUL : hspi->trf_counter;

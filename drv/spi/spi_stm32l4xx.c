@@ -39,8 +39,6 @@ void SPI_DMA_IRQHandler(hspi_t *hspi)
     SPI_TypeDef *spi = hspi->spi;
     DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)hspi->dma_tx.stream;
 
-    dma_channel->CCR &= ~(DMA_CCR_EN);
-
     if(hspi->trf_counter > 0x10000UL){
         hspi->trf_counter -= 0x10000UL;
         dma_channel->CNDTR = (hspi->trf_counter > 0x10000UL) ? 0xFFFFUL : hspi->trf_counter;

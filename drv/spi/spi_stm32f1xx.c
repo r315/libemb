@@ -38,7 +38,6 @@ static hspi_t hspia = {
 static void SPI_DMA_IRQHandler(hspi_t *hspi)
 {
     DMA_Channel_TypeDef *dma = hspi->dma_tx.per;
-    dma->CCR &= ~(DMA_CCR_EN);
 
     if(hspi->trf_counter > 0x10000UL){
         hspi->trf_counter -= 0x10000UL;

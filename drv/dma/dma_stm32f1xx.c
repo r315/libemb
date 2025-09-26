@@ -4,8 +4,7 @@
 #include "dma_stm32f1xx.h"
 #include "dma.h"
 
-typedef void (*eot_t)(void);
-static eot_t ch_eot[DMA_NUM_CHANNELS];
+static dmatype_t *hdma[DMA_NUM_CHANNELS];
 
 /**
  * @brief Request dma controller/channel
@@ -15,22 +14,26 @@ static eot_t ch_eot[DMA_NUM_CHANNELS];
  *                   [7:5] -> unused
  *                   [4:4] -> DMA number
  *                   [3:0] -> Channel number
+ * \return 1: if request suceeded, 0: otherwise
  * */
 void DMA_Config(dmatype_t *dma, uint32_t request){
     DMA_Channel_TypeDef *stream;
     uint8_t ch_num;
 
-    if((request & DMA_NUMBER_MASK) == 0){
+    if((request & DMA_NUMBER_MASK)){
+        return 0; // only DMA1
+    }
+
         RCC->AHBENR |= RCC_AHBENR_DMA1EN;
         dma->per = DMA1;
-    }
-    //else{ Not avialable
-    //    __HAL_RCC_DMA2_CLK_ENABLE();
-    //    dma->per = DMA2;
-    //}
 
     ch_num = (request & DMA_CHANNEL_MASK) >> DMA_CHANNEL_POS;
-    stream = (DMA_Channel_TypeDef*)((uint32_t)DMA1_Channel1 + (ch_num * 0x14));
+
+    if(hdma[ch_num] && hdma[ch_num] != dma){
+        return 0; // request is already in use
+    }
+
+    stream = (DMA_Channel_TypeDef*)((uint32_t)DMA1_Channel1 + (ch_num * (sizeof(DMA_Channel_TypeDef) + 4)));
 
     uint32_t config = 0;
 
@@ -65,20 +68,15 @@ void DMA_Config(dmatype_t *dma, uint32_t request){
             stream->CMAR = (uint32_t)dma->dst;
             break;
     }
-
-    if(dma->eot){
+    // Enable interrupt for eot
         config |= DMA_CCR_TCIE;
         NVIC_EnableIRQ(DMA1_Channel1_IRQn + ch_num);
-    }
-
-    if(!dma->single){
-        config |= DMA_CCR_CIRC;
-    }
 
     stream->CCR = config;
     dma->stream = stream;
 
-    ch_eot[ch_num] = dma->eot;
+    hdma[ch_num] = dma;
+
 }
 
 void DMA_Start(dmatype_t *dma)
@@ -101,39 +99,47 @@ uint32_t DMA_GetTransfers(dmatype_t *dma)
 }
 
 
-static inline void dma_irq_handler(uint8_t ch_num)
+static void dma_irq_handler(dmatype_t *dma)
 {
-    if(ch_eot[ch_num] != NULL){
-        ch_eot[ch_num]();
+    DMA_Channel_TypeDef *stream = dma->stream;
+    uint32_t ccr = stream->CCR;
+
+    if(!(ccr & DMA_CCR_CIRC)){
+        // Disable stream if circular mode is disabled
+        stream->CCR = ccr & ~DMA_CCR_EN;
+    }
+
+    if(dma->eot != NULL){
+        dma->eot();
     }
 }
 
 void DMA1_Channel1_IRQHandler(void){
-    dma_irq_handler(0);
+    dma_irq_handler(hdma[0]);
     DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF1 | DMA_IFCR_CTCIF1 | DMA_IFCR_CHTIF1);
 }
 void DMA1_Channel2_IRQHandler(void){
-    dma_irq_handler(1);
+    dma_irq_handler(hdma[1]);
     DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF2 | DMA_IFCR_CTCIF2 | DMA_IFCR_CHTIF2);
 }
 void DMA1_Channel3_IRQHandler(void){
-    dma_irq_handler(2);
+    dma_irq_handler(hdma[2]);
     DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF3 | DMA_IFCR_CTCIF3 | DMA_IFCR_CHTIF3);
 }
 void DMA1_Channel4_IRQHandler(void){
-    dma_irq_handler(3);
+    dma_irq_handler(hdma[3]);
     DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF4 | DMA_IFCR_CTCIF4 | DMA_IFCR_CHTIF4);
 }
 void DMA1_Channel5_IRQHandler(void){
-    dma_irq_handler(4);
+    dma_irq_handler(hdma[4]);
     DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF5 | DMA_IFCR_CTCIF5 | DMA_IFCR_CHTIF5);
 }
 void DMA1_Channel6_IRQHandler(void){
-    dma_irq_handler(5);
+    dma_irq_handler(hdma[5]);
     DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF6 | DMA_IFCR_CTCIF6 | DMA_IFCR_CHTIF6);
 }
 void DMA1_Channel7_IRQHandler(void){
-    dma_irq_handler(6);
+    dma_irq_handler(hdma[6]);
     DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF7 | DMA_IFCR_CTCIF7 | DMA_IFCR_CHTIF7);
 }
 

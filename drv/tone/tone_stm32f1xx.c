@@ -40,8 +40,6 @@ static pwm_tone_t tone_pwm = {0};
  * */
 static void tone_eof_handler(void)
 {
-    DMA_Cancel(&tone_pwm.dma);
-
     if(tone_pwm.cb){
         // call callback to load next tone
         tone_pwm.cb(&tone_pwm.next);
