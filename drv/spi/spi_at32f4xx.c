@@ -144,18 +144,20 @@ uint32_t SPI_Init(spibus_t *spibus)
 
     hspi->spi->CTRL1 |= SPI_CTRL1_SPIEN;
 
-    hspi->dma_tx.dst = (void*)&hspi->spi->DT;
-    hspi->dma_tx.dsize = DMA_CCR_PSIZE_16;
-    hspi->dma_tx.src = NULL;
-    hspi->dma_tx.ssize = DMA_CCR_MSIZE_16;
-    hspi->dma_tx.dir = DMA_DIR_M2P;
+    if(hspi->cfg & SPI_CFG_DMA){
+        hspi->dma_tx.dst = (void*)&hspi->spi->DT;
+        hspi->dma_tx.dsize = DMA_CCR_PSIZE_16;
+        hspi->dma_tx.src = NULL;
+        hspi->dma_tx.ssize = DMA_CCR_MSIZE_16;
+        hspi->dma_tx.dir = DMA_DIR_M2P;
 
-    if(hspi->spi == SPI1){
-        hspi->dma_tx.eot = spi1Eot;
-        DMA_Config(&hspi->dma_tx, DMA1_REQ_SPI1_TX);
-    }else{
-        hspi->dma_tx.eot = spi2Eot;
-        DMA_Config(&hspi->dma_tx, DMA1_REQ_SPI2_TX);
+        if(hspi->spi == SPI1){
+            hspi->dma_tx.eot = spi1Eot;
+            DMA_Config(&hspi->dma_tx, DMA1_REQ_SPI1_TX);
+        }else{
+            hspi->dma_tx.eot = spi2Eot;
+            DMA_Config(&hspi->dma_tx, DMA1_REQ_SPI2_TX);
+        }
     }
 
     /**
