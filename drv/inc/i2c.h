@@ -27,8 +27,8 @@ enum i2cx_e{
     I2C_BUS3
 };
 
-enum i2cerr_e {
-    I2C_OK,
+typedef enum i2cerr_e {
+    I2C_SUCCESS,
     I2C_ERR,
     I2C_ERR_PARM,
     I2C_ERR_BUSY,
@@ -38,7 +38,7 @@ enum i2cerr_e {
     I2C_ERR_ADDR,
     I2C_ERR_ACK,
     I2C_ERR_TXE
-};
+}i2cerr_t;
 
 typedef struct {
     void *handle;

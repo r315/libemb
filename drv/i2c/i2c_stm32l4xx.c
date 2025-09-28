@@ -73,7 +73,7 @@ uint32_t I2C_Init (i2cbus_t *i2c){
 
     HAL_I2CEx_ConfigAnalogFilter(hi2cx, I2C_ANALOGFILTER_ENABLE);
 
-    return I2C_OK;
+    return I2C_SUCCESS;
 }
 
 uint16_t I2C_Write(i2cbus_t *i2c, uint8_t addr, const uint8_t *data, uint16_t size){

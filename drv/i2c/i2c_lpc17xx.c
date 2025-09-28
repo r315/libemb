@@ -67,7 +67,7 @@ uint32_t I2C_Init(i2cbus_t *i2c){
 
 	NVIC_EnableIRQ(irq);
 
-    return I2C_OK;
+    return I2C_SUCCESS;
 }
 
 

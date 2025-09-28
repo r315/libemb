@@ -9,7 +9,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "at32f4xx.h"
+#include "at32f4xx_i2c.h"
+#include "at32f4xx_i2c_ex.h"
 #include "i2c.h"
 
 static void i2c_gpio_init(i2cbus_t *i2cbus)
@@ -63,7 +64,7 @@ uint32_t I2C_Init (i2cbus_t *i2cbus){
 			return I2C_ERR_PARM;
 	}
 
-    i2cbus->peripheral = i2c;
+    i2cbus->handle = i2c;
 
     init.I2C_FmDutyCycle = I2C_FmDutyCycle_2_1;
     init.I2C_OwnAddr1 = I2C_SLAVE_ADDRESS7;
@@ -82,7 +83,7 @@ uint32_t I2C_Init (i2cbus_t *i2cbus){
 }
 
 void static i2c_reset_on_error(i2cbus_t *i2cbus, I2C_StatusType lastres){
-    I2C_Type *i2c = (I2C_Type*)i2cbus->peripheral;
+    I2C_Type *i2c = (I2C_Type*)i2cbus->handle;
 
     if(lastres == I2C_ERROR_STEP_1){
         // fail waiting on busy flag
@@ -100,7 +101,7 @@ void static i2c_reset_on_error(i2cbus_t *i2cbus, I2C_StatusType lastres){
 }
 
 uint16_t I2C_Write(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t size){
-    I2C_StatusType res = I2C_Master_Transmit(i2cbus->peripheral, addr << 1, (uint8_t*)data, size, 1000);
+    I2C_StatusType res = I2C_Master_Transmit(i2cbus->handle, addr << 1, (uint8_t*)data, size, 1000);
 
     if(res != I2C_OK){
         i2c_reset_on_error(i2cbus, res);
@@ -111,7 +112,7 @@ uint16_t I2C_Write(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t
 }
 
 uint16_t I2C_Read(i2cbus_t *i2cbus, uint8_t addr, uint8_t *data, uint16_t size){
-	I2C_StatusType res = I2C_Master_Receive(i2cbus->peripheral, addr << 1, data, size, 1000);
+	I2C_StatusType res = I2C_Master_Receive(i2cbus->handle, addr << 1, data, size, 1000);
 
     if(res != I2C_OK){
         i2c_reset_on_error(i2cbus, res);
@@ -122,7 +123,7 @@ uint16_t I2C_Read(i2cbus_t *i2cbus, uint8_t addr, uint8_t *data, uint16_t size){
 }
 
 void I2C_Reset(i2cbus_t *i2cbus){
-    I2C_Type *i2c = (I2C_Type*)i2cbus->peripheral;
+    I2C_Type *i2c = (I2C_Type*)i2cbus->handle;
     I2C_DeInit(i2c);
     I2C_Init(i2cbus);
 }
