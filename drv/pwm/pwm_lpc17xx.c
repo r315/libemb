@@ -39,29 +39,33 @@
 
 #define PWM_MAX_CH 6
 
+#warning "PWM driver requires fixing"
+
 /**
  * @brief initalise PWM timer and configure GPIO pins
- * 
- * \param tcclk [in] : PWM frequency
+ *
+ *
  * */
-void PWM_Init(uint32_t tcclk){
+uint32_t PWM_Init(pwmchip_t *pwmchip){
     LPC_SC->PCONP |= PCONP_PCPWM1;                   // Enable PWM Module
-    
+
 	CLOCK_SetPCLK(PCLK_PWM1, PCLK_1);
 
 	LPC_PWM1->PR = (SystemCoreClock / 1000000UL) - 1;     // Set TC Clock to 1Mhz
-    
+
     LPC_PWM1->TCR = (1<<TCR_TCEN) | (1<<TCR_PWMEN);
 
 	LPC_PWM1->MCR = (1<<PWMMR0R);                   // reset TC on MR0 match
 
-	LPC_PWM1->MR0 = tcclk;                          // set all outputs on match
+	//LPC_PWM1->MR0 = tcclk;                          // set all outputs on match
+
+    return 1;
 }
 
 /**
  * @brief Changes PWM frequency, duty of enabled channels
  * is adjusted
- * 
+ *
  * \param freq [in] : New pwm frequency
  * */
 void PWM_Freq(uint32_t freq){
@@ -70,7 +74,7 @@ void PWM_Freq(uint32_t freq){
 
 /**
  * @brief Set duty cycle for given channel
- * 
+ *
  * \param channel [in] : Channel to be configured
  *                       PWM_1 ... PWM_6
  * \param duty [in] :    Duty cycle 0 - 100
@@ -80,10 +84,10 @@ void PWM_Set(uint8_t channel, uint8_t duty){
 
     if(channel > PWM_MAX_CH)
         return;
-    
+
     if(duty > 100)
         duty = 100;
-        
+
     uint32_t match = LPC_PWM1->MR0;
     match *= duty;
     match /= 100;
@@ -100,17 +104,18 @@ uint8_t PWM_Get(uint8_t channel){
     if(channel > PWM_MAX_CH)
         return 0;
 
-    uint32_t match = *mrx[channel - 1] * 100;    
+    uint32_t match = *mrx[channel - 1] * 100;
     return match /LPC_PWM1->MR0;
 }
 
 /**
  * @brief Enables PWM channel and configure GPIO pin to PWM function
- * 
+ *
  * \param ch [in] Channel to be configured
  *                 PWM_1 ... PWM_6
  * */
-void PWM_Enable(uint8_t ch){
+void PWM_Enable(pwmchip_t *pwmchip, uint8_t ch, enum pwmpstate state)
+{
     if(ch > PWM_MAX_CH)
         return;
 
@@ -118,37 +123,23 @@ void PWM_Enable(uint8_t ch){
 
     uint8_t shift = ch << 1;                        // two bits per gpio
 
-    LPC_PINCON->PINSEL4 &= ~(3 << shift);
-    LPC_PINCON->PINSEL4 |= (1 << shift);            // Select PWM function
+    if(state == PWM_PIN_ON){
+        LPC_PINCON->PINSEL4 &= ~(3 << shift);
+        LPC_PINCON->PINSEL4 |= (1 << shift);            // Select PWM function
+        LPC_PWM1->PCR |= (1 << (PWM1_PCR_ENA1_POS + ch)); // Enable pwm, single edge
+    }else{
+        LPC_PINCON->PINSEL4 &= ~(3 << shift);
 
-    LPC_PWM1->PCR |= (1 << (PWM1_PCR_ENA1_POS + ch)); // Enable pwm, single edge
+        LPC_PWM1->PCR &= ~(1 << (PWM1_PCR_ENA1_POS + ch));
+    }
 }
-
-/**
- * @brief Disables PWM channel and configure GPIO pin to default
- * 
- * \param ch [in] Channel to be configured
- *                 PWM_1 ... PWM_6
- * */
-void PWM_Disable(uint8_t ch){    
-    if(ch > PWM_MAX_CH)
-        return;
-
-    ch -= 1;
-
-    uint8_t shift = ch << 1;
-
-    LPC_PINCON->PINSEL4 &= ~(3 << shift);
-
-    LPC_PWM1->PCR &= ~(1 << (PWM1_PCR_ENA1_POS + ch));
-}
-
 
 /**
 * @brief Set channel polarity
-* 
+*
 * \param ch    : PWM channel 1 - 4
 * \param pol   : Polarity 0 - 1
 **/
-void PWM_Polarity(uint8_t ch, uint8_t pol){
+void PWM_Polarity(pwmchip_t *pwmchip, uint8_t ch, uint8_t pol)
+{
 }
