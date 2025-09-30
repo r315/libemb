@@ -83,7 +83,7 @@ static uint32_t i2c_set_speed(I2C_TypeDef *i2c, uint32_t speed, uint32_t dutycyc
     /* Speed */
     i2c->CCR = ccr;
 
-    return I2C_OK;
+    return I2C_SUCCESS;
 }
 
 static uint32_t i2c_flag_wait(volatile uint32_t *reg, uint32_t mask)
@@ -96,7 +96,7 @@ static uint32_t i2c_flag_wait(volatile uint32_t *reg, uint32_t mask)
         }
     }
 
-    return I2C_OK;
+    return I2C_SUCCESS;
 }
 
 static uint32_t i2c_wait_start(I2C_TypeDef *i2c)
@@ -191,7 +191,7 @@ static uint32_t i2c_master_send_addr(I2C_TypeDef *i2c, uint8_t addr)
 
     i2c_send_start(i2c);
 
-    if(i2c_wait_start(i2c) != I2C_OK){
+    if(i2c_wait_start(i2c) != I2C_SUCCESS){
         return I2C_ERR_START;
     }
 
@@ -206,7 +206,7 @@ static uint32_t i2c_master_send_addr(I2C_TypeDef *i2c, uint8_t addr)
             // Address sent and slave sent ACK
             // clear ADDR flag (EV6)
             i2c->SR2 = i2c->SR2;
-            return I2C_OK;
+            return I2C_SUCCESS;
         }
 
         if(sr & I2C_SR1_AF){
@@ -249,7 +249,7 @@ uint32_t I2C_Init(i2cbus_t *i2cbus)
 
     hi2c->i2c->CR1 = I2C_CR1_PE;
 
-    if(i2c_set_speed(hi2c->i2c, i2cbus->speed, 0) != I2C_OK){
+    if(i2c_set_speed(hi2c->i2c, i2cbus->speed, 0) != I2C_SUCCESS){
         return I2C_ERR;
     }
 
@@ -273,7 +273,7 @@ uint32_t I2C_Init(i2cbus_t *i2cbus)
         }
     }
 
-    return I2C_OK;
+    return I2C_SUCCESS;
 }
 
 /**
@@ -301,7 +301,7 @@ uint16_t I2C_Write(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t
     /* Send 8-bit slave address + W */
     res = i2c_master_send_addr(i2c, addr << 1);
 
-    if (res != I2C_OK){
+    if (res != I2C_SUCCESS){
         i2c_send_stop(i2c);
         return 0;
     }
@@ -311,7 +311,7 @@ uint16_t I2C_Write(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t
     while (data < end){
         /* Wait until TXE flag is set (EV8)*/
         res = i2c_wait_txe(i2c);
-        if (res != I2C_OK){
+        if (res != I2C_SUCCESS){
             i2c_send_stop(i2c);
             return size - (end - data);
         }
@@ -395,7 +395,7 @@ uint32_t I2C_TransmitDMA(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, ui
     hi2c->state = I2C_STATE_START;
     i2c_send_start(i2c);
 
-    return I2C_OK;
+    return I2C_SUCCESS;
 }
 
 
