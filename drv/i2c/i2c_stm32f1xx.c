@@ -86,6 +86,18 @@ static uint32_t i2c_set_speed(I2C_TypeDef *i2c, uint32_t speed, uint32_t dutycyc
     return I2C_SUCCESS;
 }
 
+static uint32_t i2c_wait_busy(I2C_TypeDef *i2c)
+{
+    uint32_t timeout = I2C_TIMEOUT;
+
+    while(i2c->SR2 & I2C_SR2_BUSY){
+        if(--timeout == 0){
+            return I2C_ERR_BUSY;
+        }
+    }
+    return I2C_SUCCESS;
+}
+
 static uint32_t i2c_flag_wait(volatile uint32_t *reg, uint32_t mask)
 {
     uint32_t timeout = I2C_TIMEOUT;
@@ -164,10 +176,12 @@ static void i2c_eot_handler(hi2c_t *hi2c)
         if(status & I2C_SR1_BTF){
             //EV8_2: TxE=1, BTF=1
             i2c_send_stop(i2c);
-            i2c->CR2 &= ~(I2C_CR2_ITEVTEN | I2C_CR2_DMAEN);
-            hi2c->state = I2C_STATE_IDLE;
+            hi2c->state = I2C_STATE_STOP;
         }
         break;
+    case I2C_STATE_STOP:
+        i2c->CR2 &= ~(I2C_CR2_ITEVTEN | I2C_CR2_DMAEN);
+        hi2c->state = I2C_STATE_IDLE;
     default:
         break;
     }
@@ -268,6 +282,7 @@ uint32_t I2C_Init(i2cbus_t *i2cbus)
             NVIC_EnableIRQ(I2C2_EV_IRQn);
             NVIC_EnableIRQ(I2C2_ER_IRQn);
         }
+        hi2c->state = I2C_STATE_IDLE;
     }
 
     return I2C_SUCCESS;
@@ -294,6 +309,10 @@ uint16_t I2C_Write(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t
 
     hi2c = (hi2c_t*)i2cbus->handle;
     i2c = hi2c->i2c;
+
+    if(i2c_wait_busy(i2c) == I2C_ERR_BUSY){
+        return 0;
+    }
 
     /* Send 8-bit slave address + W */
     res = i2c_master_send_addr(i2c, addr << 1);
@@ -376,18 +395,14 @@ uint32_t I2C_TransmitDMA(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, ui
     I2C_TypeDef *i2c;
 
     if(!i2cbus){
-        return 0;
+        return I2C_ERR_PARM;
     }
 
     hi2c = (hi2c_t*)i2cbus->handle;
     i2c = hi2c->i2c;
 
-    uint32_t timeout = I2C_TIMEOUT;
-
-    while(i2c->SR2 & I2C_SR2_BUSY){
-        if(--timeout == 0){
-            return I2C_ERR_BUSY;
-        }
+    if(hi2c->state != I2C_STATE_IDLE || i2c_wait_busy(i2c) == I2C_ERR_BUSY){
+        return I2C_ERR_BUSY;
     }
 
     hi2c->dma_tx.len = size;
