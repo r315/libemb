@@ -8,18 +8,18 @@
 
 #define I2C_TIMEOUT     0x10000;
 
-enum i2c_state{
+typedef enum i2c_state{
     I2C_STATE_IDLE = 0,
     I2C_STATE_START,
     I2C_STATE_ADDR,
     I2C_STATE_DATA,
     I2C_STATE_STOP,
-};
+}i2c_state_t;
 
 typedef struct{
     I2C_TypeDef *i2c;
     void (*eot)(void);
-    uint32_t state;
+    i2c_state_t state;
     dmatype_t dma_tx;
     uint8_t device_addr;
 }hi2c_t;
@@ -146,31 +146,28 @@ static void i2c_eot_handler(hi2c_t *hi2c)
     switch(hi2c->state){
     case I2C_STATE_START:
         if(status & I2C_SR1_SB){
-            // Start sent, send addr + R/W bit (EV5)
+            //EV5: Start sent, read SR1 followed by DT write with addr + R/W bit
             i2c->DR = hi2c->device_addr;
+            hi2c->i2c->CR2 |= I2C_CR2_DMAEN;
             hi2c->state = I2C_STATE_ADDR;
-            return;
         }
-        // Something else
         break;
     case I2C_STATE_ADDR:
         if(status & I2C_SR1_ADDR){
-            // Address sent and slave sent ACK
-            // clear ADDR flag (EV6)
-            i2c->SR2 = i2c->SR2;
-            hi2c->i2c->CR2 |= I2C_CR2_DMAEN;
+            //EV6: Address sent and slave sent ACK, read SR1, followed by SR2 read
+            status = i2c->SR2;
             hi2c->state = I2C_STATE_DATA;
-            return;
         }
         break;
     case I2C_STATE_DATA:
+        //EV8: TxE = 1
         if(status & I2C_SR1_BTF){
+            //EV8_2: TxE=1, BTF=1
             i2c_send_stop(i2c);
             i2c->CR2 &= ~(I2C_CR2_ITEVTEN | I2C_CR2_DMAEN);
             hi2c->state = I2C_STATE_IDLE;
         }
         break;
-
     default:
         break;
     }
@@ -372,7 +369,6 @@ void I2C_WaitEOT(i2cbus_t *i2cbus)
  * @param size
  * @return
  */
-uint8_t dt[] = {1,2};
 uint32_t I2C_TransmitDMA(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t size)
 {
 
@@ -386,12 +382,20 @@ uint32_t I2C_TransmitDMA(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, ui
     hi2c = (hi2c_t*)i2cbus->handle;
     i2c = hi2c->i2c;
 
+    uint32_t timeout = I2C_TIMEOUT;
+
+    while(i2c->SR2 & I2C_SR2_BUSY){
+        if(--timeout == 0){
+            return I2C_ERR_BUSY;
+        }
+    }
+
     hi2c->dma_tx.len = size;
     hi2c->device_addr = addr << 1;
     DMA_SetSrc(&hi2c->dma_tx, (void*)data);
     DMA_Start(&hi2c->dma_tx);
 
-    i2c->CR2 |= (I2C_CR2_ITEVTEN);
+    i2c->CR2 |= I2C_CR2_ITEVTEN;
     hi2c->state = I2C_STATE_START;
     i2c_send_start(i2c);
 
