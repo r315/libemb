@@ -72,6 +72,7 @@ uint32_t I2C_TransmitDMA(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, ui
  */
 void I2C_SetEOT(i2cbus_t *i2cbus, void (*eot)(void));
 void I2C_WaitEOT(i2cbus_t *i2cbus);
+i2cerr_t I2C_Busy(i2cbus_t *i2cbus);
 
 #ifdef __cplusplus
 }

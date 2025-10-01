@@ -200,3 +200,8 @@ void LCD_SetComPin(uint8_t compin)
     ssd13xx_command(SSD1306_SETCOMPINS);
     ssd13xx_command((compin & 0x30) | 0x02);
 }
+
+uint8_t LCD_Busy(void)
+{
+    return I2C_Busy(drvlcdi2c->i2cdev) == I2C_ERR_BUSY;
+}
