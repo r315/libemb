@@ -35,11 +35,20 @@
 #define SSD1306_NOP			 			0xE3
 
 
-/* Commands Bits */
+/**
+ * Commands Bits
+ *
+ * Co = 0, D/C = 0: Next byte(s) are command (non-graphics) data, after which I2C stop condition is expected
+ * Co = 1, D/C = 0: Next byte(s) are command (non-graphics) data, after which another control byte is expected
+ * Co = 0, D/C = 1: Next byte(s) are graphs data, after which I2C stop condition is expected
+ * Co = 1, D/C = 1: Is illegal combination (I think)
+ *
+ *  */
 #define SSD1306_EXTERNALVCC 			0x1
 #define SSD1306_SWITCHCAPVCC 			0x2
 #define SSD13xx_CTRL_Co                 0x80    // Continuation bit
-#define SSD13xx_CTRL_DC                 0x40    // Data/Command bit
+#define SSD13xx_CTRL_CMD                0x00
+#define SSD13xx_CTRL_DATA               0x40    // Data bit
 
 // Scrolling #defines
 #define SSD1306_ACTIVATE_SCROLL 		0x2F

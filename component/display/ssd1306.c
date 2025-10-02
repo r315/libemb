@@ -6,7 +6,19 @@
 
 
 typedef struct ssd13xx_frame{
-    uint8_t ctrl;
+    uint8_t ctrl0;
+    uint8_t parm0;
+    uint8_t ctrl1;
+    uint8_t parm1;
+    uint8_t ctrl2;
+    uint8_t parm2;
+    uint8_t ctrl3;
+    uint8_t parm3;
+    uint8_t ctrl4;
+    uint8_t parm4;
+    uint8_t ctrl5;
+    uint8_t parm5;
+    uint8_t ctrl6;
     uint8_t data[SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8];
 }ssd13xx_frame_t;
 
@@ -42,12 +54,10 @@ static uint8_t ssd1306_waitPowerUp(void)
 
 static void ssd13xx_command(uint8_t c)
 {
-    uint8_t data[2];
+    ssd13xx_fb.ctrl0 = SSD13xx_CTRL_CMD;
+    ssd13xx_fb.parm0 = c;
 
-	data[0] = 0x00;   // Co = 0, D/C = 0
-	data[1] = c;
-
-    I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, data, 2);
+    I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, 2);
 }
 
 
@@ -172,19 +182,28 @@ uint16_t LCD_GetHeight(void)
 
 void LCD_Update(void)
 {
-    ssd13xx_command(SSD1306_COLUMNADDR);
-    ssd13xx_command(0);
-    ssd13xx_command(drvlcdi2c->w - 1);
+    uint16_t count = drvlcdi2c->w * drvlcdi2c->h / 8 + 13;
 
-    ssd13xx_command(SSD1306_PAGEADDR);
-    ssd13xx_command(0);
-    ssd13xx_command(drvlcdi2c->h / 8 - 1);
+    ssd13xx_fb.ctrl0 = SSD13xx_CTRL_Co;
+    ssd13xx_fb.parm0 = SSD1306_COLUMNADDR;
+    ssd13xx_fb.ctrl1 = SSD13xx_CTRL_Co;
+    ssd13xx_fb.parm1 = 0;
+    ssd13xx_fb.ctrl2 = SSD13xx_CTRL_Co;
+    ssd13xx_fb.parm2 = drvlcdi2c->w - 1;
 
-    ssd13xx_fb.ctrl = SSD13xx_CTRL_DC;
+    ssd13xx_fb.ctrl3 = SSD13xx_CTRL_Co;
+    ssd13xx_fb.parm3 = SSD1306_PAGEADDR;
+    ssd13xx_fb.ctrl4 = SSD13xx_CTRL_Co;
+    ssd13xx_fb.parm4 = 0;
+    ssd13xx_fb.ctrl5 = SSD13xx_CTRL_Co;
+    ssd13xx_fb.parm5 = drvlcdi2c->h / 8 - 1;
+
+    ssd13xx_fb.ctrl6 = SSD13xx_CTRL_DATA;
+
     if(drvlcdi2c->i2cdev->cfg & I2C_CFG_DMA){
-        I2C_TransmitDMA(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
+        I2C_TransmitDMA(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, count);
     }else{
-        I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, drvlcdi2c->w * drvlcdi2c->h / 8 + 1);
+        I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, count);
     }
 }
 
