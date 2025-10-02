@@ -67,6 +67,13 @@ char Console::parseCommand(char *line) {
 				break;
 			}
 			if ((*cmd)->isNameEqual(cmdname) != 0) {
+                if(m_argc > 1){
+                    if(m_argv[1][0] == '?'){
+                        (*cmd)->help();
+                        res = CMD_OK;
+                        break;
+                    }
+                }
 				res = (*cmd)->execute(m_argc, m_argv);
 				break;
 			}
