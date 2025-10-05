@@ -2,18 +2,18 @@
 #include <stdint.h>
 #include "stimer.h"
 
-static simpletimer_t *tlist = NULL;
-
+static stimer_t *tlist = NULL;
+static uint32_t last_tick = 0;
 
 /**
  * @brief Configures a timer and adds it to internal timer list
  *
- * @param timer         pointer to simpletimer_t
+ * @param timer         pointer to stimer_t
  * @param interval      Expiration interval in handler call quantum, [ms] typical
  * @param callback      Callback function on expiration
  * @return
  */
-void STIMER_Config(simpletimer_t *timer, uint32_t interval, uint32_t (*callback)(simpletimer_t *timer))
+void STIMER_Config(stimer_t *timer, uint32_t interval, uint32_t (*callback)(stimer_t *timer))
 {
     if(interval == 0 || timer == NULL || callback == NULL){
         return;
@@ -21,7 +21,7 @@ void STIMER_Config(simpletimer_t *timer, uint32_t interval, uint32_t (*callback)
 
     timer->interval = interval;
     timer->callback = callback;
-    timer->countdown = 0;
+    timer->count = 0;
 
     if(tlist == NULL){
         // Empty list, add head
@@ -30,7 +30,7 @@ void STIMER_Config(simpletimer_t *timer, uint32_t interval, uint32_t (*callback)
         return;
     }
 
-    simpletimer_t *head = tlist;
+    stimer_t *head = tlist;
 
     do{
         if(head == timer){
@@ -49,12 +49,12 @@ void STIMER_Config(simpletimer_t *timer, uint32_t interval, uint32_t (*callback)
 /**
  * @brief Removes timer from timer linked list
  *
- * @param timer     pointer to simpletimer_t
+ * @param timer     pointer to stimer_t
  * @return
  */
-void STIMER_Remove(simpletimer_t *timer)
+void STIMER_Cancel(stimer_t *timer)
 {
-    simpletimer_t *head = tlist;
+    stimer_t *head = tlist;
 
     if(!timer){
         return;
@@ -85,10 +85,10 @@ void STIMER_Remove(simpletimer_t *timer)
  * This affects a running timer on next call of callback if
  * returns STIMER_GetInterval() or STIMER_Start()
  *
- * @param timer     pointer to simpletimer_t
+ * @param timer     pointer to stimer_t
  * @param interval  New expiration interval in handler call quantum, [ms] typical
  */
-void STIMER_SetInterval(simpletimer_t *timer, uint32_t interval)
+void STIMER_SetInterval(stimer_t *timer, uint32_t interval)
 {
     if(!timer){
         return;
@@ -101,47 +101,81 @@ void STIMER_SetInterval(simpletimer_t *timer, uint32_t interval)
  * @brief Starts a timer, if timer in parameter is not
  * on internal list, it will not start
  *
- * @param timer     pointer to simpletimer_t
+ * @param timer     pointer to stimer_t
  *
 */
-void STIMER_Start(simpletimer_t *timer)
+void STIMER_Start(stimer_t *timer)
 {
     if(!timer){
         return;
     }
 
-    timer->countdown = timer->interval;
+    timer->count = timer->interval;
 }
 
 /**
  * @brief Stops timer
  *
- * @param timer     pointer to simpletimer_t
+ * @param timer     pointer to stimer_t
 */
-void STIMER_Stop(simpletimer_t *timer)
+void STIMER_Stop(stimer_t *timer)
 {
     if(!timer){
         return;
     }
-    timer->countdown = 0;
+    timer->count = 0;
 }
 
 /**
- * @brief Simple timer handler, this must be called periodically
- * on a fixed quantum usually 1ms.
- * callback returns next value for interval or 0 to stop timer
+ * @brief
+ * @param timer
+ * @return
+ */
+uint32_t STIMER_IsActive(stimer_t *timer)
+{
+    return timer->count != 0;
+}
+
+/**
+ * @brief Simple timer handler, called periodically
+ * with a fixed quantum usually 1ms, advances active timers by one tick.
  *
 */
 void STIMER_Handler(void)
 {
-    simpletimer_t *head = tlist;
+    stimer_t *head = tlist;
 
     while(head){
-        if(head->countdown > 0){
-            if((--head->countdown) == 0){
-                head->countdown = head->callback(head);
+        if(head->count > 0){
+            if((--head->count) == 0){
+                head->count = head->callback(head);
             }
         }
         head = head->next;
     }
+}
+
+/**
+ * @brief stimer tick, called by application loop
+ * to advance active timers.
+ * @param tick current system tick
+ */
+void STIMER_Tick(uint32_t tick)
+{
+    stimer_t *head = tlist;
+    uint32_t diff = tick - last_tick;
+
+    while(head){
+        if(head->count > 0){
+            head->count -= diff;
+            if(head->count  <= 0){
+                uint32_t count = head->callback(head);
+                // Compensate for delayed call
+                head->count = count ? count + head->count : 0;
+            }
+        }
+        head = head->next;
+    }
+
+    last_tick = tick;
 }

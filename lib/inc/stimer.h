@@ -8,27 +8,24 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct simpletimer_s {
+typedef struct stimer {
     uint32_t interval;          // Timeout in STIMER_Handler call unit, generally 1ms
-    uint32_t countdown;         // Internal private counter
-    uint32_t (*callback)(struct simpletimer_s *timer); // callback function
-    struct simpletimer_s *next; // Next timer in list
-    void *data;
-}simpletimer_t;
+    int32_t count;              // Internal private counter
+    uint32_t (*callback)(struct stimer *timer);
+    void *data;                 // User data
+    struct stimer *next;        // Next timer in list
+}stimer_t;
 
-void STIMER_Config(simpletimer_t *timer, uint32_t interval, uint32_t (*callback)(simpletimer_t *timer));
-void STIMER_Remove(simpletimer_t *timer);
-void STIMER_Start(simpletimer_t *timer);
-void STIMER_Stop(simpletimer_t *timer);
-void STIMER_Reset(simpletimer_t *timer);
-void STIMER_SetInterval(simpletimer_t *timer, uint32_t interval);
+void STIMER_Config(stimer_t *timer, uint32_t interval, uint32_t (*callback)(stimer_t *timer));
+void STIMER_Cancel(stimer_t *timer);
+void STIMER_Start(stimer_t *timer);
+void STIMER_Stop(stimer_t *timer);
+void STIMER_Reset(stimer_t *timer);
+void STIMER_SetInterval(stimer_t *timer, uint32_t interval);
+uint32_t STIMER_IsActive(stimer_t *timer);
 void STIMER_Handler(void);
+void STIMER_Tick(uint32_t tick);
 
-//void STIMER_Pause(simpletimer_t *timer);
-//void STIMER_Resume(simpletimer_t *timer);
-//void STIMER_IsActive(simpletimer_t *timer);
-//uint32_t STIMER_GetInterval(simpletimer_t *timer);
-//uint32_t STIMER_Get(simpletimer_t *timer);
 #ifdef __cplusplus
 }
 #endif
