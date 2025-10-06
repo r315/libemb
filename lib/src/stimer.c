@@ -158,6 +158,9 @@ void STIMER_Handler(void)
 /**
  * @brief stimer tick, called by application loop
  * to advance active timers.
+ *
+ * TODO: Maybe change to use simple callbacks without parameters
+ * and return
  * @param tick current system tick
  */
 void STIMER_Tick(uint32_t tick)
@@ -166,7 +169,7 @@ void STIMER_Tick(uint32_t tick)
     uint32_t diff = tick - last_tick;
 
     while(head){
-        if(head->count > 0){
+        if(head->count != 0){
             head->count -= diff;
             if(head->count  <= 0){
                 uint32_t count = head->callback(head);
