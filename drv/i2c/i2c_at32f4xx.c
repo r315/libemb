@@ -43,6 +43,7 @@ static void i2c_gpio_init(i2cbus_t *i2cbus)
     }
 }
 
+#ifdef USE_STDPERIPH_DRIVER
 uint32_t I2C_Init (i2cbus_t *i2cbus){
     I2C_Type *i2c;
     I2C_InitType  init;
@@ -82,7 +83,7 @@ uint32_t I2C_Init (i2cbus_t *i2cbus){
     return I2C_OK;
 }
 
-void static i2c_reset_on_error(i2cbus_t *i2cbus, I2C_StatusType lastres){
+static void i2c_reset_on_error(i2cbus_t *i2cbus, I2C_StatusType lastres){
     I2C_Type *i2c = (I2C_Type*)i2cbus->handle;
 
     if(lastres == I2C_ERROR_STEP_1){
@@ -128,3 +129,4 @@ void I2C_Reset(i2cbus_t *i2cbus){
     I2C_Init(i2cbus);
 }
 
+#endif

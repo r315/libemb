@@ -4,6 +4,12 @@
 #include "gpio_at32f4xx.h"
 #include "spi.h"
 #include "gpio.h"
+#include "clock.h"
+
+#ifndef USE_STDPERIPH_DRIVER
+#define RCC_APB2PERIPH_SPI1         ((uint32_t)0x00001000)
+#define RCC_APB1PERIPH_SPI2         ((uint32_t)0x00004000)
+#endif
 
 #define SPI_CTRL1_MDIV_Pos          3
 #define SPI_CTRL1_MDIV_DIV2         (0 << SPI_CTRL1_MDIV_Pos)
@@ -75,13 +81,20 @@ void SPI_DMA_IRQHandler(hspi_t *hspi)
  * spi peripheral must be enabled afterwards
  *
  * */
-static void SPI_SetFreq(SPI_Type *spi, uint32_t freq){
-    RCC_ClockType clocks;
+static void SPI_SetFreq(SPI_Type *spi, uint32_t freq)
+{
     uint32_t div;
     uint32_t br = 8;
 
+#ifdef USE_STDPERIPH_DRIVER
+    RCC_ClockType clocks;
     RCC_GetClocksFreq(&clocks);
     div = ((spi == SPI1) ? clocks.APB2CLK_Freq : clocks.APB1CLK_Freq) / (1000 * freq);
+#else
+    sysclock_t clocks;
+    CLOCK_GetAll(&clocks);
+    div = ((spi == SPI1) ? clocks.pclk2 : clocks.pclk1) / (1000 * freq);
+#endif
 
     if(div > 256){
         div = 256;
@@ -111,17 +124,13 @@ uint32_t SPI_Init(spibus_t *spibus)
     switch(spibus->bus){
         case SPI_BUS0:
         case SPI_BUS2:
-            RCC_APB2PeriphClockCmd(RCC_APB2PERIPH_SPI1, ENABLE);
-            RCC_APB2PeriphResetCmd(RCC_APB2PERIPH_SPI1, ENABLE);
-            RCC_APB2PeriphResetCmd(RCC_APB2PERIPH_SPI1, DISABLE);
+            RCC->APB2EN |= RCC_APB2PERIPH_SPI1;
             hspi = &hspia;
             break;
 
         case SPI_BUS1:
         case SPI_BUS3:
-            RCC_APB1PeriphClockCmd(RCC_APB1PERIPH_SPI2, ENABLE);
-            RCC_APB1PeriphResetCmd(RCC_APB1PERIPH_SPI2, ENABLE);
-            RCC_APB1PeriphResetCmd(RCC_APB1PERIPH_SPI2, DISABLE);
+            RCC->APB1EN |= RCC_APB1PERIPH_SPI2;
             hspi = &hspib;
             break;
 
@@ -129,13 +138,11 @@ uint32_t SPI_Init(spibus_t *spibus)
             return SPI_ERR_PARM;
     }
 
-    RCC_AHBPeriphClockCmd(RCC_AHBPERIPH_DMA1, ENABLE);
-
     hspi->spi->CTRL1 = SPI_CTRL1_MSTEN;
 
     SPI_SetFreq(hspi->spi, spibus->freq);
 
-    if((spibus->cfg & SPI_CFG_CS) != 0){
+    if(spibus->cfg & SPI_CFG_CS){
         hspi->spi->CTRL2 |=  SPI_CTRL2_NSSOE;
     }else{
         // in master mode if not using HW CS, CS pin must keeped high

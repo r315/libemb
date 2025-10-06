@@ -2,6 +2,76 @@
 
 #define VECT_TAB_OFFSET 0x0
 
+#ifndef USE_STDPERIPH_DRIVER
+#define PLL_CFGEN_ENABLE                ((uint32_t)0x80000000)
+#define PLL_CFGEN_MASK                  ((uint32_t)0x80000000)
+#define RCC_CFG_PLLMULT_LB_MASK         ((uint32_t)0x003C0000)
+#define PLL_FREF_MASK                   ((uint32_t)0x07000000)
+#define RCC_GET_PLLMULT(MULT)           ((((MULT & RCC_CFG_PLLMULT_LB_MASK) >> RCC_CFG_PLLMULT_LB_POS) | \
+                                        ((MULT & RCC_CFG_PLLMULT_HB_MASK) >> (RCC_CFG_PLLMULT_HB_POS - RCC_CFG_PLLMULT_HB_OFFSET))) +\
+                                        ((((MULT & RCC_CFG_PLLMULT_HB_MASK)==0) && \
+                                        ((MULT & RCC_CFG_PLLMULT_LB_MASK)!=RCC_CFG_PLLMULT_LB_MASK) )? 2 : 1 ))
+
+#define RCC_APB1PERIPH_PWR              ((uint32_t)0x10000000)
+#define RCC_AUTO_STEP_EN                ((uint32_t)0x00000030)
+#define PLL_MS_POS                      4
+#define PLL_NS_POS                      8
+#define PLL_FR_POS                      0
+#define PLL_MS_MASK                     ((uint32_t)0x000000F0)
+#define PLL_NS_MASK                     ((uint32_t)0x0001FF00)
+#define PLL_FR_MASK                     ((uint32_t)0x00000007)
+#define PLL_FR_1                        ((uint32_t)0x00000000)
+#define PLL_FR_2                        ((uint32_t)0x00000001)
+#define PLL_FR_4                        ((uint32_t)0x00000002)
+#define PLL_FR_8                        ((uint32_t)0x00000003)
+#define PLL_FR_16                       ((uint32_t)0x00000004)
+#define PLL_FR_32                       ((uint32_t)0x00000005)
+
+#define RCC_FR_VALUE(VALUE, RET)        do { \
+                                            switch (VALUE) { \
+                                            default: RET = 1; break; \
+                                            case PLL_FR_1: RET = 1; break; \
+                                            case PLL_FR_2: RET = 2; break; \
+                                            case PLL_FR_4: RET = 4; break; \
+                                            case PLL_FR_8: RET = 8; break; \
+                                            case PLL_FR_16: RET = 16; break; \
+                                            case PLL_FR_32: RET = 32; break; }\
+                                        }while(0)
+
+
+void RCC_PLLconfig2(uint32_t PLL_ns, uint32_t PLL_ms, uint32_t PLL_fr)
+{
+    uint32_t pll_reg = 0, pllrefclk = 0, pllrcfreq = 0;
+
+    pllrefclk = RCC->CFG & RCC_CFG_PLLRC;
+
+    if (pllrefclk == 0x00){
+        /* HSI oscillator clock divided by 2 selected as PLL clock entry */
+        pllrcfreq = (HSI_VALUE >> 1);
+    }else{
+        pllrcfreq = HSE_VALUE;
+        /* HSE selected as PLL clock entry */
+        if ((RCC->CFG & RCC_CFG_PLLHSEPSC) != (uint32_t)RESET)    {
+            /* HSE oscillator clock divided by 2 */
+            pllrcfreq = (pllrcfreq >> 1);
+        }
+    }
+
+    pll_reg = RCC->PLL;
+
+    /* Clear PLL */
+    pll_reg &= ~(PLL_FR_MASK | PLL_MS_MASK | PLL_NS_MASK | PLL_FREF_MASK | PLL_CFGEN_MASK);
+
+    /* Config pll */
+    pll_reg |= ((PLL_ns << PLL_NS_POS) | (PLL_ms << PLL_MS_POS) | PLL_fr);
+
+    /* Enable PLLGEN */
+    pll_reg |= PLL_CFGEN_ENABLE;
+
+    RCC->PLL = pll_reg;
+}
+#endif
+
 uint32_t SystemCoreClock;
 static const uint8_t AHBPscTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 
@@ -175,7 +245,7 @@ static void SystemCoreClockSet(void)
         }
 #if defined(AT32F413xx) || defined(AT32F403Axx) || \
     defined(AT32F407xx) || defined(AT32F415xx)
-        RCC_StepModeCmd(ENABLE);
+        RCC->MISC2 |= RCC_AUTO_STEP_EN;
 #endif
         /* Select PLL as system clock source */
         RCC->CFG &= (uint32_t)((uint32_t) ~(RCC_CFG_SYSCLKSEL));
@@ -190,7 +260,7 @@ static void SystemCoreClockSet(void)
 #endif
 #if defined(AT32F413xx) || defined(AT32F403Axx) || \
     defined(AT32F407xx) || defined(AT32F415xx)
-        RCC_StepModeCmd(DISABLE);
+        RCC->MISC2 &= ~RCC_AUTO_STEP_EN;
 #endif
     }
 }
@@ -200,12 +270,10 @@ void SystemInit(void)
 #if defined(__FPU_USED) && (__FPU_USED == 1U)
     SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2)); /* set CP10 and CP11 Full Access */
 #endif
-    RCC_APB1PeriphClockCmd(RCC_APB1PERIPH_PWR, ENABLE);
+    RCC->APB1EN |= RCC_APB1PERIPH_PWR;
     /* Enable low power mode, 0x40007050[bit2] */
     *(volatile uint8_t *)(0x40007050) |= (uint8_t)(0x1 << 2);
-    RCC_APB1PeriphClockCmd(RCC_APB1PERIPH_PWR, DISABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2PERIPH_GPIOA, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2PERIPH_GPIOB, ENABLE);
+    RCC->APB1EN &= ~RCC_APB1PERIPH_PWR;
 
     /* Reset the RCC clock configuration to the default reset state(for debug purpose) */
     /* Set HSIEN bit */

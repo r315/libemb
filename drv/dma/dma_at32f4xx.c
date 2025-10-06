@@ -4,6 +4,11 @@
 #include "dma_at32f4xx.h"
 #include "dma.h"
 
+#ifndef USE_STDPERIPH_DRIVER
+#define RCC_AHBPERIPH_DMA1              ((uint32_t)0x00000001)
+#define RCC_AHBPERIPH_DMA2              ((uint32_t)0x00000002)
+#endif
+
 static dmatype_t *hdma[DMA_NUM_CHANNELS];
 
 /**
@@ -27,12 +32,12 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
 
 
     if((request & DMA_NUMBER_MASK) == 0){
-        RCC_AHBPeriphClockCmd(RCC_AHBPERIPH_DMA1, ENABLE);
+        RCC->AHBEN |= RCC_AHBPERIPH_DMA1;
         dma->per = DMA1;
         irqn = DMA1_Channel1_IRQn + ch_num;
         stream = (DMA_Channel_Type*)((uint32_t)DMA1_Channel1 + (ch_num * 0x14));
     }else{
-        RCC_AHBPeriphClockCmd(RCC_AHBPERIPH_DMA2, ENABLE);
+        RCC->AHBEN |= RCC_AHBPERIPH_DMA2;
         dma->per = DMA2;
         irqn = DMA2_Channel1_IRQn + ((ch_num == 4) ? 3 : ch_num);
         stream = (DMA_Channel_Type*)((uint32_t)DMA2_Channel1 + (ch_num * 0x14));

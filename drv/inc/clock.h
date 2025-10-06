@@ -18,7 +18,8 @@ typedef struct sysclock {
     uint32_t cpu;       // Cpu clock
     uint32_t hclk;      // HCLK
     uint32_t pclk1;     // Peripheral bus1
-    uint32_t pclk2;     // Peripheral bus1
+    uint32_t pclk2;     // Peripheral bus2
+    uint32_t pclk3;     // Peripheral bus3/adc
 }sysclock_t;
 
 void CLOCK_GetAll(sysclock_t *clk);
