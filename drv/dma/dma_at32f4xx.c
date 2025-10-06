@@ -75,10 +75,6 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
     config |= DMA_CHCTRL1_TCIE;
     NVIC_EnableIRQ(irqn);
 
-    if(!dma->single){
-        config |= DMA_CHCTRL1_CIRM;
-    }
-
     stream->CHCTRL = config;
     dma->stream = stream;
 
@@ -90,8 +86,18 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
 void DMA_Start(dmatype_t *dma)
 {
     DMA_Channel_Type *stream = dma->stream;
+    uint32_t cfg = stream->CHCTRL & ~(DMA_CHCTRL1_MINC | DMA_CHCTRL1_CIRM);
 
     stream->TCNT = dma->len;
+
+    if(!dma->single){
+        cfg |= DMA_CHCTRL1_CIRM;
+    }
+
+    if(dma->dir != DMA_DIR_P2P){
+        cfg |= DMA_CHCTRL1_MINC;
+    }
+
     stream->CHCTRL |= DMA_CHCTRL1_CHEN;
 }
 
@@ -106,6 +112,52 @@ uint32_t DMA_GetTransfers(dmatype_t *dma)
 {
     DMA_Channel_Type *stream = dma->stream;
     return dma->len - stream->TCNT;
+}
+
+void DMA_SetSrc(dmatype_t *dma, void *src)
+{
+    DMA_Channel_Type *stream = dma->stream;
+
+    switch(dma->dir){
+        case DMA_DIR_P2P:
+            stream->CPBA = (uint32_t)src;
+            break;
+
+        case DMA_DIR_P2M:
+            stream->CPBA = (uint32_t)src;
+            break;
+
+        case DMA_DIR_M2P:
+            stream->CMBA = (uint32_t)src;
+            break;
+
+        case DMA_DIR_M2M:
+            stream->CPBA = (uint32_t)src;
+            break;
+    }
+}
+
+void DMA_SetDst(dmatype_t *dma, void *dst)
+{
+    DMA_Channel_Type *stream = dma->stream;
+
+    switch(dma->dir){
+        case DMA_DIR_P2P:
+            stream->CMBA = (uint32_t)dst;
+            break;
+
+        case DMA_DIR_P2M:
+            stream->CMBA = (uint32_t)dst;
+            break;
+
+        case DMA_DIR_M2P:
+            stream->CPBA = (uint32_t)dst;
+            break;
+
+        case DMA_DIR_M2M:
+            stream->CMBA = (uint32_t)dst;
+            break;
+    }
 }
 
 static inline void dma_irq_handler(dmatype_t *dma)
@@ -174,7 +226,7 @@ void DMA1_Channel6_IRQHandler(void)
 void DMA1_Channel7_IRQHandler(void)
 {
     if(DMA1->ISTS & DMA_ISTS_GIF7){
-        dma_irq_handler(hdma[7]);
+        dma_irq_handler(hdma[6]);
         DMA1->ICLR = (DMA_ICLR_CGIF7 | DMA_ICLR_CTCIF7 | DMA_ICLR_CERRIF7);
     }
 }
@@ -182,7 +234,7 @@ void DMA1_Channel7_IRQHandler(void)
 void DMA2_Channel1_IRQHandler(void)
 {
     if(DMA2->ISTS & DMA_ISTS_GIF1){
-        dma_irq_handler(hdma[0]);
+        dma_irq_handler(hdma[8]);
         DMA2->ICLR = (DMA_ICLR_CGIF1 | DMA_ICLR_CTCIF1 | DMA_ICLR_CERRIF1);
     }
 }
@@ -190,7 +242,7 @@ void DMA2_Channel1_IRQHandler(void)
 void DMA2_Channel2_IRQHandler(void)
 {
     if(DMA2->ISTS & DMA_ISTS_GIF2){
-        dma_irq_handler(hdma[1]);
+        dma_irq_handler(hdma[9]);
         DMA2->ICLR = (DMA_ICLR_CGIF2 | DMA_ICLR_CTCIF2 | DMA_ICLR_CERRIF2);
     }
 }
@@ -198,7 +250,7 @@ void DMA2_Channel2_IRQHandler(void)
 void DMA2_Channel3_IRQHandler(void)
 {
     if(DMA2->ISTS & DMA_ISTS_GIF3){
-        dma_irq_handler(hdma[2]);
+        dma_irq_handler(hdma[10]);
         DMA2->ICLR = (DMA_ICLR_CGIF3 | DMA_ICLR_CTCIF3 | DMA_ICLR_CERRIF3);
     }
 }
@@ -206,12 +258,12 @@ void DMA2_Channel3_IRQHandler(void)
 void DMA2_Channel4_5_IRQHandler(void)
 {
     if(DMA2->ISTS & DMA_ISTS_GIF4){
-        dma_irq_handler(hdma[3]);
+        dma_irq_handler(hdma[11]);
         DMA2->ICLR = (DMA_ICLR_CGIF4 | DMA_ICLR_CTCIF4 | DMA_ICLR_CERRIF4);
     }
 
     if(DMA2->ISTS & DMA_ISTS_GIF5){
-        dma_irq_handler(hdma[4]);
+        dma_irq_handler(hdma[12]);
         DMA2->ICLR = (DMA_ICLR_CGIF5 | DMA_ICLR_CTCIF5 | DMA_ICLR_CERRIF5);
     }
 }

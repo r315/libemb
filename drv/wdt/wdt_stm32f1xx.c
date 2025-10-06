@@ -4,7 +4,7 @@
 #define DHCSR               *((uint32_t*)0xE000EDF0) // Debug Halting Control and Status Register
 
 /**
- * @brief Independend watchdog configuration
+ * @brief Independent watchdog configuration
  *
  *
  * @param timeout in miliseconds

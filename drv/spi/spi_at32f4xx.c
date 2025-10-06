@@ -144,7 +144,7 @@ uint32_t SPI_Init(spibus_t *spibus)
 
     hspi->spi->CTRL1 |= SPI_CTRL1_SPIEN;
 
-    if(hspi->cfg & SPI_CFG_DMA){
+    if(spibus->cfg & SPI_CFG_DMA){
         hspi->dma_tx.dst = (void*)&hspi->spi->DT;
         hspi->dma_tx.dsize = DMA_CCR_PSIZE_16;
         hspi->dma_tx.src = NULL;
