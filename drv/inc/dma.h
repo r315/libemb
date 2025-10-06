@@ -25,6 +25,12 @@ enum {
    DMA_DIR_M2M
 };
 
+enum {
+    DMA_DATA_SIZE_8 = 0,
+    DMA_DATA_SIZE_16,
+    DMA_DATA_SIZE_32,
+};
+
 /**
  * @brief Request dma controller/channel
  * \param ctrl    : pointer to hold controller and channel
