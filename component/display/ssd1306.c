@@ -184,30 +184,25 @@ void LCD_Update(void)
 {
     uint16_t count = drvlcdi2c->w * drvlcdi2c->h / 8 + 13;
 
+    ssd13xx_fb.ctrl0 = SSD13xx_CTRL_Co;
     ssd13xx_fb.parm0 = SSD1306_COLUMNADDR;
+    ssd13xx_fb.ctrl1 = SSD13xx_CTRL_Co;
     ssd13xx_fb.parm1 = 0;
+    ssd13xx_fb.ctrl2 = SSD13xx_CTRL_Co;
     ssd13xx_fb.parm2 = drvlcdi2c->w - 1;
+
+    ssd13xx_fb.ctrl3 = SSD13xx_CTRL_Co;
     ssd13xx_fb.parm3 = SSD1306_PAGEADDR;
+    ssd13xx_fb.ctrl4 = SSD13xx_CTRL_Co;
     ssd13xx_fb.parm4 = 0;
+    ssd13xx_fb.ctrl5 = SSD13xx_CTRL_Co;
     ssd13xx_fb.parm5 = drvlcdi2c->h / 8 - 1;
 
     ssd13xx_fb.ctrl6 = SSD13xx_CTRL_DATA;
 
     if(drvlcdi2c->i2cdev->cfg & I2C_CFG_DMA){
-        ssd13xx_fb.ctrl0 = SSD13xx_CTRL_Co;
-        ssd13xx_fb.ctrl1 = SSD13xx_CTRL_Co;
-        ssd13xx_fb.ctrl2 = SSD13xx_CTRL_Co;
-        ssd13xx_fb.ctrl3 = SSD13xx_CTRL_Co;
-        ssd13xx_fb.ctrl4 = SSD13xx_CTRL_Co;
-        ssd13xx_fb.ctrl5 = SSD13xx_CTRL_Co;
         I2C_TransmitDMA(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, count);
     }else{
-        ssd13xx_fb.ctrl0 = SSD13xx_CTRL_CMD;
-        ssd13xx_fb.ctrl1 = SSD13xx_CTRL_CMD;
-        ssd13xx_fb.ctrl2 = SSD13xx_CTRL_CMD;
-        ssd13xx_fb.ctrl3 = SSD13xx_CTRL_CMD;
-        ssd13xx_fb.ctrl4 = SSD13xx_CTRL_CMD;
-        ssd13xx_fb.ctrl5 = SSD13xx_CTRL_CMD;
         I2C_Write(drvlcdi2c->i2cdev, SSD1306_I2C_ADDRESS, (uint8_t*)&ssd13xx_fb, count);
     }
 }
