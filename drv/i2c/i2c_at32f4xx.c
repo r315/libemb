@@ -49,6 +49,9 @@ static void i2c_data_snd(I2C_Type *i2c, const uint8_t *data){ i2c->DT = *data; }
 static void i2c_data_rcv(I2C_Type *i2c, uint8_t *data){ *data = (uint8_t)i2c->DT; }
 static uint32_t i2c_slave_ack(I2C_Type *i2c){ return !(i2c->STS1 & I2C_STS1_ACKFAIL); }
 static void i2c_en(I2C_Type *i2c){ i2c->CTRL1 = I2C_CTRL1_PEN; }
+static void i2c_int_en(I2C_Type *i2c) { i2c->CTRL2 |= I2C_CTRL2_EVTITEN; }
+static void i2c_dma_en(I2C_Type *i2c) { i2c->CTRL2 |= I2C_CTRL2_DMAEN; }
+static void i2c_dma_int_dis(I2C_Type *i2c) { i2c->CTRL2 &= ~(I2C_CTRL2_EVTITEN | I2C_CTRL2_DMAEN); }
 
 /**
  * @brief
@@ -56,7 +59,48 @@ static void i2c_en(I2C_Type *i2c){ i2c->CTRL1 = I2C_CTRL1_PEN; }
  */
 static void i2c_eot_handler(hi2c_t *hi2c)
 {
-    (void)hi2c;
+    I2C_Type *i2c = hi2c->i2c;
+    volatile uint32_t status = i2c->STS1;
+    uint32_t error =  status & (I2C_STS1_OVRUN | I2C_STS1_ACKFAIL | I2C_STS1_ARLOST | I2C_STS1_BUSERR);
+
+    if(error){
+        i2c->STS2 = i2c->STS2;
+        i2c_dma_int_dis(i2c);
+        DMA_Cancel(&hi2c->dma_tx);
+        i2c_send_stop(i2c);
+        return;
+    }
+
+    switch(hi2c->state){
+    case I2C_STATE_START:
+        if(status & I2C_STS1_STARTF){
+            //EV1: Start sent, read STS1 followed by DT write with addr + R/W bit
+            i2c->DT = hi2c->device_addr;
+            i2c_dma_en(i2c);
+            hi2c->state = I2C_STATE_ADDR;
+        }
+        break;
+    case I2C_STATE_ADDR:
+        if(status & I2C_STS1_ADDRF){
+            //EV6: Address sent and slave sent ACK, read STS1, followed by STS2 read
+            status = i2c->STS2;
+            hi2c->state = I2C_STATE_DATA;
+        }
+        break;
+    case I2C_STATE_DATA:
+        //EV8: TxE = 1
+        if(status & I2C_STS1_BTFF){
+            //EV8_2: TxE=1, BTF=1
+            i2c_send_stop(i2c);
+            hi2c->state = I2C_STATE_STOP;
+        }
+        break;
+    case I2C_STATE_STOP:
+        i2c_dma_int_dis(i2c);
+        hi2c->state = I2C_STATE_IDLE;
+    default:
+        break;
+    }
 }
 
 static void i2c_eota(void){i2c_eot_handler(&hi2ca);}
@@ -443,9 +487,37 @@ uint16_t I2C_Read(i2cbus_t *i2cbus, uint8_t addr, uint8_t *data, uint16_t size)
  */
 uint32_t I2C_TransmitDMA(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t size)
 {
-    (void)i2cbus;
-    (void)addr;
-    (void)data;
-    (void)size;
+    hi2c_t *hi2c;
+    I2C_Type *i2c;
+
+    if(!i2cbus || !data){
+        return I2C_ERR_PARM;
+    }
+
+    hi2c = (hi2c_t*)i2cbus->handle;
+    i2c = hi2c->i2c;
+
+    if(hi2c->state != I2C_STATE_IDLE){
+        i2c_wait_busy(i2c);
+        hi2c->state = I2C_STATE_IDLE;
+    }
+
+    i2c_en(i2c);
+
+    hi2c->dma_tx.len = size;
+    hi2c->device_addr = addr << 1;
+    DMA_SetSrc(&hi2c->dma_tx, (void*)data);
+    DMA_Start(&hi2c->dma_tx);
+
+    i2c_int_en(i2c);
+
+    hi2c->state = I2C_STATE_START;
+    i2c_send_start(i2c);
+
     return I2C_SUCCESS;
 }
+
+void I2C1_EV_IRQHandler(void){i2c_eot_handler(&hi2ca);}
+void I2C1_ER_IRQHandler(void){i2c_eot_handler(&hi2ca);}
+void I2C2_EV_IRQHandler(void){i2c_eot_handler(&hi2cb);}
+void I2C2_ER_IRQHandler(void){i2c_eot_handler(&hi2cb);}
