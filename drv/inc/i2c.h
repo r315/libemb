@@ -17,7 +17,9 @@ extern "C" {
 #include <stdint.h>
 
 enum i2ccfg_e{
-    I2C_CFG_DMA       = (1 << 1),
+    I2C_CFG_DMA = (1 << 1),
+    I2C_CFG_PINS = (1 << 2),
+    I2C_CFG_9_16 = (1 << 3),
 };
 
 enum i2cx_e{
@@ -32,6 +34,7 @@ typedef enum i2cerr_e {
     I2C_ERR,
     I2C_ERR_PARM,
     I2C_ERR_BUSY,
+    I2C_ERR_BUS,
     I2C_ERR_TIMEOUT,
     I2C_ERR_START,
     I2C_ERR_STOP,
@@ -43,7 +46,7 @@ typedef enum i2cerr_e {
 typedef struct {
     void *handle;
     uint8_t addr;       // own address
-    uint32_t speed;
+    uint32_t speed;     // in kHz
     uint8_t cfg;
     uint8_t bus_num;    // Bus number
 }i2cbus_t;

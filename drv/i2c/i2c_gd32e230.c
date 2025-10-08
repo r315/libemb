@@ -302,3 +302,8 @@ uint16_t I2C_Read(i2cbus_t *i2cbus, uint8_t addr, uint8_t *data, uint16_t size)
 {
     return i2c_master_receive(*(uint32_t*)i2cbus->handle, addr, data, size, 1000) != I2C_OK ? 0 : size;
 }
+
+uint32_t I2C_TransmitDMA(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t size)
+{
+    return I2C_ERR;
+}
