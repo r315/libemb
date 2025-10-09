@@ -517,6 +517,12 @@ uint32_t I2C_TransmitDMA(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, ui
     return I2C_SUCCESS;
 }
 
+i2cerr_t I2C_Busy(i2cbus_t *i2cbus)
+{
+    return ((hi2c_t*)i2cbus->handle)->i2c->STS2 & I2C_STS2_BUSYF ?
+            I2C_ERR_BUSY : I2C_SUCCESS;
+}
+
 void I2C1_EV_IRQHandler(void){i2c_eot_handler(&hi2ca);}
 void I2C1_ER_IRQHandler(void){i2c_eot_handler(&hi2ca);}
 void I2C2_EV_IRQHandler(void){i2c_eot_handler(&hi2cb);}
