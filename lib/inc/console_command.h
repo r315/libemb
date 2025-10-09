@@ -17,6 +17,7 @@ enum {
 	CMD_OK_NO_PRT,
 };
 
+#ifndef CONSOLE_SIMPLE_COMMAND
 class ConsoleCommand {
 private:
 	const char *name;
@@ -36,6 +37,12 @@ public:
 	}
 };
 
+#else
+typedef struct scommand {
+    const char *name;
+    int (*run)(int argc, char **argv);
+}ConsoleCommand;
+#endif
 
 #ifdef __cplusplus
 }

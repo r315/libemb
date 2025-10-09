@@ -22,7 +22,7 @@ uint32_t strToArray(char *str, char **argv, int max_arg)
 {
     uint32_t argc = 0;
 
-    if(str == NULL){
+    if(!str || !argv || !max_arg){
         return 0;
     }
 

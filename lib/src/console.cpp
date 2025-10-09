@@ -36,7 +36,7 @@ void Console::init(stdinout_t *out, const char *prompt) {
 void Console::addCommand(ConsoleCommand *cmd) {
 	if (cmd == NULL || m_cmdListSize == CONSOLE_MAX_COMMANDS)
 	{
-		print("Invalid command or command list full!\n");
+		this->print("Invalid command or command list full!\n");
 		return;
 	}
 
@@ -66,6 +66,11 @@ char Console::parseCommand(char *line) {
 			if (*cmd == NULL) {
 				break;
 			}
+            #ifdef CONSOLE_SIMPLE_COMMAND
+            if(xstrcmp((*cmd)->name, cmdname)){
+                res = (*cmd)->run(m_argc, m_argv);
+            }
+            #else
 			if ((*cmd)->isNameEqual(cmdname) != 0) {
                 if(m_argc > 1){
                     if(m_argv[1][0] == '?'){
@@ -77,6 +82,7 @@ char Console::parseCommand(char *line) {
 				res = (*cmd)->execute(m_argc, m_argv);
 				break;
 			}
+            #endif
 		}
 	}
 
@@ -84,11 +90,11 @@ char Console::parseCommand(char *line) {
 	memset(line, '\0', CONSOLE_WIDTH);
 
 	if (res == CMD_NOT_FOUND) {
-		print("Command not found\n");
+		this->print("Command not found\n");
 	}else if (res == CMD_BAD_PARAM) {
-		print("Bad parameter\n");
+		this->print("Bad parameter\n");
 	}else if(res == CMD_OK_LF){
-		printchar('\n');
+		writechar('\n');
 	}
 
 	return res;
@@ -150,7 +156,7 @@ void Console::asciiprint(const uint8_t *addr, uint32_t len)
         if(*addr > (' '-1) && *addr < 0x7F){
             this->printf("%c", *addr);
         }else{
-            this->writechar('.');
+            writechar('.');
         }
         addr++;
     }
@@ -171,10 +177,10 @@ void Console::hexprint(const uint8_t *addr, uint32_t len, uint8_t ascii)
 	}
 
     if(ascii){
-        this->asciiprint(addr, len);
+        asciiprint(addr, len);
 	}
 
-	this->writechar('\n');
+	writechar('\n');
 }
 
 void Console::hexdump(const uint8_t *mem, uint32_t len, uint8_t ncols, uint8_t ascii)
@@ -198,7 +204,7 @@ void Console::hexdump(const uint8_t *mem, uint32_t len, uint8_t ncols, uint8_t a
                 asciiprint(mem, count);
             }
 
-            this->writechar('\n');
+            writechar('\n');
         }
 		mem += ncols;
 	}
@@ -233,6 +239,22 @@ int Console::println(const char* str)
     return m_out->write(m_buf, len);
 }
 
+int Console::printf(const char* fmt, ...)
+{
+	va_list arp;
+    int len;
+	va_start(arp, fmt);
+	len = strformater(m_buf, fmt, CONSOLE_WIDTH, arp);
+	va_end(arp);
+
+	return m_out->write(m_buf, len);
+}
+
+int Console::printchar(int c) {
+	writechar(c);
+	return (int)c;
+}
+
 char *Console::getString(char* str)
 {
 	uint8_t i = 0;
@@ -248,11 +270,6 @@ char *Console::getString(char* str)
 	*(str + i) = '\0';
 
 	return str;
-}
-
-int Console::printchar(int c) {
-	writechar(c);
-	return (int)c;
 }
 
 int Console::getChar(void)
@@ -466,17 +483,6 @@ char Console::getLine(char *dst, uint8_t maxLen)
 	//Remove all extra text from previous commands
 	memset(dst + m_line_len, '\0', maxLen - m_line_len);
 	return m_line_len;
-}
-
-int Console::printf(const char* fmt, ...)
-{
-	va_list arp;
-    int len;
-	va_start(arp, fmt);
-	len = strformater(m_buf, fmt, CONSOLE_WIDTH, arp);
-	va_end(arp);
-
-	return m_out->write(m_buf, len);
 }
 
 uint8_t Console::available(void)
