@@ -39,8 +39,9 @@ void Console::addCommand(ConsoleCommand *cmd) {
 		this->print("Invalid command or command list full!\n");
 		return;
 	}
-
+    #ifndef CONSOLE_SIMPLE_COMMAND
 	cmd->init(this);
+    #endif
 	m_cmdList[m_cmdListSize++] = cmd;
 }
 
@@ -67,7 +68,7 @@ char Console::parseCommand(char *line) {
 				break;
 			}
             #ifdef CONSOLE_SIMPLE_COMMAND
-            if(xstrcmp((*cmd)->name, cmdname)){
+            if(!xstrcmp((*cmd)->name, cmdname)){
                 res = (*cmd)->run(m_argc, m_argv);
             }
             #else
