@@ -5,6 +5,7 @@
 #include "uart.h"
 #include "gpio.h"
 #include "fifo.h"
+#include "clock.h"
 
 #define UART_MODE_BLOCKING      0
 #define UART_MODE_FIFO          1
@@ -51,19 +52,29 @@ static huart_t huart1, huart2, huart3;
 void UART_Init(serialbus_t *serialbus){
     huart_t *huart;
     IRQn_Type irq;
-    RCC_ClockType clocks;
     uint32_t pclk;
 
+#ifdef USE_STDPERIPH_DRIVER
+    RCC_ClockType clocks;
     RCC_GetClocksFreq(&clocks);
+#else
+    sysclock_t clocks;
+    CLOCK_GetAll(&clocks);
+#endif
 
     switch(serialbus->bus){
         case UART_BUS0:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB2PeriphClockCmd(RCC_APB2EN_USART1EN, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2EN_USART1EN, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2EN_USART1EN, DISABLE);
-
             pclk = clocks.APB2CLK_Freq;
-
+            #else
+            RCC->APB2EN |= RCC_APB2EN_USART1EN;
+            RCC->APB2RST |= RCC_APB2RST_USART1RST;
+            RCC->APB2RST &= ~RCC_APB2RST_USART1RST;
+            pclk = clocks.pclk2;
+            #endif
             huart = &huart1;
             huart->usart = USART1;
             irq = USART1_IRQn;
@@ -72,12 +83,17 @@ void UART_Init(serialbus_t *serialbus){
             break;
 
         case UART_BUS1:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB1PeriphClockCmd(RCC_APB1EN_USART2EN, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_USART2RST, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_USART2RST, DISABLE);
-
             pclk = clocks.APB1CLK_Freq;
-
+            #else
+            RCC->APB1EN |= RCC_APB1EN_USART2EN;
+            RCC->APB1RST |= RCC_APB1RST_USART2RST;
+            RCC->APB1RST &= ~RCC_APB1RST_USART2RST;
+            pclk = clocks.pclk1;
+            #endif
             huart = &huart2;
             huart->usart = USART2;
             irq = USART2_IRQn;
@@ -86,12 +102,17 @@ void UART_Init(serialbus_t *serialbus){
             break;
 
         case UART_BUS2:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB1PeriphClockCmd(RCC_APB1EN_USART3EN, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_USART3RST, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_USART3RST, DISABLE);
-
             pclk = clocks.APB1CLK_Freq;
-
+            #else
+            RCC->APB1EN |= RCC_APB1EN_USART3EN;
+            RCC->APB1RST |= RCC_APB1RST_USART3RST;
+            RCC->APB1RST &= ~RCC_APB1RST_USART3RST;
+            pclk = clocks.pclk1;
+            #endif
             huart = &huart3;
             huart->usart = USART3;
             irq = USART3_IRQn;
