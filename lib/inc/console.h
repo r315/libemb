@@ -73,6 +73,7 @@ class Console {
 		void setOutput(stdinout_t *);
 
 		void addCommand(ConsoleCommand *);
+        void addCommandArray(ConsoleCommand *, int count);
 		void registerCommandList(ConsoleCommand **);
 		char parseCommand(char *);
 		char executeCommand(void *);

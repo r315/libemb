@@ -45,6 +45,24 @@ void Console::addCommand(ConsoleCommand *cmd) {
 	m_cmdList[m_cmdListSize++] = cmd;
 }
 
+void Console::addCommandArray(ConsoleCommand *array, int count)
+{
+    if (array == NULL || !count){
+		return;
+	}
+
+    while(count--){
+        if(m_cmdListSize == CONSOLE_MAX_COMMANDS){
+            this->print("Command list full!\n");
+            return;
+        }
+        #ifndef CONSOLE_SIMPLE_COMMAND
+        cmd->init(this);
+        #endif
+        m_cmdList[m_cmdListSize++] = (ConsoleCommand*)array++;
+    }
+}
+
 void Console::registerCommandList(ConsoleCommand **list){
 	while(*list != NULL){
 		addCommand(*(list++));
