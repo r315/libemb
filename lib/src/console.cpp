@@ -57,7 +57,7 @@ void Console::addCommandArray(ConsoleCommand *array, int count)
             return;
         }
         #ifndef CONSOLE_SIMPLE_COMMAND
-        cmd->init(this);
+        array->init(this);
         #endif
         m_cmdList[m_cmdListSize++] = (ConsoleCommand*)array++;
     }
