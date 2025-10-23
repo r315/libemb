@@ -38,14 +38,11 @@ extern "C" {
 #define DBG_PRINT(...) do { DBG_PRINTF(__VA_ARGS__); } while(0)
 #define DBG_PRINTLN(...) do { DBG_PRINTF(__VA_ARGS__); dbg_putchar('\n'); } while(0)
 #endif
-#else
-#define DBG_PRINT(...)
-#endif
 
-#if defined(DEBUG) || defined(ENABLE_DEBUG)
 #define DBG_INF(...) DBG_PRINTLN(VT100_GREEN "[INFO] " VT100_NORMAL __VA_ARGS__)
 #define DBG_WRN(...) DBG_PRINTLN(VT100_YELLOW "[WARN] " VT100_NORMAL __VA_ARGS__)
 #define DBG_ERR(...) DBG_PRINTLN(VT100_RED "[ERROR] " VT100_NORMAL __VA_ARGS__)
+#define DBG_CHAR(_X) dbg_putchar(_X)
 #define DBG_HEXDUMP dbg_hexdump
 #define DBG_HEXPRINT dbg_hexprint
 #else
@@ -54,6 +51,8 @@ extern "C" {
 #define DBG_ERR(...)
 #define DBG_HEXDUMP(...)
 #define DBG_HEXPRINT(...)
+#define DBG_PRINT(...)
+#define DBG_CHAR(...)
 #endif
 
 void dbg_hexdump(const uint8_t *mem, uint32_t len, uint8_t ncols, uint8_t ascii);
