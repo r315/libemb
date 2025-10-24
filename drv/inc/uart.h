@@ -3,6 +3,15 @@
 
 #include <stdint.h>
 
+#define UART_DATA_7BIT   7
+#define UART_DATA_8BIT   8
+#define UART_DATA_9BIT   9
+#define UART_PARITY_NONE 0
+#define UART_PARITY_ODD  1
+#define UART_PARITY_EVEN 2
+#define UART_STOP_1BIT   1
+#define UART_STOP_2BIT   2
+
 typedef enum uartx{
     UART_BUS0 = 0,
     UART_BUS1,
@@ -16,9 +25,9 @@ typedef struct serialbus {
     uint32_t speed;
     union{
         struct {
-            uint8_t parity;
-            uint8_t stopbit;
-            uint8_t datalength;
+            uint8_t datalength  :4;
+            uint8_t parity      :2;
+            uint8_t stopbit     :2;
         };
         uint32_t cfg;
     };

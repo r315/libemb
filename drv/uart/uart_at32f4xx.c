@@ -124,11 +124,21 @@ void UART_Init(serialbus_t *serialbus){
             return;
     }
 
-
     huart->usart->BAUDR = pclk / serialbus->speed;
 
-    huart->usart->CTRL1 = USART_CTRL1_REN | USART_CTRL1_TEN | USART_CTRL1_UEN | USART_CTRL1_RDNEIEN;
+    uint32_t tmp = serialbus->datalength == UART_DATA_9BIT ? USART_CTRL1_LEN : 0;
 
+    if(serialbus->parity != UART_PARITY_NONE){
+        tmp = tmp | USART_CTRL1_PCEN | ((serialbus->parity == UART_PARITY_ODD) ? USART_CTRL1_PSEL : 0);
+    }
+
+    huart->usart->CTRL1 =   tmp |
+                            USART_CTRL1_REN | USART_CTRL1_TEN |
+                            USART_CTRL1_UEN | USART_CTRL1_RDNEIEN;
+
+    if(serialbus->stopbit == UART_STOP_2BIT){
+        huart->usart->CTRL2 |= (2 << 12);
+    }
 
     fifo_init(&huart->txfifo);
     fifo_init(&huart->rxfifo);
