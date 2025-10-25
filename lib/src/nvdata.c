@@ -7,17 +7,18 @@
 #define NVDATA_SIZE         (NVDATA_BLOCK_SIZE - 1)
 #define NVDATA_STATE        (nvdata->nvb.data[NVDATA_SIZE])
 
-#ifdef ENABLE_DEBUG_NVDATA
 #define DBG_TAG     "NVDATA : "
+
+#ifdef ENABLE_DEBUG_NVDATA
 #define DBG_NVDATA_INF(...) DBG_INF(DBG_TAG __VA_ARGS__)
 #define DBG_NVDATA_WRN(...) DBG_WRN(DBG_TAG __VA_ARGS__)
 #define DBG_NVDATA_ERR(...) DBG_ERR(DBG_TAG __VA_ARGS__)
-#define DBG_NVDATA_PRINTF(...) DBG_PRINTF(__VA_ARGS__)
+#define DBG_NVDATA_PRINT(...) DBG_PRINT(__VA_ARGS__)
 #else
 #define DBG_NVDATA_INF(...)
 #define DBG_NVDATA_WRN(...)
 #define DBG_NVDATA_ERR(...)
-#define DBG_NVDATA_PRINTF(...)
+#define DBG_NVDATA_PRINT(...)
 #endif
 
 static uint32_t checkEmptyBlock(uint8_t *address);
@@ -231,14 +232,14 @@ uint32_t NV_Erase(void){
  * private functions
  */
 static uint32_t checkEmptyBlock(uint8_t *address){
-    DBG_NVDATA_PRINTF(DBG_TAG"Checking block 0x%x ", (unsigned int)address);
+    DBG_NVDATA_PRINT("\t" DBG_TAG "Checking block 0x%x ", (unsigned int)address);
     for (uint16_t i = 0; i < NVDATA_BLOCK_SIZE; i++){
         if(*(address++) != (uint8_t)0xFF){
-            DBG_NVDATA_PRINTF("Found data at offset 0x%x\n", i);
+            DBG_NVDATA_PRINT("Found data at offset 0x%x\n", i);
             return 0;
         }
     }
-    DBG_NVDATA_PRINTF("Empty\n");
+    DBG_NVDATA_PRINT("Empty\n");
     return 1;
 }
 
