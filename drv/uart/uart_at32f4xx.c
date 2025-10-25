@@ -191,12 +191,13 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *data, uint32_t len)
 
 static void UART_IRQHandler(huart_t *huart)
 {
-    uint32_t isrflags = huart->usart->STS;
+    volatile uint32_t isrflags = huart->usart->STS;
     uint32_t ctrl = huart->usart->CTRL1;
     uint32_t errorflags = isrflags & (uint32_t)(USART_STS_PERR | USART_STS_FERR | USART_STS_ORERR | USART_STS_NERR);
 
     if (errorflags){
         huart->usart->STS = ~(errorflags & (uint32_t)(USART_STS_CTSF | USART_STS_LBDF | USART_STS_TRAC | USART_STS_RDNE));
+        isrflags = huart->usart->DT;
         return;
     }
 
