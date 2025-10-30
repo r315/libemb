@@ -221,9 +221,9 @@ void Reset_Handler(void)
     {
         *(pulDest++) = 0;
     }
-	
+
 	//Initialize static constructors.
-	
+
 	__libc_init_array();
     //
     // Call the application's entry point.

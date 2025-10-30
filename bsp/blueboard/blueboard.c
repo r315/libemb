@@ -10,31 +10,11 @@
 extern "C" {
 #endif
 
-
-spibus_t spibus_1, spibus_sd;
-
-
-#ifdef ENABLE_SDCARD
-static void sdcardInit()
-{
-    BOARD_SDCARD_DESELECT;
-    GPIO_Config(P0_16, GPO_PP);
-
-	spibus_sd.bus = SPI_BUS0;
-    spibus_sd.freq = 8000UL;
-    spibus_sd.flags  = SPI_MODE0;
-    SPI_Init(&spibus_sd);
-}
+#ifdef ENABLE_SPI
+static spibus_t spibus_1;
 #endif
 
-#ifdef ENABLE_BUTTONS
-static void buttonsInit()
-{
-    BUTTON_Init(BUTTON_DEFAULT_HOLD_TIME);
-}
-#endif
-
-#ifdef ENABLE_TFT_DISPLAY
+#ifdef ENABLE_DISPLAY
 static drvlcdparallel_s lcd0;
 
 static void displayWrite(uint32_t data)
@@ -77,6 +57,10 @@ void BB_LCD_Init(void)
     LCD_FillRect(0, 0, lcd0.w, lcd0.h, 0);
 }
 #endif
+
+#ifdef ENABLE_SDCARD
+static spibus_t spibus_sd;
+#endif
 //---------------------------------------------------
 //
 //---------------------------------------------------
@@ -88,9 +72,24 @@ void BB_Init(void){
 	LED2_OFF;
 	LED3_OFF;
 
-    #ifdef ENABLE_TFT_DISPLAY
+    #ifdef ENABLE_DISPLAY
     BB_LCD_Init();
     #endif
+
+    #ifdef ENABLE_BUTTONS
+    BUTTON_Init(BUTTON_DEFAULT_HOLD_TIME);
+    #endif
+
+    #ifdef ENABLE_SDCARD
+    BOARD_SDCARD_DESELECT;
+    GPIO_Config(P0_16, GPO_PP);
+
+	spibus_sd.bus = SPI_BUS0;
+    spibus_sd.freq = 8000UL;
+    spibus_sd.flags  = SPI_MODE0;
+    SPI_Init(&spibus_sd);
+    #endif
+
 }
 
 void SW_Reset(void){
@@ -125,6 +124,7 @@ void BB_ConfigClockOut(uint8_t en){
 //--------------------------------------------------
 //
 //--------------------------------------------------
+#ifdef ENABLE_SPI
 void BB_SPI_Write(uint8_t *data, uint32_t count){
 	SPI_Transfer(&spibus_1, data, count);
 }
@@ -145,6 +145,7 @@ void BB_SPI_SetFrequency(uint32_t freq){
     spibus_1.freq = freq;
     SPI_Init(&spibus_1);
 }
+#endif
 
 #ifdef __cplusplus
 }

@@ -19,6 +19,8 @@ extern "C" {
 
 #include "LPC17xx.h"
 #include "lpc17xx_hal.h"
+#include "clock_lpc17xx.h"
+#include "tim_lpc17xx.h"
 #include "spi.h"
 #include "ili9328.h"
 
@@ -146,12 +148,6 @@ extern "C" {
 //
 //-----------------------------------------------------
 
-//enum {false = 0, true, OFF = false, ON = true};
-#define BOARD_SD_GET_SPI        (&spibus_sd)
-
-extern spibus_t spibus_1, spibus_sd;
-
-//-----------------------------------------------------
 void BB_Init(void);
 void SW_Reset(void);
 void BB_ConfigClockOut(uint8_t en);
