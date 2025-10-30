@@ -11,7 +11,7 @@ extern "C" {
 
 #ifndef __EMU__
 	#define toupper(c) ( (c)-'a'+'A' )
-#endif 
+#endif
 
 enum Attributes{
 	FONT_NORMAL,
@@ -23,10 +23,10 @@ void LIB2D_Init(void);
 void LIB2D_SetFont(font_t *fnt);
 void LIB2D_SetAttribute(uint8_t atr);
 void LIB2D_Pixel(uint16_t x0, uint16_t y0);
-uint16_t  LIB2D_Char(uint16_t  x, uint16_t y, uint8_t c); 
-uint16_t  LIB2D_Int(uint16_t x, uint16_t y, int32_t v, uint8_t radix);
-uint16_t  LIB2D_Float(uint16_t x, uint16_t y, float f);
-uint16_t  LIB2D_Text(uint16_t x, uint16_t y, const char *s);
+uint16_t LIB2D_Char(uint16_t  x, uint16_t y, uint8_t c);
+uint16_t LIB2D_Int(uint16_t x, uint16_t y, int32_t v, uint8_t radix);
+uint16_t LIB2D_Float(uint16_t x, uint16_t y, float f);
+uint16_t LIB2D_Text(uint16_t x, uint16_t y, const char *s);
 void LIB2D_SetColors(uint16_t fc, uint16_t bc);
 void LIB2D_SetFcolor(uint16_t color);
 void LIB2D_SetBcolor(uint16_t color);
