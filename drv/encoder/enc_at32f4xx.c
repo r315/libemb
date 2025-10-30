@@ -2,13 +2,15 @@
 #include "at32f4xx.h"
 #include "encoder.h"
 #include "gpio_at32f4xx.h"
+#include "gpio.h"
 
 uint32_t ENC_Init(enctype_t *enc, uint32_t cfg)
 {
     TMR_Type *tmr;
     switch(cfg){
         case 0:
-            RCC->APB1EN |= RCC_APB1EN_TMR2EN | RCC_APB2EN_AFIOEN;
+            RCC->APB1EN |= RCC_APB1EN_TMR2EN;
+            RCC->APB2EN |= RCC_APB2EN_AFIOEN;
             // Partial remap for TIM2, PA15 -> CH1, PB3 -> CH2
             AFIO->MAP = (AFIO->MAP & ~(3 << 8)) | (1 << 8);
             GPIO_Config(PB_3, GPI_PU);
@@ -16,7 +18,7 @@ uint32_t ENC_Init(enctype_t *enc, uint32_t cfg)
             tmr = TMR2;
             break;
 
-        default: return;
+        default: return 0;
     }
 
     tmr->CTRL1 = 0;
@@ -27,6 +29,10 @@ uint32_t ENC_Init(enctype_t *enc, uint32_t cfg)
     tmr->CCE = 0;                                       // Falling polarity
     tmr->STS = 0;
     tmr->CTRL1 = TMR_CTRL1_CNTEN;
+
+    enc->handle = tmr;
+
+    return 1;
 }
 
 /**
@@ -61,8 +67,8 @@ int32_t ENC_Update(enctype_t *enc)
 {
     int16_t diff = ENC_IncrementGet(enc);
     if(diff != 0){
-        uint32_t tmp = enc->value;
-        tmp += diff * 10;                       // increment/decrement, TODO: acceleration
+        int32_t tmp = enc->value;
+        tmp += diff;                       // increment/decrement, TODO: acceleration
         if(tmp > enc->max){ tmp = enc->max; }
         if(tmp < enc->min){ tmp = enc->min; }
         enc->value = tmp;
