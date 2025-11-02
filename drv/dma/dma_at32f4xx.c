@@ -103,7 +103,7 @@ void DMA_Start(dmatype_t *dma)
         cfg |= DMA_CHCTRL1_MINC;
     }
 
-    stream->CHCTRL |= DMA_CHCTRL1_CHEN;
+    stream->CHCTRL = cfg | DMA_CHCTRL1_CHEN;
 }
 
 void DMA_Cancel(dmatype_t *dma)

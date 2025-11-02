@@ -10,20 +10,6 @@ static const void *s_dmachs[8] = {LPC_GPDMACH0, LPC_GPDMACH1, LPC_GPDMACH2, LPC_
 static dmalli_t s_lli[DMA_MAX_CHANNELS];
 static eot_t s_eot[DMA_MAX_CHANNELS];
 
-/**
- * @brief DMA Controller initialization.
- *
- * @param dma
- */
-void DMA_Init(dmatype_t *dma){
-    PCONP_GPDMA_ENABLE;
-    if(!(LPC_GPDMA->Config & DMAC_CONFIG_E)){
-        LPC_GPDMA->Config = DMAC_CONFIG_E; // Enable DMA
-        NVIC_EnableIRQ(DMA_IRQn);
-    }
-
-    dma->len = 0;
-}
 
 /**
  * @brief
@@ -35,8 +21,15 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
     LPC_GPDMACH_TypeDef *dmach = NULL;
     uint8_t ch_num = DMA_MAX_CHANNELS - 1;
 
+    if(!(LPC_SC->PCONP & SC_PCONP_PCGPDMA)){
+        LPC_SC->PCONP |= SC_PCONP_PCGPDMA;
+        LPC_GPDMA->Config = DMAC_CONFIG_E; // Enable DMA
+        NVIC_EnableIRQ(DMA_IRQn);
+    }
+
     if(dma->stream == NULL){
         do{
+            // Select a channel starting from the lowest priority one
             if((LPC_GPDMA->EnbldChns & (1 << ch_num)) == 0){
                 break;
             }
@@ -46,12 +39,12 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
             return 0; // no channels available
         }
     }else{
+        // Channel has been configured
         for (ch_num = 0; ch_num < DMA_MAX_CHANNELS; ch_num++){
             if(s_dmachs[ch_num] == dma->stream){
                 break;
             }
         }
-
         if((LPC_GPDMA->EnbldChns & (1 << ch_num))){
             return 0; // channel in use
         }
@@ -131,10 +124,18 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
  *
  * @param dma
  */
-void DMA_Start(dmatype_t *dma){
-    if(dma->len > 0){
-        ((LPC_GPDMACH_TypeDef *)dma->stream)->CConfig |= DMA_CONFIG_E;
+void DMA_Start(dmatype_t *dma)
+{
+    LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)dma->stream;
+    uint32_t ctrl = (stream->CControl & 0xFFFFF000) | dma->len;
+
+    if(dma->dir == DMA_DIR_P2P){
+        ctrl = ctrl & ~(DMA_CONTROL_SI | DMA_CONTROL_DI);
     }
+
+    stream->CSrcAddr = (uint32_t)dma->src;
+    stream->CControl = ctrl;
+    stream->CConfig |= DMA_CONFIG_E;
 }
 
 /**
@@ -142,7 +143,8 @@ void DMA_Start(dmatype_t *dma){
  *
  * @param ch
  */
-void DMA_Cancel(dmatype_t *ch){
+void DMA_Cancel(dmatype_t *ch)
+{
     LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)ch->stream;
 
     #if 0 // forced stop
@@ -160,7 +162,20 @@ void DMA_Cancel(dmatype_t *ch){
 }
 
 /**
- * @brief HW Handler
+ * @brief Return number of bytes already transferred into buffer
+ * or in other words dma offset within destination
+ * @param dma
+ * @return
+ */
+uint32_t DMA_GetTransfers(dmatype_t *dma)
+{
+    LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)dma->stream;
+
+    return dma->len - (stream->CControl & 0xFFF);
+}
+
+/**
+ * @brief
  *
  */
 void DMA_IRQHandler(void){
@@ -171,6 +186,7 @@ void DMA_IRQHandler(void){
                     s_eot[ch]();
                 }
                 LPC_GPDMA->IntTCClear = ch_msk;
+                // DMA stream is disable automatically if DMACCCxLL is NULL
             }
 
             if(LPC_GPDMA->IntErrStat & ch_msk){
