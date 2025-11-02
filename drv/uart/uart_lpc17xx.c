@@ -3,13 +3,43 @@
 #include "lpc17xx_hal.h"
 #include "uart.h"
 #include "fifo.h"
+#include "dma.h"
+#include <string.h>
 
 #define DIVADDVAL_MULVAL(D, M) D | (M << 4)
 
+#define UART_MODE_BLOCKING      0
+#define UART_MODE_FIFO          1
+#define UART_MODE_DMA           2
+
+#ifndef UART_RX_MODE
+#define UART_RX_MODE            UART_MODE_DMA
+#endif
+#ifndef UART_TX_MODE
+#define UART_TX_MODE            UART_MODE_DMA
+#endif
+#ifndef UART_DMA_BUF_SIZE
+#define UART_DMA_BUF_SIZE       32
+#endif
+
+
 typedef struct huart {
     LPC_UART_TypeDef *uart;
-    fifo_t txfifo;
+    #if UART_RX_MODE == UART_MODE_DMA
+    dmatype_t dma_rx;
+    volatile uint16_t rx_rd;
+    uint8_t rx_buf[UART_DMA_BUF_SIZE];
+    #else
     fifo_t rxfifo;
+    #endif
+
+    #if UART_TX_MODE == UART_MODE_DMA
+    dmatype_t dma_tx;
+    uint8_t tx_buf[UART_DMA_BUF_SIZE];
+    #else
+    fifo_t txfifo;
+    #endif
+
 }huart_t;
 
 static huart_t huart0, huart1, huart3;
@@ -95,7 +125,7 @@ static const FdrPair _frdivTab[] = {
 	{1933, DIVADDVAL_MULVAL(14, 15)},
 };
 
-static void frdivLookup(volatile uint32_t *fdr, volatile uint32_t *dlm, volatile uint32_t *dll, uint32_t baudrate, uint32_t pclk)
+static void frdivLookup(LPC_UART_TypeDef *uart, uint32_t baudrate, uint32_t pclk)
 {
 	uint32_t DLest, FRest;
 	const FdrPair *pfrdvtab = _frdivTab;
@@ -120,16 +150,28 @@ static void frdivLookup(volatile uint32_t *fdr, volatile uint32_t *dlm, volatile
 		}
 	}
 
-	*fdr = pfrdvtab->FdrVal;
-	*dlm = (DLest >> 8) & 255;
-	*dll = DLest & 255;
+    uart->LCR |= UART_LCR_DLAB;
+	uart->FDR = pfrdvtab->FdrVal;
+	uart->DLM = (DLest >> 8) & 255;
+	uart->DLL = DLest & 255;
+    uart->LCR &= ~UART_LCR_DLAB;
 }
 
 void UART_Init(serialbus_t *serialbus)
 {
 	huart_t *huart;
-	IRQn_Type irq;
 	uint32_t pclk;
+
+    #if UART_RX_MODE == UART_MODE_DMA
+    uint32_t rx_req;
+    #endif
+    #if UART_TX_MODE == UART_MODE_DMA
+    uint32_t tx_req;
+    #endif
+    #if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
+    IRQn_Type irq = 0;
+    #endif
+
 
 	switch (serialbus->bus)
 	{
@@ -141,7 +183,16 @@ void UART_Init(serialbus_t *serialbus)
 		// Turn on UART0 peripheral clock
 		CLOCK_SetPCLK(PCLK_UART0, PCLK_4);
 		pclk = CLOCK_GetPCLK(PCLK_UART0);
+
+        #if UART_RX_MODE == UART_MODE_DMA
+        rx_req = DMA_REQ_UART0_RX;
+        #endif
+        #if UART_TX_MODE == UART_MODE_DMA
+        tx_req = DMA_REQ_UART0_TX;
+        #endif
+        #if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
 		irq = UART0_IRQn;
+        #endif
 
 		// P0.2 = TXD0, P0.3 = RXD0, Alternative function impose direction
 		LPC_PINCON->PINSEL0 &= ~0xf0;
@@ -154,7 +205,16 @@ void UART_Init(serialbus_t *serialbus)
 		PCONP_UART1_ENABLE;
 		CLOCK_SetPCLK(PCLK_UART1, PCLK_4);
 		pclk = CLOCK_GetPCLK(PCLK_UART1);
+
+        #if UART_RX_MODE == UART_MODE_DMA
+        rx_req = DMA_REQ_UART1_RX;
+        #endif
+        #if UART_TX_MODE == UART_MODE_DMA
+        tx_req = DMA_REQ_UART1_TX;
+        #endif
+        #if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
 		irq = UART1_IRQn;
+        #endif
 
 		// P2.0 = TXD1, P2.1 = RXD1
 		LPC_PINCON->PINSEL4 &= ~(0x0f << 0);
@@ -183,55 +243,107 @@ void UART_Init(serialbus_t *serialbus)
 		PCONP_UART3_ENABLE;
 		CLOCK_SetPCLK(PCLK_UART3, PCLK_4);
 		pclk = CLOCK_GetPCLK(PCLK_UART3);
+
+
+        #if UART_RX_MODE == UART_MODE_DMA
+        rx_req = DMA_REQ_UART3_RX;
+        #endif
+        #if UART_TX_MODE == UART_MODE_DMA
+        tx_req = DMA_REQ_UART3_TX;
+        #endif
+        #if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
 		irq = UART3_IRQn;
+        #endif
 
 		// P0.0 = TXD3, P0.1 = RXD3
-		// LPC_PINCON->PINSEL0 &= ~(0x0f << 20);
-		// LPC_PINCON->PINSEL0 |= (0x0A << 20);
+        LPC_GPIO0->FIODIR0 = (LPC_GPIO0->FIODIR0 & 0xFC);
+		LPC_PINCON->PINSEL0 &= ~(0x0f << 0);
+		LPC_PINCON->PINSEL0 |= (0x0A << 0);
 
 		// P0.25 = TXD3, P0.26 = RXD3
-		// LPC_PINCON->PINSEL1 &= ~(0x0f << 18);
-		LPC_PINCON->PINSEL1 |= (0x0F << 18);
+        //LPC_GPIO0->FIODIR3 = (LPC_GPIO3->FIODIR0 & 0xF9);
+		//LPC_PINCON->PINSEL1 &= ~(0x0f << 18);
+		//LPC_PINCON->PINSEL1 |= (0x0F << 18);
 		break;
 
 	default:
 		return;
 	}
 
-	huart->uart->LCR = UART_LCR_DLAB | UART_LCR_WL8;
-	frdivLookup((uint32_t *)&huart->uart->FDR, (uint32_t *)&huart->uart->DLM, (uint32_t *)&huart->uart->DLL, serialbus->speed, pclk);
-	huart->uart->LCR = UART_LCR_WL8; // 8 bits, no Parity, 1 Stop bit
-	huart->uart->FCR = 0;			   // Disable FIFO
+    uint8_t wls = serialbus->datalength - 5;
 
-	NVIC_EnableIRQ(irq);
+    if(wls > 3){
+        // Word len not supported
+        return;
+    }
+
+	frdivLookup(huart->uart, serialbus->speed, pclk);
+
+	huart->uart->LCR = wls & 3;
+
+    if(serialbus->stopbit == UART_STOP_2BIT){
+        huart->uart->LCR |= UART_LCR_SB;
+    }
+
+    if(serialbus->parity != UART_PARITY_NONE){
+        uint32_t parity = serialbus->parity == UART_PARITY_EVEN ? UART_LCR_PS_EVEN : UART_LCR_PS_ODD;
+        huart->uart->LCR |= UART_LCR_PE | parity;
+    }
+
 	serialbus->handle = huart;
 
+    #if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
+	NVIC_EnableIRQ(irq);
 	fifo_init(&huart->rxfifo);
 	fifo_init(&huart->txfifo);
-
 	SET_BIT(huart->uart->IER, UART_IER_RBR | UART_IER_THRE);
-}
+	huart->uart->FCR = 0;			   // Disable FIFO
+    #endif
 
-/*char UART_GetChar(serialbus_t *huart)
-{
-	LPC_UART_TypeDef *uart = (LPC_UART_TypeDef *)huart->handle;
-	while ((uart->LSR & UART_LSR_RDR) == 0)
-		;			  // Nothing received so just block
-	return uart->RBR; // Read Receiver buffer register
-}
+    #if UART_RX_MODE == UART_MODE_DMA
+    huart->dma_rx.dir = DMA_DIR_P2M;
+    huart->dma_rx.dst = (void*)huart->rx_buf;
+    huart->dma_rx.src = (void*)&huart->uart->RBR;
+    huart->dma_rx.ssize = DMA_DATA_SIZE_8;
+    huart->dma_rx.dsize = DMA_DATA_SIZE_8;
+    huart->dma_rx.len = UART_DMA_BUF_SIZE;
+    huart->dma_rx.single = 0;
+    huart->dma_rx.eot = NULL;
+    DMA_Config(&huart->dma_rx, rx_req);
+    DMA_Start(&huart->dma_rx);
+    huart->uart->FCR = UART_FCR_EN | UART_FCR_DMA;
+    #endif
 
-*/
+    #if UART_TX_MODE == UART_MODE_DMA
+    huart->dma_tx.dir = DMA_DIR_M2P;
+    huart->dma_tx.src = (void*)huart->tx_buf;
+    huart->dma_tx.dst = (void*)&huart->uart->THR;
+    huart->dma_tx.ssize = DMA_DATA_SIZE_8;
+    huart->dma_tx.dsize = DMA_DATA_SIZE_8;
+    huart->dma_tx.len = 0;
+    huart->dma_tx.single = 1;
+    huart->dma_tx.eot = NULL;
+    DMA_Config(&huart->dma_tx, tx_req);
+    huart->uart->FCR = UART_FCR_EN | UART_FCR_DMA;
+    #endif
+
+}
 
 uint32_t UART_Available(serialbus_t *serialbus)
 {
     huart_t *huart = (huart_t *)serialbus->handle;
+    #if UART_RX_MODE == UART_MODE_DMA
+    uint32_t dma_idx = DMA_GetTransfers(&huart->dma_rx);
+    return (dma_idx < huart->rx_rd) ? huart->dma_rx.len - huart->rx_rd + dma_idx : dma_idx - huart->rx_rd;
+    #else
 	return fifo_avail(&huart->rxfifo);
+    #endif
 }
 
 uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len){
 	huart_t *huart = (huart_t *)serialbus->handle;
+    #if UART_TX_MODE == UART_MODE_FIFO
     const uint8_t *end = buf + len;
-
 	while(buf < end){
 		if (fifo_put(&huart->txfifo, *buf)){
 			buf++;
@@ -242,19 +354,37 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len){
 	}
 
 	fifo_get(&huart->txfifo, (uint8_t *)&huart->uart->THR);
+    #else
+    while(DMA_GetTransfers(&huart->dma_tx) != huart->dma_tx.len);
+    memcpy(huart->tx_buf, buf, len);
+    huart->dma_tx.len = len;
+    DMA_Start(&huart->dma_tx);
+    #endif
 	return len;
 }
 
 uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len){
     huart_t *huart = (huart_t *)serialbus->handle;
     uint32_t count = len;
+    #if UART_RX_MODE == UART_MODE_FIFO
+    uint32_t count = len;
 	while(count--){
         while(!fifo_get(&huart->rxfifo, buf));
         buf++;
     }
+    #else
+    while(count--){
+        while(UART_Available(serialbus) == 0);
+        *buf++ = huart->rx_buf[huart->rx_rd++];
+        if(huart->rx_rd == huart->dma_rx.len){
+            huart->rx_rd = 0;
+        }
+    }
+    #endif
     return len;
 }
 
+#if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
 static void UART_IRQHandler(huart_t *huart)
 {
 	uint32_t iir, lsr;
@@ -309,3 +439,4 @@ void UART2_IRQHandler(void){}
 void UART3_IRQHandler(void){
 	UART_IRQHandler(&huart3);
 }
+#endif
