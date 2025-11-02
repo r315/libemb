@@ -32,7 +32,8 @@ const drvlcd_t ili9328_drv =
     LCD_Bkl,
     LCD_GetWidth,
     LCD_GetHeight,
-    LCD_GetSize
+    LCD_GetSize,
+    0
 };
 
 extern void DelayMs(uint32_t ms);

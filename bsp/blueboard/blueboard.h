@@ -48,16 +48,14 @@ extern "C" {
 // see button.h
 //-----------------------------------------------------
 #define BUTTON_UP       (1<<15)
-#define BUTTON_DOWN     (1<<17)
-#define BUTTON_LEFT     (1<<16)
+#define BUTTON_DOWN     (1<<29)
+#define BUTTON_LEFT     (1<<28)
 #define BUTTON_RIGHT    (1<<28)
 #define BUTTON_A        (1<<14)
 #define BUTTON_CENTER   BUTTON_A
 
-#define BUTTON_HW_READ  (~(LPC_GPIO1->FIOPIN) & BUTTON_MASK)
-#define BUTTON_HW_INIT  (LPC_GPIO1->FIODIR &= ~(BUTTON_MASK))
-
-#define BUTTON_MASK     (BUTTON_UP | BUTTON_DOWN | BUTTON_LEFT | BUTTON_RIGHT | BUTTON_A )
+#define BUTTON_HW_READ  BB_ButtonsRead()
+#define BUTTON_HW_INIT  BB_ButtonsInit()
 
 //-----------------------------------------------------
 //
@@ -117,8 +115,7 @@ extern "C" {
 #define  LCD_RST        (1<<0)  //P1.0
 
 #define  LCD_CTRLPORT    	LPC_GPIO1
-#define  LCD_DATAPORT    	LPC_GPIO0->FIOPIN0
-#define  LCD_DATAPORTDIR 	LPC_GPIO0->FIODIR0
+#define  LCD_DATAPORT    	LPC_GPIO1->FIOPIN2
 
 #define  LCDCS0         LCD_CTRLPORT->FIOCLR = LCD_CS;
 #define  LCDCS1         LCD_CTRLPORT->FIOSET = LCD_CS;
@@ -135,7 +132,7 @@ extern "C" {
 
 #define LCD_IO_INIT                                                   \
     LCD_CTRLPORT->FIODIR |= LCD_CS|LCD_RS|LCD_WR|LCD_RD|LCD_LED|LCD_RST;  \
-    LCD_DATAPORTDIR |= 0xFF;
+    LPC_GPIO1->FIODIR2 = 0xFF;
 
 //-----------------------------------------------------
 //
@@ -154,6 +151,7 @@ void BB_ConfigClockOut(uint8_t en);
 void BB_RitTimeBase_Init(void);
 void BB_RitDelay(uint32_t ms);
 uint32_t BB_RitTicks(void);
+uint32_t BB_ReadButtons(void);
 
 void BB_SPI_Write(uint8_t *data, uint32_t count);
 void BB_SPI_WriteDMA(uint8_t *data, uint32_t count);

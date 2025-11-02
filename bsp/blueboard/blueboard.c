@@ -6,9 +6,6 @@
 #include "drvlcd.h"
 #include "gpio.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #ifdef ENABLE_SPI
 static spibus_t spibus_1;
@@ -19,10 +16,10 @@ static drvlcdparallel_s lcd0;
 
 static void displayWrite(uint32_t data)
 {
-	LPC_GPIO0->FIOPIN0 = data >> 8;
+	LCD_DATAPORT = data >> 8;
 	LCDWR0;
     LCDWR1;
-    LPC_GPIO0->FIOPIN0 = data;
+    LCD_DATAPORT = data;
 	LCDWR0;
     LCDWR1;
 }
@@ -42,13 +39,7 @@ void BB_LCD_Init(void)
     lcd0.w = 240;
     lcd0.h = 320;
 
-    LPC_GPIO0->FIODIR0 |= 0xFF;
-    GPIO_Config(lcd0.cs, GPO_PP);
-    GPIO_Config(lcd0.cd, GPO_PP);
-    GPIO_Config(lcd0.rst, GPO_PP);
-    GPIO_Config(lcd0.wr, GPO_PP);
-    GPIO_Config(lcd0.rd, GPO_PP);
-    GPIO_Config(lcd0.bkl, GPO_PP);
+    LCD_IO_INIT;
 
     LCD_Init(&lcd0);
 
@@ -147,7 +138,27 @@ void BB_SPI_SetFrequency(uint32_t freq){
 }
 #endif
 
-#ifdef __cplusplus
+#ifdef ENABLE_BUTTONS
+uint32_t BB_ButtonsRead(void)
+{
+    uint32_t value = 0;
+    uint32_t port = ~LPC_GPIO1->FIOPIN;
+
+    if(port & BUTTON_A) value |= (1 << 0);
+    if(port & BUTTON_UP) value |= (1 << 2);
+    if(port & BUTTON_RIGHT) value |= (1 << 3);
+
+    port = ~LPC_GPIO4->FIOPIN;
+
+    if(port & BUTTON_LEFT) value |= (1 << 1);
+    if(port & BUTTON_DOWN) value |= (1 << 4);
+
+    return value;
+}
+
+void BB_ButtonsInit(void)
+{
+    LPC_GPIO1->FIODIR &= ~(BUTTON_A | BUTTON_UP | BUTTON_RIGHT);
+    LPC_GPIO4->FIODIR &= ~(BUTTON_DOWN | BUTTON_LEFT);
 }
 #endif
-
