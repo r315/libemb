@@ -337,10 +337,10 @@ void LIB2D_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h)
 //----------------------------------------------------------
 void LIB2D_Rect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h)
 {
-	LCD_FillRect(x, y, w, 1, lib2d.forecolor);
-	LCD_FillRect(x + w , y, 1, h+1, lib2d.forecolor);
-	LCD_FillRect(x, y + h , w, 1, lib2d.forecolor);
-	LCD_FillRect(x ,y ,1, h, lib2d.forecolor);
+	LCD_FillRect(x, y, w, 1, lib2d.forecolor);          // Top
+	LCD_FillRect(x + w - 1, y + 1, 1, h - 2, lib2d.forecolor);     // Right
+	LCD_FillRect(x, y + h - 1, w, 1, lib2d.forecolor);  // Bottom
+	LCD_FillRect(x, y + 1, 1, h - 2, lib2d.forecolor);  // Left
 }
 //----------------------------------------------------------
 //
