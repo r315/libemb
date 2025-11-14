@@ -1,5 +1,6 @@
 #include "at32f4xx_rcc.h"
 #include "pwm.h"
+#include "clock.h"
 
 #define PWM_MAX_FREQ    250000UL
 #define TMR_CCM1_OC1MODE_PWM_A    0x60
@@ -12,21 +13,33 @@
 static uint32_t pwm_freq_cfg(TMR_Type *tmr, uint32_t frequency)
 {
     uint32_t pclk;
-    RCC_ClockType clocks;
     uint32_t prescaler, period;
 
     if(frequency > PWM_MAX_FREQ){
         return 0;
     }
 
+    #ifdef USE_STDPERIPH_DRIVER
+    RCC_ClockType clocks;
     RCC_GetClocksFreq(&clocks);
+    #else
+    sysclock_t clocks;
+    CLOCK_GetAll(&clocks);
+    #endif
+
 
     if(((uint32_t)tmr & APB2PERIPH_BASE) == APB2PERIPH_BASE){
         /* When TMR’s APB clock prescaler factor is 1, the CK_INT frequency is equal to that of APB, otherwise, it doubles the
             APB clock frequency. */
+#ifdef USE_STDPERIPH_DRIVER
         pclk = (RCC->CFG & (4 << 11)) ? clocks.APB2CLK_Freq << 1 : clocks.APB2CLK_Freq;
     }else{
         pclk = (RCC->CFG & (4 << 8)) ? clocks.APB1CLK_Freq << 1 : clocks.APB1CLK_Freq;
+#else
+        pclk = (RCC->CFG & (4 << 11)) ? clocks.pclk2 << 1 : clocks.pclk2;
+    }else{
+        pclk = (RCC->CFG & (4 << 8)) ? clocks.pclk1 << 1 : clocks.pclk1;
+#endif
     }
 
     // Calculate the total timer clock cycles needed for the given frequency
@@ -63,58 +76,107 @@ uint32_t PWM_Init(pwmchip_t *pwmchip)
 
     switch(pwmchip->chip){
         case 1:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB2PeriphClockCmd(RCC_APB2EN_TMR1EN, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2RST_TMR1RST, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2RST_TMR1RST, DISABLE);
+            #else
+            RCC->APB2EN |= RCC_APB2EN_TMR1EN;
+            RCC->APB2RST |= RCC_APB2RST_TMR1RST;
+            RCC->APB2RST &= ~RCC_APB2RST_TMR1RST;
+            #endif
             tmr = TMR1;
             nchannels = 4;
+            tmr->BRKDT = TMR_BRKDT_MOEN;
             break;
         case 2:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB1PeriphClockCmd(RCC_APB1EN_TMR2EN, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_TMR2RST, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_TMR2RST, DISABLE);
+            #else
+            RCC->APB1EN |= RCC_APB1EN_TMR2EN;
+            RCC->APB1RST |= RCC_APB1RST_TMR2RST;
+            RCC->APB1RST &= ~RCC_APB1RST_TMR2RST;
+            #endif
             tmr = TMR2;
             nchannels = 4;
             break;
         case 3:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB1PeriphClockCmd(RCC_APB1EN_TMR3EN, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_TMR2RST, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_TMR2RST, DISABLE);
+            #else
+            RCC->APB1EN |= RCC_APB1EN_TMR3EN;
+            RCC->APB1RST |= RCC_APB1RST_TMR2RST;
+            RCC->APB1RST &= ~RCC_APB1RST_TMR2RST;
+            #endif
             tmr = TMR3;
             nchannels = 4;
             break;
         case 4:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB1PeriphClockCmd(RCC_APB1EN_TMR4EN, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_TMR2RST, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_TMR2RST, DISABLE);
+            #else
+            RCC->APB1EN |= RCC_APB1EN_TMR4EN;
+            RCC->APB1RST |= RCC_APB1RST_TMR2RST;
+            RCC->APB1RST &= ~RCC_APB1RST_TMR2RST;
+            #endif
             tmr = TMR4;
             nchannels = 4;
             break;
         case 5:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB1PeriphClockCmd(RCC_APB1EN_TMR5EN, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_TMR2RST, ENABLE);
             RCC_APB1PeriphResetCmd(RCC_APB1RST_TMR2RST, DISABLE);
+            #else
+            RCC->APB1EN |= RCC_APB1EN_TMR5EN;
+            RCC->APB1RST |= RCC_APB1RST_TMR2RST;
+            RCC->APB1RST &= ~RCC_APB1RST_TMR2RST;
+            #endif
             tmr = TMR5;
             nchannels = 4;
             break;
         case 9:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB2PeriphClockCmd(RCC_APB2EN_TMR9EN, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2RST_TMR9RST, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2RST_TMR9RST, DISABLE);
+            #else
+            RCC->APB2EN |= RCC_APB2EN_TMR9EN;
+            RCC->APB2RST |= RCC_APB2RST_TMR9RST;
+            RCC->APB2RST &= ~RCC_APB2RST_TMR9RST;
+            #endif
             tmr = TMR9;
             nchannels = 2;
             break;
         case 10:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB2PeriphClockCmd(RCC_APB2EN_TMR10EN, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2RST_TMR10RST, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2RST_TMR10RST, DISABLE);
+            #else
+            RCC->APB2EN |= RCC_APB2EN_TMR10EN;
+            RCC->APB2RST |= RCC_APB2RST_TMR10RST;
+            RCC->APB2RST &= ~RCC_APB2RST_TMR10RST;
+            #endif
             tmr = TMR10;
             nchannels = 1;
             break;
         case 11:
+            #ifdef USE_STDPERIPH_DRIVER
             RCC_APB2PeriphClockCmd(RCC_APB2EN_TMR11EN, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2RST_TMR11RST, ENABLE);
             RCC_APB2PeriphResetCmd(RCC_APB2RST_TMR11RST, DISABLE);
+            #else
+            RCC->APB2EN |= RCC_APB2EN_TMR11EN;
+            RCC->APB2RST |= RCC_APB2RST_TMR11RST;
+            RCC->APB2RST &= ~RCC_APB2RST_TMR11RST;
+            #endif
             tmr = TMR11;
             nchannels = 1;
             break;
