@@ -13,14 +13,12 @@ static uint32_t last_tick = 0;
  * @param callback      Callback function on expiration
  * @return
  */
-void STIMER_Config(stimer_t *timer, uint32_t interval, uint32_t (*callback)(stimer_t *timer))
+void STIMER_Config(stimer_t *timer)
 {
-    if(interval == 0 || timer == NULL || callback == NULL){
+    if(timer == NULL || timer->interval == 0  || timer->callback == NULL){
         return;
     }
 
-    timer->interval = interval;
-    timer->callback = callback;
     timer->count = 0;
 
     if(tlist == NULL){
@@ -90,11 +88,9 @@ void STIMER_Cancel(stimer_t *timer)
  */
 void STIMER_SetInterval(stimer_t *timer, uint32_t interval)
 {
-    if(!timer){
-        return;
+    if(timer){
+        timer->interval = interval;
     }
-
-    timer->interval = interval;
 }
 
 /**
@@ -106,11 +102,9 @@ void STIMER_SetInterval(stimer_t *timer, uint32_t interval)
 */
 void STIMER_Start(stimer_t *timer)
 {
-    if(!timer){
-        return;
+    if(timer){
+        timer->count = timer->interval;
     }
-
-    timer->count = timer->interval;
 }
 
 /**
@@ -120,25 +114,28 @@ void STIMER_Start(stimer_t *timer)
 */
 void STIMER_Stop(stimer_t *timer)
 {
-    if(!timer){
-        return;
+    if(timer){
+        timer->count = 0;
     }
-    timer->count = 0;
 }
 
 /**
- * @brief
+ * @brief Check is a timer is running
+ * TODO: FIX by checking if timer is in list
  * @param timer
- * @return
+ *
+ * @return 0: if inactive, otherwise remaining ticks to timeout
  */
 uint32_t STIMER_IsActive(stimer_t *timer)
 {
-    return timer->count != 0;
+    return timer ? timer->count != 0 : 0;
 }
 
 /**
  * @brief Simple timer handler, called periodically
  * with a fixed quantum usually 1ms, advances active timers by one tick.
+ *
+ * Note: callback may be called from interrupt context.
  *
 */
 void STIMER_Handler(void)
