@@ -49,7 +49,7 @@ static hspi_t hspia = {
 /**
  * @brief DMA Interrupt handler
  * */
-void SPI_DMA_IRQHandler(hspi_t *hspi)
+static void spi_eot(hspi_t *hspi)
 {
     SPI_Type *spi = hspi->spi;
     DMA_Channel_Type *dma = hspi->dma_tx.per;
@@ -66,11 +66,12 @@ void SPI_DMA_IRQHandler(hspi_t *hspi)
 
         spi->CTRL2 &= ~(SPI_CTRL2_DMATEN);
 
-        hspi->trf_counter = 0;
-
         if(hspi->eot){
+            while(spi->STS & SPI_STS_BSY); // wait for last transfer
             hspi->eot();
         }
+
+        hspi->trf_counter = 0;
     }
 }
 
@@ -108,8 +109,8 @@ static void SPI_SetFreq(SPI_Type *spi, uint32_t freq)
     spi->CTRL1 |= (br << SPI_CTRL1_MDIV_Pos);
 }
 
-static inline void spi1Eot(void){ SPI_DMA_IRQHandler(&hspia);}
-static inline void spi2Eot(void){ SPI_DMA_IRQHandler(&hspib);}
+static inline void spi1Eot(void){spi_eot(&hspia);}
+static inline void spi2Eot(void){spi_eot(&hspib);}
 /**
  * Public API
  * */
@@ -220,6 +221,7 @@ uint32_t SPI_Init(spibus_t *spibus)
             break;
     }
 
+    hspi->trf_counter = 0;
     spibus->handle = hspi;
 
     return SPI_OK;
@@ -270,9 +272,9 @@ void SPI_Transfer(spibus_t *spibus, uint8_t *src, uint32_t count){
         spi->CTRL1 &= ~(SPI_CTRL1_DFF16);
         while(count--){
             while((spi->STS & SPI_STS_TE) == 0);
-            *((__IO uint8_t *)&spi->DT) = *src;
+            *((__IO uint8_t *)&spi->DT) = *src++;
             while((spi->STS & SPI_STS_BSY) != 0);
-            *(src++) = *((__IO uint8_t *)&spi->DT);
+            //*(src++) = *((__IO uint8_t *)&spi->DT);
         }
     }
 }
@@ -315,13 +317,14 @@ void SPI_TransferDMA(spibus_t *spibus, uint8_t *src, uint32_t count)
 
 /**
  * @brief Wait for end of DMA transfer
+ * This shouldn't be called from an interrupt
  * */
 void SPI_WaitEOT(spibus_t *spibus){
-    #if 1
-    SPI_Type *spi = (SPI_Type*)spibus->handle;
-    while(spi->STS & SPI_STS_BSY){
+    hspi_t *hspi = (hspi_t*)spibus->handle;
+    #if 0
+    while(hspi->spi->STS & SPI_STS_BSY){
     #else
-    while(SPIDEV_GET_FLAG(spibus, SPI_BUSY)){
+    while(hspi->trf_counter){
     #endif
         //LED_TOGGLE;
     }
