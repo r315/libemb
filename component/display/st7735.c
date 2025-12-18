@@ -71,7 +71,7 @@ const drvlcd_t st7735_drv =
 static uint8_t scratch[4] __attribute__((aligned (16)));
 
 static drvlcdspi_t *drvlcd;
-static spibus_t *spibus;
+static spibus_t *spidev;
 
 extern void DelayMs(uint32_t ms);
 static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
@@ -195,7 +195,7 @@ static const uint8_t st7735_80x160 [] = {
  */
 static void LCD_Command(uint8_t data){
     LCD_CD0;
-    SPI_Transfer(spibus, &data, 1);
+    SPI_Transfer(spidev, &data, 1);
     LCD_CD1;
 }
 
@@ -207,7 +207,7 @@ void LCD_Data(uint16_t data){
     //LCD_CS0;
     scratch[0] = data >> 8;
     scratch[1] = data;
-    SPI_Transfer(spibus, scratch, 2);
+    SPI_Transfer(spidev, scratch, 2);
     //LCD_CS1;
 }
 
@@ -226,7 +226,7 @@ static void LCD_InitSequence(const uint8_t *addr) {
         ms       = numArgs & ST_CMD_DELAY;     //   If hibit set, delay follows args
         numArgs &= ~ST_CMD_DELAY;              //   Mask out delay bit
         while(numArgs--) {                     //   For each argument...
-            SPI_Transfer(spibus, (uint8_t*)addr++, 1);  	   //   Read, issue argument
+            SPI_Transfer(spidev, (uint8_t*)addr++, 1);  	   //   Read, issue argument
         }
 
         if(ms) {
@@ -242,15 +242,15 @@ static void LCD_InitSequence(const uint8_t *addr) {
  *
  */
 static void LCD_WriteData(uint16_t *data, uint32_t count){
-    if(spibus->cfg & SPI_CFG_DMA){
-        spibus->cfg |= SPI_CFG_TRF_16BIT;
-        SPI_TransferDMA(spibus, (uint8_t*)data, count);
+    if(spidev->cfg & SPI_CFG_DMA){
+        spidev->cfg |= SPI_CFG_TRF_16BIT;
+        SPI_TransferDMA(spidev, (uint8_t*)data, count);
         //LCD_CS1; // SET by DMA handler
     }else{
         while(count--){
             scratch[0] = data[0] >> 8;
             scratch[1] = data[0];
-            SPI_Transfer(spibus, scratch, 2);
+            SPI_Transfer(spidev, scratch, 2);
             data++;
         }
         LCD_CS1;
@@ -261,8 +261,8 @@ static void LCD_WriteData(uint16_t *data, uint32_t count){
  * @brief End of transfer handler for DMA use
  * */
 void LCD_DataEnd(void){
-    spibus->cfg &= ~(SPI_CFG_TRF_16BIT | SPI_CFG_TRF_CONST);
-    SPI_WaitEOT(spibus);
+    spidev->cfg &= ~(SPI_CFG_TRF_16BIT | SPI_CFG_TRF_CONST);
+    SPI_WaitEOT(spidev);
     LCD_CS1;
 }
 
@@ -281,14 +281,14 @@ static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
     scratch[1] = x1;
     scratch[2] = x2 >> 8;
     scratch[3] = x2;
-    SPI_Transfer(spibus, scratch, 4);
+    SPI_Transfer(spidev, scratch, 4);
 
     LCD_Command(ST7735_RASET);
     scratch[0] = y1 >> 8;
     scratch[1] = y1;
     scratch[2] = y2 >> 8;
     scratch[3] = y2;
-    SPI_Transfer(spibus, scratch, 4);
+    SPI_Transfer(spidev, scratch, 4);
 
     LCD_Command(ST7735_RAMWR);
 }
@@ -307,7 +307,7 @@ void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h){
     y += start_y;
     #endif
 
-    SPI_WaitEOT(spibus);
+    SPI_WaitEOT(spidev);
 
     LCD_CS0;
     LCD_CasRasSet(x, y, x + (w - 1), y + (h - 1));
@@ -332,16 +332,16 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 
     LCD_Window(x, y, w, h);
 
-    if(spibus->cfg & SPI_CFG_DMA){
-        spibus->cfg |= SPI_CFG_TRF_16BIT | SPI_CFG_TRF_CONST;
+    if(spidev->cfg & SPI_CFG_DMA){
+        spidev->cfg |= SPI_CFG_TRF_16BIT | SPI_CFG_TRF_CONST;
         *((uint16_t*)scratch) = color;
-        SPI_TransferDMA(spibus, (uint8_t*)scratch, count);
+        SPI_TransferDMA(spidev, (uint8_t*)scratch, count);
         //LCD_CS1; // SET by DMA handler
     }else{
         scratch[0] = color >> 8;
         scratch[1] = color;
         while(count--){
-            SPI_Transfer(spibus, scratch, 2);
+            SPI_Transfer(spidev, scratch, 2);
         }
         LCD_CS1;
     }
@@ -380,11 +380,11 @@ void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
     scratch[0] = color >> 8;
     scratch[1] = color;
 
-    SPI_WaitEOT(spibus);
+    SPI_WaitEOT(spidev);
 
     LCD_CS0;
     LCD_CasRasSet(x, y, x, y);
-    SPI_Transfer(spibus, scratch, 2);
+    SPI_Transfer(spidev, scratch, 2);
     LCD_CS1;
 }
 
@@ -400,7 +400,7 @@ uint8_t LCD_Init(void *driver){
     }
 
     drvlcd = (drvlcdspi_t*)driver;
-    spibus = &drvlcd->spidev;
+    spidev = drvlcd->spidev;
 
     if ((drvlcd->w == 128) && (drvlcd->h == 160)){
         init_seq = st7735_128x160;
@@ -489,11 +489,11 @@ void LCD_SetOrientation(drvlcdorientation_t m)
         return;
     }
 
-    SPI_WaitEOT(spibus);
+    SPI_WaitEOT(spidev);
 
     LCD_CS0;
     LCD_Command(ST7735_MADCTL);
-    SPI_Transfer(spibus, &m, 1);
+    SPI_Transfer(spidev, &m, 1);
     LCD_CS1;
 }
 
@@ -506,11 +506,11 @@ void LCD_Scroll(uint16_t sc){
     scratch[0] = sc >> 8;
     scratch[1] = sc;
 
-    SPI_WaitEOT(spibus);
+    SPI_WaitEOT(spidev);
 
     LCD_CS0;
     LCD_Command(ST7735_VSCSAD);
-    SPI_Transfer(spibus, scratch, 2);
+    SPI_Transfer(spidev, scratch, 2);
     LCD_CS1;
 }
 

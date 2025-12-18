@@ -46,11 +46,11 @@ typedef enum drvlcdorientation_e{
 typedef struct drvlcdspi_s {
     uint16_t w;
     uint16_t h;
-    uint8_t cs;
-    uint8_t cd;
-    uint8_t rst;
-    uint8_t bkl;
-    spibus_t spidev;
+    uint8_t cs;     /* GPIO pin name */
+    uint8_t cd;     /* GPIO pin name */
+    uint8_t rst;    /* GPIO pin name */
+    uint8_t bkl;    /* GPIO pin name */
+    spibus_t *spidev;
 }drvlcdspi_t;
 
 typedef struct drvlcdi2c_s {
