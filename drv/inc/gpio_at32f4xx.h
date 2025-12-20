@@ -147,11 +147,11 @@ typedef enum {
 #define GPO_HS_AF_OD        (GPIO_IOF_AF_OD | GPIO_IOM_MAX)
 #define GPO_PP              GPO_LS
 
-#define GPIO_NAME_TO_PORT(name)     (name >> 4)
+#define GPIO_NAME_TO_PORT(name)     ((name >> 4) & 15)
 #define GPIO_NAME_TO_PIN(name)      (name & 15)
 #define GPIO_CFG_MASK(cfg)          (cfg & 15)
 #define GPIO_CFG_MODE_MASK(cfg)     (cfg & 3)
-#define GPIO_CFG_FUNC_MASK(cfg)     ((cfg >> & 3)
+#define GPIO_CFG_FUNC_MASK(cfg)     ((cfg >> 4) & 3)
 
 #define GPIO_SPI1_CS        (GPO_MS_AF)
 #define GPIO_SPI1_SCK       (GPO_HS_AF)
