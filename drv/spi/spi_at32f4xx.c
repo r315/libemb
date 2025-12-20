@@ -121,6 +121,7 @@ static inline void spi2Eot(void){spi_eot(&hspib);}
 uint32_t SPI_Init(spibus_t *spibus)
 {
     hspi_t *hspi;
+    uint32_t req;
 
     switch(spibus->bus){
         case SPI_BUS0:
@@ -161,10 +162,16 @@ uint32_t SPI_Init(spibus_t *spibus)
 
         if(hspi->spi == SPI1){
             hspi->dma_tx.eot = spi1Eot;
-            DMA_Config(&hspi->dma_tx, DMA1_REQ_SPI1_TX);
+            req = DMA1_REQ_SPI1_TX;
+
         }else{
             hspi->dma_tx.eot = spi2Eot;
-            DMA_Config(&hspi->dma_tx, DMA1_REQ_SPI2_TX);
+            req = DMA1_REQ_SPI2_TX;
+        }
+
+        if(!DMA_Config(&hspi->dma_tx, req)){
+            // Fail to init DMA, don't use it
+            spibus->cfg &= ~SPI_CFG_DMA;
         }
     }
 
