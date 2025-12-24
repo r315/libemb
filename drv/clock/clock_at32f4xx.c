@@ -69,6 +69,37 @@ static uint32_t clock_cpu(void)
     }
 }
 
+static uint32_t pclk1(uint32_t hclk)
+{
+    uint32_t tmp, psc;
+    /* Get PCLK1 prescaler */
+    tmp = (RCC->CFG & (RCC_CFG_APB1PSC ^ RCC_CFG_APB1PSC_2)) >> 8;
+    psc = (RCC->CFG & RCC_CFG_APB1PSC_2) ? APBAHBPscTable[tmp] : 0;
+
+    return hclk >> psc;
+}
+
+static uint32_t pclk2(uint32_t hclk)
+{
+    uint32_t tmp, psc;
+    /* Get PCLK2 prescaler */
+    tmp = (RCC->CFG & (RCC_CFG_APB2PSC ^ RCC_CFG_APB2PSC_2)) >> 11;
+    psc = (RCC->CFG & RCC_CFG_APB2PSC_2) ? APBAHBPscTable[tmp] : 0;
+
+    return hclk >> psc;
+}
+
+static uint32_t adcclk(uint32_t pclk2)
+{
+    uint32_t tmp, psc;
+    /* Get ADCCLK prescaler */
+    tmp = (RCC->CFG & RCC_CFG_ADCPSC_DIV16) >> 14;
+    tmp = (tmp & 0b11) | (tmp >> 12);
+    psc = ADCPscTable[tmp];
+
+    return pclk2 / psc;
+}
+
 void CLOCK_GetAll(sysclock_t *clk)
 {
     uint32_t tmp = 0, psc = 0;
@@ -82,24 +113,12 @@ void CLOCK_GetAll(sysclock_t *clk)
 
     /* HCLK clock frequency */
     clk->hclk = clk->cpu >> psc;
-    /* Get PCLK1 prescaler */
-    tmp = (RCC->CFG & (RCC_CFG_APB1PSC ^ RCC_CFG_APB1PSC_2)) >> 8;
-    psc = (RCC->CFG & RCC_CFG_APB1PSC_2) ? APBAHBPscTable[tmp] : 0;
     /* PCLK1 clock frequency */
-    clk->pclk1 = clk->hclk >> psc;
-    /* Get PCLK2 prescaler */
-    tmp = (RCC->CFG & (RCC_CFG_APB2PSC ^ RCC_CFG_APB2PSC_2)) >> 11;
-    psc = (RCC->CFG & RCC_CFG_APB2PSC_2) ? APBAHBPscTable[tmp] : 0;
+    clk->pclk1 = pclk1(clk->hclk);
     /* PCLK2 clock frequency */
-    clk->pclk2 = clk->hclk >> psc;
-
-    /* Get ADCCLK prescaler */
-    tmp = (RCC->CFG & RCC_CFG_ADCPSC_DIV16) >> 14;
-    tmp = (tmp & 0b11) | (tmp >> 12);
-
-    psc = ADCPscTable[tmp];
+    clk->pclk2 = pclk2(clk->hclk);
     /* ADCCLK clock frequency */
-    clk->pclk3 = clk->pclk2 / psc;
+    clk->pclk3 = adcclk(clk->pclk2);
 }
 
 void CLOCK_Enable(uint32_t per, uint8_t state)
