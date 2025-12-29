@@ -18,6 +18,10 @@ extern "C" {
 #include "drvlcd.h"
 
 #define TFT_ILI9341
+// Controller capability
+#define RES_H            240
+#define RES_V            320
+
 
 #define ILI9341_SWRST    0x01
 #define ILI9341_RDDID    0x04

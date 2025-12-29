@@ -1,4 +1,4 @@
- /** 
+ /**
  @file ili9328.h
  @brief  ILI9328 Lcd controller driver
  @author Hugo Reis
@@ -13,6 +13,11 @@ extern "C" {
 
 #include <stdint.h>
 #include "drvlcd.h"
+
+#define TFT_ILI9328
+// Controller capability
+#define RES_H            240
+#define RES_V            320
 
 //-------------------------------------------------------------------
 #define LCD_REG_DRV_CODE		0x00
@@ -40,7 +45,7 @@ extern "C" {
 #define LCD_GAMMA_CTRL1			0x30
 #define LCD_GAMMA_CTRL2			0x31
 #define LCD_GAMMA_CTRL3			0x32
-#define LCD_GAMMA_CTRL4			0x35 
+#define LCD_GAMMA_CTRL4			0x35
 #define LCD_GAMMA_CTRL5			0x36
 #define LCD_GAMMA_CTRL6			0x37
 #define LCD_GAMMA_CTRL7			0x38
@@ -83,9 +88,9 @@ extern "C" {
 #define LCD_ENTRY_MOD_AM        (1 << 3)
 
 /*-------------------------------------------------------------------
- 
+
   v-- origin in software
-  ___________________ 
+  ___________________
  | _______________   |	Landscape
  ||               |[]|	REG_03 = 0x38
  ||               |  |	REG_01 = 0x0000
@@ -96,8 +101,8 @@ extern "C" {
  ||_______________|[]| < S720
  |___________________|
   ^-- LCD's origin (0x0000)
-  G320 
-  ___________________ 
+  G320
+  ___________________
  | _______________   |	Reversed Landscape
  ||               |[]|	REG_03 = 0x38
  ||               |  |	REG_01 = 0x0100
@@ -111,42 +116,42 @@ extern "C" {
   ^-- LCD's origin (0x0000)
 
   ________________
- | ______________ |		
+ | ______________ |
  ||B             ||		Portrait (default)
  ||              ||		REG_03 = 0x30
  || ------       ||		REG_01 = 0x0100
  ||      /       ||		REG_60 = 0x2700
- ||      ------> ||		
+ ||      ------> ||
  ||              ||
  ||              ||
  ||_____________E||
  | [] [] [] [] [] |
- |________________|		
+ |________________|
 
 
   ________________
- | ______________ |		
+ | ______________ |
  ||             B||		Reversed portrait
  ||              ||		REG_03 = 0x20
  ||       ------ ||		REG_01 = 0x0100
  ||      \       ||		REG_60 = 0x2700
- || <-----       ||		
+ || <-----       ||
  ||              ||
  ||              ||
  ||E_____________||
  | [] [] [] [] [] |
- |________________|	
+ |________________|
 
 */
 
-//-------------------------------------------------------------------	
+//-------------------------------------------------------------------
 
 #define LCD_ILI9328
 
 #if 0//defined(LCD_LANDSCAPE)
 	#define VAL_ENTRY_MOD	0x0038 | BGR_BIT
 	#define SHIFT_DIR		0x0000 // clr ss
-	#define VAL_GATE_SCAN	0xA700 
+	#define VAL_GATE_SCAN	0xA700
 	#define GRAM_ADX		LCD_GRAM_VER_AD
 	#define GRAM_ADY		LCD_GRAM_HOR_AD
 	#define START_ADX   	LCD_VER_START_AD
@@ -156,7 +161,7 @@ extern "C" {
 //#elif defined(ORIENTATION270)
 	#define VAL_ENTRY_MOD	0x0038 | BGR_BIT
 	#define SHIFT_DIR		0x0100 // set ss
-	#define VAL_GATE_SCAN	0x2700 
+	#define VAL_GATE_SCAN	0x2700
 	#define GRAM_ADX		LCD_GRAM_VER_AD
 	#define GRAM_ADY		LCD_GRAM_HOR_AD
 	#define START_ADX   	LCD_VER_START_AD
@@ -166,18 +171,18 @@ extern "C" {
 #else
 	#define VAL_ENTRY_MOD	0x0030	| BGR_BIT//16bit interface
 	#define SHIFT_DIR		0x0100	 //set SS
-	#define VAL_GATE_SCAN	0xA800 
+	#define VAL_GATE_SCAN	0xA800
 	#define GRAM_ADX		LCD_GRAM_HOR_AD
 	#define GRAM_ADY		LCD_GRAM_VER_AD
 	#define START_ADX   	LCD_HOR_START_AD
 	#define END_ADX   		LCD_HOR_END_AD
 	#define START_ADY   	LCD_VER_START_AD
 	#define END_ADY   		LCD_VER_END_AD
-#endif 
+#endif
 
 #ifdef BGR_MODE
 	#define BGR_BIT 0
-#else	
+#else
 	#define BGR_BIT (1<<12)
 #endif
 

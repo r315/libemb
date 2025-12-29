@@ -98,7 +98,7 @@ static void LCD_InitSequence(const uint8_t *addr) {
  * @brief Write a block of data
  *
  */
-static void LCD_WriteData(uint16_t *data, uint32_t count){
+static void LCD_WriteData(const uint16_t *data, uint32_t count){
 
     if(spidev->cfg & SPI_CFG_DMA){
         spidev->cfg |= SPI_CFG_TRF_16BIT;
@@ -206,7 +206,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
  * \param h :
  * \param data : Pointer to data
  */
-void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data){
+void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data){
     uint32_t count = w * h;
 
     if(!count){
