@@ -160,7 +160,8 @@ void Console::cls(void){
 /**
  * */
 void Console::setOutput(const stdinout_t *sp){
-	m_out = sp;
+    if(sp)
+	    m_out = sp;
 }
 
 /**

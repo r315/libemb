@@ -19,8 +19,26 @@ enum Attributes{
 	FONT_DOUBLE
 };
 
-void LIB2D_Init(void);
-void LIB2D_SetFont(font_t *fnt);
+typedef struct lib2d_s{
+	const font_t *font;     // Font to be used for char rasterization
+	uint16_t forecolor;     // Character/shapes color
+	uint16_t backcolor;     // Character/shapes background color
+	uint16_t (*drawChar)(uint16_t, uint16_t, uint8_t); // Character rasterization function
+	uint16_t cx;            // console x char position
+	uint16_t cy;            // console y char position
+    uint32_t scratch_offset; // Used for double buffering
+	uint16_t sc;            // Scroll offset
+    uint16_t text_size;     // Text buffer size
+    uint16_t scratch_size;  // Scratch buffer size
+    uint16_t *scratch;      // Scratch buffer for double buffering and DMA
+    uint8_t *text;          // text buffer
+	uint8_t vspace;         // Vertical space between characters on console
+    uint8_t scale;          // Character scale
+}lib2d_t;
+
+void LIB2D_Init(lib2d_t *);
+void LIB2D_Default(lib2d_t *);
+void LIB2D_SetFont(const font_t *fnt);
 void LIB2D_SetAttribute(uint8_t atr);
 void LIB2D_Pixel(uint16_t x0, uint16_t y0);
 uint16_t LIB2D_Char(uint16_t  x, uint16_t y, uint8_t c);
