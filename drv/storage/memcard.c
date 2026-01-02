@@ -213,6 +213,8 @@ uint8_t SDGetOCR(uint8_t *OCRRegister){
  * @return STA_OK on success, STA_NOINIT otherwise
  */
 DSTATUS disk_initialize (void){
+    #warning "memcard driver requires fixing"
+    #if 0 // TODO: FIX
     uint8_t n, cmd, ocr[4];
     uint16_t tmr;
 
@@ -297,7 +299,7 @@ DSTATUS disk_initialize (void){
     s_spi->freq = freq;
     SPI_Init(s_spi);
 #endif
-
+#endif
     return (CardType != CT_NONE) ? STA_OK : STA_NOINIT;
 }
 
