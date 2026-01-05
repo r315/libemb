@@ -5,7 +5,7 @@
 /**
  * @brief Find next character in a string
  * */
-char *skipSpaces(char *str){
+char *skipSpaces(const char *str){
 	while((*str == ' ' || *str == '\t') && *str != '\0')
 		str++;
 	return str;
@@ -56,9 +56,9 @@ uint32_t strToArray(char *str, char **argv, int max_arg)
  * @brief Unsafe String length
  * last time this was changed, was due
  * to compiler optimization.
- * somehow with -Os compiler create an infiniteve loop
+ * somehow with -Os compiler create an infinite loop
  * not sure if was due to function name, so name was changed,
- * aplications should be updated
+ * applications should be updated
  * */
 int xstrlen(const char *str) {
 	int count = 0;
@@ -257,7 +257,7 @@ char *strsub(char *str, const char token, uint8_t len, char **saveptr) {
  *
  * @return 0 if equal, difference of first non equal char
  * */
-char xstrcmp(char const *str1, char const *str2) {
+char xstrcmp(const char *str1, const char *str2) {
 	while (*str1 == *str2) {
 		if (*str1 == '\0')
 			return 0;
@@ -267,6 +267,12 @@ char xstrcmp(char const *str1, char const *str2) {
 	return (*str1 - *str2);
 }
 
+/**
+ * @brief
+ * @param dst
+ * @param src
+ * @param maxLen
+ */
 void xstrcpy(char *dst, const char *src, uint8_t maxLen) {
 	while(maxLen--){
 		*dst++ = *src;
@@ -426,8 +432,11 @@ uint8_t da2d(const char *str, double *value) {
  *
  * \param dst 	:	pointer to destination buffer
  * \param val	:	value to be converted
- * \param radix	:	base of convertion [-10, 10, 16]
- * \param ndig 	:	minimum number of digits, ndig > 0 pad with ' ', ndig < 0 pad with '0'
+ * \param radix	:	base of conversion [-10, 10, 16]
+ * \param ndig 	:	Minimum number of digits.
+ *                  ndig > 0 pad with ' ', right aligned
+ *                  ndig < 0 pad with '0', right aligned
+ *                  ndig = 0 no padding, Left aligned
  * \return 		:	number of digits written to dst
  * */
 
