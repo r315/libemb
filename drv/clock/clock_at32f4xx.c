@@ -8,7 +8,7 @@ static const uint8_t ADCPscTable[8] = {2, 4, 6, 8, 2, 12, 8, 16};
  * @brief Get cpu clock frequency bases on configuration registers
  * @param clk
  */
-static uint32_t clock_cpu(void)
+static uint32_t sclk(void)
 {
     uint32_t pllns = 0, pllms = 0, pllfr = 0;
     uint32_t pllsrcfreq = 0;
@@ -69,6 +69,17 @@ static uint32_t clock_cpu(void)
     }
 }
 
+static uint32_t hclk(uint32_t sclk)
+{
+    uint32_t tmp, psc;
+    /* Compute HCLK, PCLK1, PCLK2 and ADCCLK clocks frequencies ----------------*/
+    /* Get HCLK prescaler */
+    tmp = (RCC->CFG & (RCC_CFG_AHBPSC ^ RCC_CFG_AHBPSC_3)) >> 4;
+    psc = (RCC->CFG & RCC_CFG_AHBPSC_3) ? APBAHBPscTable[tmp] : 0;
+
+    return sclk >> psc;
+}
+
 static uint32_t pclk1(uint32_t hclk)
 {
     uint32_t tmp, psc;
@@ -102,23 +113,28 @@ static uint32_t adcclk(uint32_t pclk2)
 
 void CLOCK_GetAll(sysclock_t *clk)
 {
-    uint32_t tmp = 0, psc = 0;
-
-    clk->cpu = clock_cpu();
-
-    /* Compute HCLK, PCLK1, PCLK2 and ADCCLK clocks frequencies ----------------*/
-    /* Get HCLK prescaler */
-    tmp = (RCC->CFG & (RCC_CFG_AHBPSC ^ RCC_CFG_AHBPSC_3)) >> 4;
-    psc = (RCC->CFG & RCC_CFG_AHBPSC_3) ? APBAHBPscTable[tmp] : 0;
-
+    uint32_t h_clk = hclk(sclk());
     /* HCLK clock frequency */
-    clk->hclk = clk->cpu >> psc;
+    clk->cpu = h_clk;
     /* PCLK1 clock frequency */
-    clk->pclk1 = pclk1(clk->hclk);
+    clk->clk1 = pclk1(h_clk);
     /* PCLK2 clock frequency */
-    clk->pclk2 = pclk2(clk->hclk);
+    clk->clk2 = pclk2(h_clk);
     /* ADCCLK clock frequency */
-    clk->pclk3 = adcclk(clk->pclk2);
+    clk->clk3 = adcclk(clk->clk2);
+}
+
+uint32_t CLOCK_Get(enum clocknr clock)
+{
+    uint32_t clk = sclk();
+
+    switch(clock){
+        case CLOCK_CPU:  return hclk(clk);
+        case CLOCK_CLK1: return pclk1(clk);
+        case CLOCK_CLK2: return pclk2(clk);
+        case CLOCK_CLK3: return adcclk(pclk2(clk));
+        default: return 0;
+    }
 }
 
 void CLOCK_Enable(uint32_t per, uint8_t state)

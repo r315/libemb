@@ -73,7 +73,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB2EN |= RCC_APB2EN_USART1EN;
             RCC->APB2RST |= RCC_APB2RST_USART1RST;
             RCC->APB2RST &= ~RCC_APB2RST_USART1RST;
-            pclk = clocks.pclk2;
+            pclk = clocks.clk2;
             #endif
             huart = &huart1;
             huart->usart = USART1;
@@ -92,7 +92,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB1EN |= RCC_APB1EN_USART2EN;
             RCC->APB1RST |= RCC_APB1RST_USART2RST;
             RCC->APB1RST &= ~RCC_APB1RST_USART2RST;
-            pclk = clocks.pclk1;
+            pclk = clocks.clk1;
             #endif
             huart = &huart2;
             huart->usart = USART2;
@@ -111,7 +111,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB1EN |= RCC_APB1EN_USART3EN;
             RCC->APB1RST |= RCC_APB1RST_USART3RST;
             RCC->APB1RST &= ~RCC_APB1RST_USART3RST;
-            pclk = clocks.pclk1;
+            pclk = clocks.clk1;
             #endif
             huart = &huart3;
             huart->usart = USART3;

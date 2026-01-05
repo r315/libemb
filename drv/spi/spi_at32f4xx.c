@@ -94,7 +94,7 @@ static void SPI_SetFreq(SPI_Type *spi, uint32_t freq)
 #else
     sysclock_t clocks;
     CLOCK_GetAll(&clocks);
-    div = ((spi == SPI1) ? clocks.pclk2 : clocks.pclk1) / (1000 * freq);
+    div = ((spi == SPI1) ? clocks.clk2 : clocks.clk1) / (1000 * freq);
 #endif
 
     if(div > 256){
