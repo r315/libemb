@@ -4,8 +4,10 @@
 
 /**
  * @brief Find next character in a string
+ *
+ * Note: change to const char* creates multiple errors
  * */
-char *skipSpaces(const char *str){
+char *skipSpaces(char *str){
 	while((*str == ' ' || *str == '\t') && *str != '\0')
 		str++;
 	return str;
