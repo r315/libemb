@@ -66,7 +66,7 @@ void DAC_Stop(dactype_t *dac){
 }
 
 void DAC_Start(dactype_t *dac){
-    DMA_Config(&dma_dac, DMA_REQ_PER_DAC);
+    DMA_Config(&dma_dac, DMA_REQ_DAC);
     DMA_Start(&dma_dac);
 
     SET_BIT(LPC_DAC->CTRL, CTRL_DMA_ENA | CTRL_CNT_ENA);
