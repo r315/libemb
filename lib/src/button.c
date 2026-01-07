@@ -15,7 +15,7 @@ typedef struct{
 	uint32_t pressed;
 	uint32_t last;
 	uint32_t counter;
-	uint32_t events;
+	uint32_t state;
     uint32_t htime;
     uint32_t (*scan)(void); /* return bitmask with pressed buttons */
 }bctrl_t;
@@ -33,82 +33,84 @@ void BUTTON_Init(uint32_t (*scan)(void))
 {
     __button.pressed = 0;
     __button.last = 0;
-    __button.events = BUTTON_NONE;
+    __button.state = BUTTON_NONE;
     __button.htime = BUTTON_DEFAULT_HOLD_TIME;
     __button.scan = scan;
 }
 
 bevt_t BUTTON_Read(void){
-    uint32_t mask;
+    uint32_t scanned;
 
     if( __button.scan == NULL){
         return BUTTON_NONE;
     }
 
-    mask = __button.scan();
+    scanned = __button.scan();
 
-    switch(__button.events){
+    switch(__button.state){
         case BUTTON_NONE:
-            if(mask == 0)
-                break;
-            __button.pressed = mask;
-            __button.events = BUTTON_PRESSED;
+            if(scanned){
+                __button.state = BUTTON_PRESSED;
+            }
+            __button.pressed = scanned;
             break;
 
         case BUTTON_PRESSED:
-            if(mask == 0){
-                __button.events = BUTTON_RELEASED;
+            if(scanned == 0){
+                __button.state = BUTTON_RELEASED;
                 break;
             }
-            if(mask == __button.pressed){           // same key still pressed
-                __button.events = BUTTON_TIMING;    // start timer
+            if(scanned == __button.pressed){           // same key still pressed
+                __button.state = BUTTON_TIMING;    // start timer
                 __button.counter = GetTick();
                 break;
             }
-            __button.pressed = mask;                // another key was pressed
+            __button.pressed = scanned;                // another key was pressed
             break;                                  // TODO: optionally implement if one key is released
 
         case BUTTON_TIMING:
-            if(mask == 0){
-                __button.events = BUTTON_RELEASED;
+            if(scanned == 0){
+                __button.state = BUTTON_RELEASED;
                 break;
             }
-            if(mask == __button.pressed){
+            if(scanned == __button.pressed){
                 if(GetTick() - __button.counter > __button.htime){
-                    __button.events = BUTTON_HOLD;
+                    __button.state = BUTTON_HOLD;
                 }
                 break;
             }
-            __button.pressed = mask;                // another key was pressed
-            __button.events = BUTTON_PRESSED;
+            __button.pressed = scanned;                // another key was pressed
+            __button.state = BUTTON_PRESSED;
             break;
 
         case BUTTON_HOLD:
-            if(mask == 0){
-                __button.events = BUTTON_RELEASED;
+            if(scanned == 0){
+                __button.state = BUTTON_RELEASED;
                 break;
             }
-            if(mask == __button.pressed)
+            if(scanned == __button.pressed)
                 break;
-            __button.pressed = mask;                // another key was pressed
-            __button.events = BUTTON_PRESSED;
+            __button.pressed = scanned;                // another key was pressed
+            __button.state = BUTTON_PRESSED;
             break;
 
-        case BUTTON_RELEASED:
-            __button.last= __button.pressed;
-            __button.pressed = 0;
-            __button.events = BUTTON_NONE;
+        case BUTTON_RELEASED:{
+            uint32_t released = __button.pressed ^ scanned;
+            __button.last = __button.pressed;
+            __button.pressed = released;
+            __button.state = BUTTON_NONE;
             break;
+        }
 
         default: break;
     }
-    return __button.events;
+    return __button.state;
 }
 
 void BUTTON_WaitEvent(bevt_t event){
- do{
-     BUTTON_Read();
- }while(__button.events != event);
+    do{
+        BUTTON_Read();
+    }while(__button.state != event);
 }
 
 uint32_t BUTTON_Get(void){
@@ -117,7 +119,7 @@ uint32_t BUTTON_Get(void){
 }
 
 bevt_t BUTTON_GetEvents(void){
-	return __button.events;
+	return __button.state;
 }
 
 uint32_t BUTTON_GetValue(void){
