@@ -152,6 +152,7 @@ typedef enum {
 #define GPIO_CFG_MASK(cfg)          (cfg & 15)
 #define GPIO_CFG_MODE_MASK(cfg)     (cfg & 3)
 #define GPIO_CFG_FUNC_MASK(cfg)     ((cfg >> 4) & 3)
+#define GPIO_ANIN_TO_PIN_NAME(ANIN) ((ANIN < 8) ? ANIN & 7 : PB_0 + (ANIN & 1))
 
 #define GPIO_SPI1_CS        (GPO_MS_AF)
 #define GPIO_SPI1_SCK       (GPO_HS_AF)

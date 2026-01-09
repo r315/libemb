@@ -3,12 +3,6 @@
 
 typedef enum
 {
-  ADC_RIGHT_ALIGNMENT                    = 0x00, /*!< data right alignment */
-  ADC_LEFT_ALIGNMENT                     = 0x01  /*!< data left alignment */
-} adc_data_align_type;
-
-typedef enum
-{
   ADC_CHANNEL_0                          = 0x00, /*!< adc channel 0 */
   ADC_CHANNEL_1                          = 0x01, /*!< adc channel 1 */
   ADC_CHANNEL_2                          = 0x02, /*!< adc channel 2 */
@@ -26,7 +20,9 @@ typedef enum
   ADC_CHANNEL_14                         = 0x0E, /*!< adc channel 14 */
   ADC_CHANNEL_15                         = 0x0F, /*!< adc channel 15 */
   ADC_CHANNEL_16                         = 0x10, /*!< adc channel 16 */
-  ADC_CHANNEL_17                         = 0x11  /*!< adc channel 17 */
+  ADC_CHANNEL_17                         = 0x11, /*!< adc channel 17 */
+  ADC_CHANNEL_TS                         = ADC_CHANNEL_16,
+  ADC_CHANNEL_INTRV                      = ADC_CHANNEL_17
 } adc_channel_select_type;
 
 typedef enum

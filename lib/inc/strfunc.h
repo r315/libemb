@@ -20,6 +20,7 @@ extern "C" {
 	uint8_t isNextWord(char **str, const char *word);
 	void xstrcpy(char *dst, const char *src, uint8_t maxLen);
 	char xstrcmp(char const *str1, char const *str2);
+    int xstrlen(const char *str);
 	//size_t strlen(const char *str);
 	uint8_t ia2i(const char *str, int32_t *value);
 	uint8_t ha2u(const char *str, uint32_t *value);
