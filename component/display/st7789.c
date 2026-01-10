@@ -371,3 +371,72 @@ void LCD_Bkl(uint8_t state){
         LCD_BKL0;
     }
 }
+
+/**
+ * @brief Driver specific functionality
+ * TODO: create command specification
+ *
+ * | FUN | PARMS ...
+ * @param ptr
+ * @return
+ */
+uint32_t LCD_Specific(void *ptr)
+{
+    uint8_t *msg = ptr;
+
+    typedef struct {
+        uint8_t x,y,w,h; // This may cause problems since vres is 320pixel
+        uint8_t *data;
+    }pixel18bit_t;
+
+    SPI_WaitEOT(spidev);
+
+    switch (msg[0])
+    {
+        case 0x40: // direct command to controller
+            // FUN ! LEN | CMD | PARAM ...
+            LCD_CS0;
+            LCD_Command(msg + 2, msg[1]);
+            LCD_CS1;
+            break;
+
+        case 0x50: // Config 18bit data
+            scratch[0] = ST7789_COLMOD;
+            scratch[1] = COLOR_MODE_262K | COLOR_MODE_18BIT;
+
+            LCD_CS0;
+            LCD_Command(scratch, DRV_CMD_PARM1);
+            LCD_CS1;
+            break;
+
+        case 0x51: // Config 16bit data
+            scratch[0] = ST7789_COLMOD;
+            scratch[1] = COLOR_MODE_65K | COLOR_MODE_16BIT;
+
+            LCD_CS0;
+            LCD_Command(scratch, DRV_CMD_PARM1);
+            LCD_CS1;
+            break;
+
+        case 0x52: // transfer 18bit data
+        {
+            pixel18bit_t *buffer = (pixel18bit_t*)(msg + 4); // for this command, skip 4 bytes to keep struct aligned
+            uint8_t *data = buffer->data;
+            uint32_t count = buffer->w * buffer->h * 3;
+
+            LCD_CS0;
+            LCD_CasRasSet(buffer->x, buffer->y, buffer->x + (buffer->w - 1), buffer->y + (buffer->h - 1));
+
+            if(spidev->cfg & SPI_CFG_DMA){
+                SPI_TransferDMA(spidev, (uint8_t*)data, count);
+            }else{
+                while(count--)
+                    SPI_Transfer(spidev, data++, 1);
+                LCD_CS1;
+            }
+            break;
+        }
+    }
+
+return 0;
+}

@@ -300,8 +300,10 @@ void SPI_TransferDMA(spibus_t *spibus, uint8_t *src, uint32_t count)
 
     if(spibus->cfg & SPI_CFG_TRF_16BIT){
         spi->CTRL1 |= SPI_CTRL1_DFF16;
+        dma->CHCTRL = (dma->CHCTRL & ~(0xF << 8)) | (5 << 8);
     }else{
         spi->CTRL1 &= ~(SPI_CTRL1_DFF16);
+        dma->CHCTRL = (dma->CHCTRL & ~(0xF << 8));
     }
 
     if(spibus->cfg & SPI_CFG_TRF_CONST){
