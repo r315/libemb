@@ -103,7 +103,7 @@ int dbg_printf(const char* fmt, ...)
 	char dbg_out[DBG_PRINT_MAX_LEN];
 	va_list arp;
 	va_start(arp, fmt);
-	int len = strformater(dbg_out, fmt, DBG_PRINT_MAX_LEN, arp);
+	int len = strformater(dbg_out, DBG_PRINT_MAX_LEN, fmt, arp);
 	va_end(arp);
 	return sto->write(dbg_out, len);
 }

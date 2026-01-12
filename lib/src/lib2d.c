@@ -261,7 +261,7 @@ void LIB2D_Printf(const char* fmt, ...){
 	va_list arp;
 
     va_start(arp, fmt);
-	strformater((char*)plib2d->text, fmt, plib2d->text_size, arp);
+	strformater((char*)plib2d->text, plib2d->text_size, fmt, arp);
 	va_end(arp);
 
     LIB2D_String((const char*)plib2d->text);

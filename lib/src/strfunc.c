@@ -549,7 +549,7 @@ uint32_t d2da(char *dst, double f, uint8_t places){
  *
  * TODO: fix print percent sign (%)
  * */
-uint32_t strformater(char *dst, const char* fmt, int len, va_list arp)
+uint32_t strformater(char *dst, int len, const char* fmt, va_list arp)
 {
 	int d, r, w, s, l, f;
     char *p, *start = dst;
@@ -635,6 +635,14 @@ uint32_t strformater(char *dst, const char* fmt, int len, va_list arp)
     return (uint32_t)(dst - start);
 }
 
+int strsnprintf(char *out, int len, const char* fmt, ...)
+{
+	va_list arp;
+	va_start(arp, fmt);
+	len = strformater(out, len, fmt, arp);
+	va_end(arp);
+	return len;
+}
 //-----------------------------------------------------------
 //
 //-----------------------------------------------------------
