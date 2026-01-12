@@ -434,65 +434,76 @@ uint8_t da2d(const char *str, double *value) {
  *
  * \param dst 	:	pointer to destination buffer
  * \param val	:	value to be converted
- * \param radix	:	base of conversion [-10, 10, 16]
- * \param ndig 	:	Minimum number of digits.
+ * \param radix	:	base of conversion (10/16) if positive
+ *                  convert as unsigned
+ * \param ndig 	:	Minimum number of digits, still limited
+ *                  to local buffer with size I2IA_MAX_DIG
  *                  ndig > 0 pad with ' ', right aligned
  *                  ndig < 0 pad with '0', right aligned
  *                  ndig = 0 no padding, Left aligned
+ *
  * \return 		:	number of digits written to dst
  * */
-
-uint32_t i2ia(char *dst, int32_t val, int radix, int ndig){
-	char buf[XPITOA_BUF_SIZE];
-	uint8_t i, c, r, sgn = 0, pad = ' ';
-	uint32_t v;
-
-	if (radix < 0) {
-		radix = -radix;
-		if (val < 0) {
-			val = -val;
-			sgn = '-';
-		}
+#define I2IA_MAX_DIG    10
+uint32_t i2ia(char *dst, int32_t val, int base, int ndig){
+	char buf[I2IA_MAX_DIG + 2];  // '-' + 10 + '\0' Maximum number of digits used by int32
+	uint8_t i, c, sgn = 0, pad;
+    // convert as signed?
+    if(base < 0){
+	    base = -base;
+	    if (val < 0) {
+            val = -val;
+            sgn = '-';
+        }
 	}
-
-	v = val;
-	r = radix;
-
+    // Select padding
 	if (ndig < 0) {
 		ndig = -ndig;
 		pad = '0';
+	}else{
+        pad = ' ';
+    }
+    // limit number of digits to buffer size
+	if (ndig > I2IA_MAX_DIG) {
+		ndig = I2IA_MAX_DIG;
 	}
-
-	if (ndig > XPITOA_BUF_SIZE) {
-		ndig = XPITOA_BUF_SIZE;
-	}
-
-	ndig = XPITOA_BUF_SIZE - 1 - ndig;
-	i = XPITOA_BUF_SIZE;
-	buf[--i] = '\0';
-
+	//ndig = I2IA_MAX_DIG - 1 - ndig;
+	// convert from right to left
+	i = I2IA_MAX_DIG - 1;
+    // Terminate string
+	buf[i] = '\0';
+    // do conversion
 	do {
-		c = (uint8_t)(v % r);
+		c = (uint8_t)((uint32_t)val % base);
 		if (c >= 10) c += 7;
 		c += '0';
 		buf[--i] = c;
-		v /= r;
-	} while (v);
-
-	if (sgn) buf[--i] = sgn;
-
-	while (i > ndig) {
+		val = (uint32_t)val / base;
+	} while (val);
+    // calculate numver of converted digits
+    uint8_t nconverted = I2IA_MAX_DIG - i - 1;
+    // sign counts as converted char
+	if (sgn) nconverted++;
+    // add padding if necessary
+	while (nconverted < ndig) {
 		buf[--i] = pad;
+		nconverted++;
 	}
-
-	ndig = XPITOA_BUF_SIZE - 1 - i;
-
-	while(buf[i]){
+	// add sign if negative number
+	if (sgn) buf[--i] = sgn;
+    // Copy only ndig if specified
+    if(ndig){
+	    nconverted = ndig;
+    }else{
+        ndig = nconverted;
+    }
+    // copy to output buffer
+	while(nconverted--){
 		*dst++ = buf[i++];
 	}
-
+	// terminate output string
 	*dst = '\0';
-
+    // return number of converted digits
 	return ndig;
 }
 

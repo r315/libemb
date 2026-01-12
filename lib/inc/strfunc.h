@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-#define XPITOA_BUF_SIZE		20
 #define FLOAT_MAX_PRECISION 6
 
 #include <stdint.h>
