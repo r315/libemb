@@ -2,8 +2,8 @@
 #include "lpc17xx_hal.h"
 #include "adc.h"
 
-static adctype_t *s_adc;
 #if 0
+static adctype_t *s_adc;
 static void configAnPin(uint8_t ch){
     uint8_t bitpos;
 
@@ -22,7 +22,8 @@ static void configAnPin(uint8_t ch){
 }
 #endif
 
-uint8_t ADC_Init(adctype_t *adc){
+uint16_t ADC_Init(adctype_t *adc)
+{
 #if 0 // TODO: Fix
     PCONP_ADC_ENABLE;
     /**
@@ -74,7 +75,8 @@ void ADC_Stop(adctype_t *adc) {
     LPC_ADC->CR = LPC_ADC->CR & ~(ADC_CR_START_MSK | ADC_CR_BURST);
 }
 
-uint16_t ADC_ConvertSingle(adctype_t *adc) {
+uint16_t ADC_ConvertSingle(adctype_t *adc, uint8_t ch)
+{
 #if 0 // TODO: Fix
     for (uint8_t ch = 0; ch < ADC_NUM_OF_CHANNELS; ch++) {
         if (adc->ch & (1 << ch)){
@@ -97,7 +99,10 @@ uint16_t ADC_ConvertSingle(adctype_t *adc) {
     return 0xFFFF;
 }
 
-void ADC_IRQHandler(void){
+void ADC_IRQHandler(void)
+{
+    // TODO: FIX when it is necessary
+    #if 0
     uint32_t stat = LPC_ADC->STAT;
     uint16_t *dst = s_adc->buf;
     uint16_t *src = (uint16_t*)&LPC_ADC->DR[0];
@@ -107,6 +112,6 @@ void ADC_IRQHandler(void){
             *(dst++) = *src & 0xFFF;
         }
     }
-
-    s_adc->eoc();
+    //s_adc->eoc();
+    #endif
 }
