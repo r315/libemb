@@ -106,7 +106,7 @@ uint32_t SPI_Init(spibus_t *spibus)
             RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
             RCC->APB2RSTR |= RCC_APB2RSTR_SPI1RST;
             RCC->APB2RSTR &= ~RCC_APB2RSTR_SPI1RST;
-            pclk = CLOCK_Get(CLOCK_PCLK2);
+            pclk = CLOCK_Get(CLOCK_CLK2);
             hspi = &hspia;
             break;
 
@@ -114,7 +114,7 @@ uint32_t SPI_Init(spibus_t *spibus)
             RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
             RCC->APB1RSTR |= RCC_APB1RSTR_SPI2RST;
             RCC->APB1RSTR &= ~RCC_APB1RSTR_SPI2RST;
-            pclk = CLOCK_Get(CLOCK_PCLK1);
+            pclk = CLOCK_Get(CLOCK_CLK1);
             hspi = &hspib;
             break;
 
