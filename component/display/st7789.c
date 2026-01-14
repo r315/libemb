@@ -57,7 +57,7 @@ extern void DelayMs(uint32_t ms);
  * repeat from index 1
  */
 static const uint8_t st7789_sequence[] = {
-    8,                                  // Number of commands in sequence
+    6,                                  // Number of commands in sequence
     DRV_CMD_DELAY, ST7789_SLPOUT, 120,
     DRV_CMD_PARM1, ST7789_COLMOD, (COLOR_MODE_65K | COLOR_MODE_16BIT),
     DRV_CMD_PARM1, ST7789_MADCTL, DEFAULT_MADCTL,
@@ -297,7 +297,9 @@ uint8_t LCD_Init(void *driver)
 }
 
 /**
- * @brief
+ * @brief command LCMCTRL can be used to
+ * facilitate orientation change
+ *
  * */
 void LCD_SetOrientation(drvlcdorientation_t m) {
 
