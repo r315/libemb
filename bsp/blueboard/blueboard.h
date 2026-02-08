@@ -130,9 +130,10 @@ extern "C" {
 #define  LCD_BKL0       LCD_CTRLPORT->FIOCLR = LCD_LED;
 #define  LCD_BKL1       LCD_CTRLPORT->FIOSET = LCD_LED;
 
-#define LCD_IO_INIT                                                   \
-    LCD_CTRLPORT->FIODIR |= LCD_CS|LCD_RS|LCD_WR|LCD_RD|LCD_LED|LCD_RST;  \
-    LPC_GPIO1->FIODIR2 = 0xFF;
+#define  LCD_IO_INIT    LCD_CTRLPORT->FIODIR |= LCD_CS|LCD_RS|LCD_WR|LCD_RD|LCD_LED|LCD_RST;  \
+                        LCD_CTRLPORT->FIOSET = LCD_CS|LCD_RS|LCD_WR|LCD_RD|LCD_RST;  \
+                        LCD_CTRLPORT->FIOCLR = LCD_LED;  \
+                        LPC_GPIO1->FIODIR2 = 0xFF;
 
 //-----------------------------------------------------
 //
