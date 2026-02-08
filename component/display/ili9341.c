@@ -362,3 +362,17 @@ void LCD_Bkl(uint8_t state){
         LCD_BKL0;
     }
 }
+
+/**
+ * @brief Driver specific functionality
+ * TODO: create command specification
+ *
+ * | FUN | PARMS ...
+ * @param ptr
+ * @return
+ */
+uint32_t LCD_DirectCommand(void *ptr)
+{
+    (void)ptr;
+    return 0;
+}

@@ -382,7 +382,7 @@ void LCD_Bkl(uint8_t state){
  * @param ptr
  * @return
  */
-uint32_t LCD_Specific(void *ptr)
+uint32_t LCD_DirectCommand(void *ptr)
 {
     uint8_t *msg = ptr;
 

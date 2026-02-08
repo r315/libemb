@@ -103,7 +103,8 @@ uint16_t LCD_GetHeight(void);
 uint32_t LCD_GetSize(void);
 void LCD_DataEnd(void);
 uint8_t LCD_Busy(void);
-uint32_t LCD_Specific(void *);
+// TODO: Define an api for this
+uint32_t LCD_DirectCommand(void *);
 
 #ifdef __cplusplus
 }

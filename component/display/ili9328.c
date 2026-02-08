@@ -347,5 +347,8 @@ void LCD_SetOrientation(drvlcdorientation_t m) {
     }
 }
 
-
+uint32_t LCD_DirectCommand(void *param)
+{
+    (void)param;
+}
 
