@@ -46,6 +46,8 @@ static void PWM_CfgGpio(uint16_t pin, uint8_t enable){
  * */
 uint32_t PWM_Init(pwmchip_t *pwmchip)
 {
+    (void)pwmchip;
+
     __HAL_RCC_TIM1_CLK_ENABLE();
 
     __HAL_RCC_TIM1_FORCE_RESET();
@@ -129,6 +131,8 @@ uint8_t PWM_Get(uint8_t channel){
  * */
 void PWM_Enable(pwmchip_t *pwmchip, uint8_t channel, enum pwmpstate state)
 {
+    (void)pwmchip;
+
     if(channel > PWM_MAX_CH)
         return;
 
@@ -152,6 +156,8 @@ void PWM_Enable(pwmchip_t *pwmchip, uint8_t channel, enum pwmpstate state)
  **/
 void PWM_Polarity(pwmchip_t *pwmchip, uint8_t ch, uint8_t pol)
 {
+    (void)pwmchip;
+
     if(ch > PWM_MAX_CH)
         return;
 

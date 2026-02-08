@@ -3,13 +3,13 @@
 
 /**
  * @brief Independend watchdog configuration
- * 
- * 
+ *
+ *
  * @param timeout in miliseconds
  */
 void WDT_Init(uint32_t timeout)
 {
-   
+   (void)timeout;
 }
 
 void WDT_Stop(void)

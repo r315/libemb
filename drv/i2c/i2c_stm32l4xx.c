@@ -85,5 +85,5 @@ uint16_t I2C_Read(i2cbus_t *i2c, uint8_t addr, uint8_t *data, uint16_t size){
 }
 
 void I2C_Reset(i2cbus_t *i2cbus){
-
+    (void)i2cbus;
 }

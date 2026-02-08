@@ -24,6 +24,7 @@ static void configAnPin(uint8_t ch){
 
 uint16_t ADC_Init(adctype_t *adc)
 {
+    (void)adc;
 #if 0 // TODO: Fix
     PCONP_ADC_ENABLE;
     /**
@@ -50,7 +51,9 @@ uint16_t ADC_Init(adctype_t *adc)
     return 0;
 }
 
-void ADC_Config(adctype_t *adc){
+void ADC_Config(adctype_t *adc)
+{
+    (void)adc;
 #if 0 // TODO: Fix
     uint32_t intr = 0;
     for (uint8_t ch = 0; ch < ADC_NUM_OF_CHANNELS; ch++){
@@ -72,11 +75,14 @@ void ADC_Start(adctype_t *adc){
 }
 
 void ADC_Stop(adctype_t *adc) {
+    (void)adc;
     LPC_ADC->CR = LPC_ADC->CR & ~(ADC_CR_START_MSK | ADC_CR_BURST);
 }
 
 uint16_t ADC_ConvertSingle(adctype_t *adc, uint8_t ch)
 {
+    (void)adc;
+    (void)ch;
 #if 0 // TODO: Fix
     for (uint8_t ch = 0; ch < ADC_NUM_OF_CHANNELS; ch++) {
         if (adc->ch & (1 << ch)){

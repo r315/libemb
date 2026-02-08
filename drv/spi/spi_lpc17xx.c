@@ -132,6 +132,9 @@ uint16_t SPI_Xchg(spibus_t *spi, uint8_t *data){
 }
 
 void SPI_TransferDMA(spibus_t *spi, uint8_t *data, uint32_t count){
+    (void)spi;
+    (void)data;
+    (void)count;
 	//LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 }
 

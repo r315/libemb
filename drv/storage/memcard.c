@@ -178,6 +178,7 @@ uint8_t SDGetCID(uint8_t *CIDRegister){
  * @return uint8_t      0: Success, otherwise error
  */
 uint8_t SDGetSCR(uint8_t *SCRRegister){
+    (void)SCRRegister;
     return 1;
 }
 
@@ -379,6 +380,8 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
  */
 DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
 #if ENABLE_SECTOR_WRITE
+    (void)buff;
+    (void)sa;
     DRESULT res;
     WORD bc;
     static WORD wc;
@@ -426,6 +429,9 @@ DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
 
     return res;
 #else
+    (void)buff;
+    (void)sa;
+
     return RES_NOTRDY;
 #endif
 }

@@ -281,12 +281,12 @@ void UART_Init(serialbus_t *serialbus)
 
 	huart->uart->LCR = wls & 3;
 
-    if(serialbus->stopbit == UART_STOP_2BIT){
+    if(serialbus->stopbit == UART_CFG_STOP_2BIT){
         huart->uart->LCR |= UART_LCR_SB;
     }
 
-    if(serialbus->parity != UART_PARITY_NONE){
-        uint32_t parity = serialbus->parity == UART_PARITY_EVEN ? UART_LCR_PS_EVEN : UART_LCR_PS_ODD;
+    if(serialbus->parity != UART_CFG_PARITY_NONE){
+        uint32_t parity = serialbus->parity == UART_CFG_PARITY_EVEN ? UART_LCR_PS_EVEN : UART_LCR_PS_ODD;
         huart->uart->LCR |= UART_LCR_PE | parity;
     }
 
