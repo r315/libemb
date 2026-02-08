@@ -355,7 +355,13 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len){
 
 	fifo_get(&huart->txfifo, (uint8_t *)&huart->uart->THR);
     #else
+
+    if(len > UART_DMA_BUF_SIZE){
+        len = UART_DMA_BUF_SIZE; // truncate data
+    }
+
     while(DMA_GetTransfers(&huart->dma_tx) != huart->dma_tx.len);
+
     memcpy(huart->tx_buf, buf, len);
     huart->dma_tx.len = len;
     DMA_Start(&huart->dma_tx);
