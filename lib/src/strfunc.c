@@ -545,63 +545,71 @@ uint32_t d2da(char *dst, double f, uint8_t places){
 
 /**
  * @brief String formater
- *   %nu, %nd, %nb, %c, %s, %l, %x, %.nf
  *
- * TODO: fix print percent sign (%)
+ * Supported format specifiers: %c, %s, %d, %u, %x, %f, %lu, %#d %#u, %#b, %.#f
+ *
  * */
 uint32_t strformater(char *dst, int len, const char* fmt, va_list arp)
 {
-	int d, r, w, s, l, f;
-    char *p, *start = dst;
+	int r, w, zp, l, f;
+    char c, *p, *start = dst;
     char *end = dst + (len > 0 ? len - 1 : 0); // leave space for '\0'
 
     if (len <= 0) {
         return 0;  // nothing can be written
     }
 
-    while ((d = *fmt++) != '\0') {
+    while ((c = *fmt++) != '\0') {
         if (dst >= end) break;  // buffer full
 
-        if (d != '%') {
-            *dst++ = (char)d;
-            continue;
+        // output character if not format specifier start character
+        if (c != '%') { *dst++ = (char)c; continue; }
+        c = *fmt++;
+        // %%
+        if(c == '%'){ *dst++ = (char)c; continue; }
+        // handle specifier
+        f = w = r = zp = l = 0;
+        // handle %0# or %.#
+        if (c == '.') { f = 1; c = *fmt++; }
+        if (c == '0') { zp = 1; c = *fmt++; }
+        // width of number
+        while ((c >= '0') && (c <= '9')) {
+            w = w * 10 + (c - '0');
+            c = *fmt++;
         }
-
-        d = *fmt++;
-        f = w = r = s = l = 0;
-
-        if (d == '.') { d = *fmt++; f = 1; }
-        if (d == '0') { d = *fmt++; s = 1; }
-
-        while ((d >= '0') && (d <= '9')) {
-            w = w * 10 + (d - '0');
-            d = *fmt++;
+        // only %lu is implemented
+        if (c == 'l') {
+            l = 1;
+            if (*fmt != 'u') {
+                *dst++ = '%';   // echo %
+                continue;       // ignore specifier
+            }
+            c = *fmt++;
         }
-
-        if (d == 'l') { l = 1; d = *fmt++; }
-        if (d == '\0') break;
-
-        if (d == 's') {
+        // break on unexpected string end
+        if (c == '\0') break;
+        // normal string
+        if (c == 's') {
             p = va_arg(arp, char*);
             while (*p && dst < end) {
                 *dst++ = *p++;
             }
             continue;
         }
-
-        if (d == 'c') {
+        // normal character
+        if (c == 'c') {
             if (dst < end) {
                 *dst++ = (char)va_arg(arp, int);
             }
             continue;
         }
 
-        if (d == 'u') r = 10;
-        if (d == 'd') r = -10;
-        if (d == 'X' || d == 'x') r = 16;
-        if (d == 'b') r = 2;
+        if (c == 'u') r = 10;
+        if (c == 'd') r = -10;
+        if (c == 'X' || c == 'x') r = 16;
+        if (c == 'b') r = 2;
 
-        if (d == 'f') {
+        if (c == 'f') {
             if (!f) w = FLOAT_MAX_PRECISION;
             if (dst < end) {
                 int space = end - dst;
@@ -613,7 +621,7 @@ uint32_t strformater(char *dst, int len, const char* fmt, va_list arp)
         }
 
         if (r == 0) break;
-        if (s) w = -w;
+        if (zp) w = -w;
 
         if (dst < end) {
             int space = end - dst;
@@ -695,3 +703,40 @@ void memset32(uint32_t *dst, uint32_t c, uint32_t n){
 void memcpy32(uint32_t *dst, uint32_t *src, uint32_t n){
     while(n--){ *dst++ = *src++;  }
 }
+
+#if STRFUNC_TEST
+
+uint32_t test(char*buf, int len, int (*write)(const char*, int), const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    uint32_t n = strformater(buf, len, fmt, ap);
+    va_end(ap);
+
+    return write(buf, n);
+}
+
+void strfunc_test(int (*write)(const char*, int))
+{
+    char buf[128];
+
+    test(buf, sizeof(buf), write, "char      : %c\n", 'A');         // A
+    test(buf, sizeof(buf), write, "string    : %s\n", "hello");     // hello
+    test(buf, sizeof(buf), write, "percent   : %%\n");              // %
+    test(buf, sizeof(buf), write, "int       : %d\n", -12345678);   // -12345678
+    test(buf, sizeof(buf), write, "uint      : %u\n", 456u);        // 456
+    test(buf, sizeof(buf), write, "hex       : %x\n", 0xabc);       // ABC
+    test(buf, sizeof(buf), write, "bin       : %b\n", 0b101101);    // 101101
+    test(buf, sizeof(buf), write, "long      : %l\n", -123456789L); // %
+    test(buf, sizeof(buf), write, "ulong     : %lu\n",-123456789L); // 4282621618
+    test(buf, sizeof(buf), write, "float     : %f\n", 3.141592653); // 3.141592
+    test(buf, sizeof(buf), write, "float prec: %.3f\n",3.141592653);// 3.141
+    test(buf, sizeof(buf), write, "zero pad  : %05x\n", 0x42);      // 00042
+    test(buf, sizeof(buf), write, "width     : %7d\n", 42);         //      42
+
+    // buffer limit test
+    test(buf, 20, write, "Small buffer: %s\n", "1234567890A");      // 12345
+    write("\n", 1);
+}
+
+#endif
