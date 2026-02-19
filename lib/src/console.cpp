@@ -522,6 +522,11 @@ void Console::writechar(char c)
     m_out->write((const char*)&c, 1);
 }
 
+int Console::write(const char* str, int len)
+{
+    return m_out->write(str, len);
+}
+
 void Console::replaceLine(char *new_line) {
     int new_line_len;
 
