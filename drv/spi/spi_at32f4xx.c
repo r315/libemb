@@ -235,28 +235,37 @@ uint32_t SPI_Init(spibus_t *spibus)
 }
 
 /**
- * @brief Make single data exchange on spi bus
+ * @brief Exchange data on spi bus
  *
  * \param spibus : Pointer to spi device to be used
- * \param data  : Data to be transmitted
+ * \param buffer : Data to be exchanged
  *
- * \return Received data
+ * \return Number of transfers performed
  * */
-uint16_t SPI_Xchg(spibus_t *spibus, uint8_t *data){
+uint32_t SPI_Xchg(spibus_t *spibus, uint8_t *buffer, uint32_t count){
     SPI_Type *spi = ((hspi_t*)spibus->handle)->spi;
+    uint32_t total = count;
 
     if(spibus->cfg & SPI_CFG_TRF_16BIT){
         spi->CTRL1 |= SPI_CTRL1_DFF16;
-        *((__IO uint16_t *)&spi->DT) = *(uint16_t*)data;
+        while(count--){
+            while((spi->STS & SPI_STS_TE) == 0);
+            *((__IO uint16_t *)&spi->DT) = *(uint16_t*)buffer;
+            while((spi->STS & SPI_STS_BSY) != 0);
+            *(uint16_t*)buffer = *((__IO uint16_t *)&spi->DT);
+            buffer++;
+        }
     }else{
         spi->CTRL1 &= ~(SPI_CTRL1_DFF16);
-        *((__IO uint8_t *)&spi->DT) = *data;
+        while(count--){
+            while((spi->STS & SPI_STS_TE) == 0);
+            *((__IO uint8_t *)&spi->DT) = *buffer;
+            while((spi->STS & SPI_STS_BSY) != 0);
+            *buffer = *((__IO uint8_t *)&spi->DT);
+            buffer++;
+        }
     }
-
-    while((spi->STS & SPI_STS_TE) == 0);
-    while((spi->STS & SPI_STS_BSY) != 0);
-
-    return spi->DT;
+    return total - count;
 }
 
 /**
@@ -265,23 +274,23 @@ uint16_t SPI_Xchg(spibus_t *spibus, uint8_t *data){
  * \param src   : Pointer to source data
  * \param count : total number of bytes to transfer
  * */
-void SPI_Transfer(spibus_t *spibus, uint8_t *src, uint32_t count){
+void SPI_Transfer(spibus_t *spibus, const uint8_t *buffer, uint32_t count)
+{
     SPI_Type *spi = ((hspi_t*)spibus->handle)->spi;
 
     if(spibus->cfg & SPI_CFG_TRF_16BIT){
         spi->CTRL1 |= SPI_CTRL1_DFF16;
         while(count--){
-            *((__IO uint16_t *)&spi->DT) = *(uint16_t*)src++;
             while((spi->STS & SPI_STS_TE) == 0);
+            *((__IO uint16_t *)&spi->DT) = *(uint16_t*)buffer++;
             while((spi->STS & SPI_STS_BSY) != 0);
         }
     }else{
         spi->CTRL1 &= ~(SPI_CTRL1_DFF16);
         while(count--){
             while((spi->STS & SPI_STS_TE) == 0);
-            *((__IO uint8_t *)&spi->DT) = *src++;
+            *((__IO uint8_t *)&spi->DT) = *buffer++;
             while((spi->STS & SPI_STS_BSY) != 0);
-            //*(src++) = *((__IO uint8_t *)&spi->DT);
         }
     }
 }
@@ -292,7 +301,7 @@ void SPI_Transfer(spibus_t *spibus, uint8_t *src, uint32_t count){
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
-void SPI_TransferDMA(spibus_t *spibus, uint8_t *src, uint32_t count)
+void SPI_TransferDMA(spibus_t *spibus, const uint8_t *src, uint32_t count)
 {
     hspi_t *hspi = (hspi_t*)spibus->handle;
     SPI_Type *spi = hspi->spi;

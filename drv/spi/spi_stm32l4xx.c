@@ -151,7 +151,7 @@ uint32_t SPI_Init(spibus_t *spibus){
  * \param data  : Pointer to data
  * \param count : total number of bytes to transfer
  * */
-void SPI_Transfer(spibus_t *spibus, uint8_t *src, uint32_t count)
+void SPI_Transfer(spibus_t *spibus, const uint8_t *src, uint32_t count)
 {
     SPI_TypeDef *spi = ((hspi_t*)spibus->handle)->spi;
 

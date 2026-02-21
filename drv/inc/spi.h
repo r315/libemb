@@ -63,11 +63,11 @@ typedef struct spibus{
 }spibus_t;
 
 uint32_t SPI_Init(spibus_t *spibus);
-void SPI_Transfer(spibus_t *spibus, uint8_t *src, uint32_t count);
-void SPI_TransferDMA(spibus_t *spibus, uint8_t *data, uint32_t count);
+void SPI_Transfer(spibus_t *spibus, const uint8_t *buffer, uint32_t count);
+void SPI_TransferDMA(spibus_t *spibus, const uint8_t *buffer, uint32_t count);
 void SPI_WaitEOT(spibus_t *spibus);
 void SPI_SetEOT(spibus_t *spibus, void(*eot)(void));
-uint16_t SPI_Xchg(spibus_t *spibus, uint8_t *data);
+uint32_t SPI_Xchg(spibus_t *spibus, uint8_t *buffer, uint32_t count);
 
 #ifdef __cplusplus
 }

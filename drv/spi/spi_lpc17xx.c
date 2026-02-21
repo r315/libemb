@@ -99,7 +99,7 @@ uint32_t SPI_Init(spibus_t *spi){
     return SPI_OK;
 }
 
-void SPI_Transfer(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
+void SPI_Transfer(spibus_t *spi, const uint8_t *buffer, uint32_t lenght){
 
 	LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->handle;
 
