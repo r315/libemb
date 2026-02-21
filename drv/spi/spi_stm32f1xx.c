@@ -184,6 +184,7 @@ uint32_t SPI_Xchg(spibus_t *spibus, uint8_t *buffer, uint32_t count)
             *((__IO uint8_t *)&spi->DR) = *buffer;
             while((spi->SR & SPI_SR_BSY) != 0);
             *buffer = *((__IO uint8_t *)&spi->DR);
+            buffer++;
         }
     }
 
