@@ -176,7 +176,7 @@ void SPI_Transfer(spibus_t *spibus, const uint8_t *src, uint32_t count)
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
-void SPI_TransferDMA(spibus_t *spibus, uint8_t *src, uint32_t count)
+void SPI_TransferDMA(spibus_t *spibus, const uint8_t *src, uint32_t count)
 {
     hspi_t *hspi = (hspi_t*)spibus->handle;
     SPI_TypeDef *spi = hspi->spi;
