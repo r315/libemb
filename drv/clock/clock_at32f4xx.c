@@ -139,6 +139,20 @@ uint32_t CLOCK_Get(enum clocknr clock)
 
 void CLOCK_Enable(uint32_t per, uint8_t state)
 {
-    (void)per;
-    (void)state;
+    uint32_t shift = (per >> 10) & 0x3F;
+    uint32_t mask = (1 << shift);
+
+    if(per >= AHBPERIPH_BASE){
+        per = (uint32_t)&RCC->AHBEN;
+    }else if(per >= APB2PERIPH_BASE){
+        per = (uint32_t)&RCC->APB2EN;
+    }else{
+        per = (uint32_t)&RCC->APB1EN;
+    }
+
+    if(state){
+        *(uint32_t*)per |= mask;
+    }else{
+        *(uint32_t*)per &= ~mask;
+    }
 }
