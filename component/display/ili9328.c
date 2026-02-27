@@ -123,7 +123,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 	}
 }
 
-void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data){
+void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data){
 	uint32_t count = w * h;
 
 	LCD_Window(x, y, w, h);
@@ -347,5 +347,9 @@ void LCD_SetOrientation(drvlcdorientation_t m) {
     }
 }
 
-
+uint32_t LCD_DirectCommand(void *param)
+{
+    (void)param;
+    return 0;
+}
 

@@ -10,10 +10,11 @@ typedef struct dmactrl{
    void *dst;
    uint32_t len;            // Number of elements on transfer, rename to count?
    struct {
-      uint32_t ssize : 5;
-      uint32_t dsize : 5;
-      uint32_t dir : 2;
+      uint32_t ssize  : 5;
+      uint32_t dsize  : 5;
+      uint32_t dir    : 2;
       uint32_t single : 1;  // Single transfer
+      uint32_t half   : 1;  // Half transfer interrupt
    };
    void (*eot)(void);
 }dmatype_t;

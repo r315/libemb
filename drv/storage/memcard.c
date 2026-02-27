@@ -178,6 +178,7 @@ uint8_t SDGetCID(uint8_t *CIDRegister){
  * @return uint8_t      0: Success, otherwise error
  */
 uint8_t SDGetSCR(uint8_t *SCRRegister){
+    (void)SCRRegister;
     return 1;
 }
 
@@ -213,6 +214,8 @@ uint8_t SDGetOCR(uint8_t *OCRRegister){
  * @return STA_OK on success, STA_NOINIT otherwise
  */
 DSTATUS disk_initialize (void){
+    #warning "memcard driver requires fixing"
+    #if 0 // TODO: FIX
     uint8_t n, cmd, ocr[4];
     uint16_t tmr;
 
@@ -297,7 +300,7 @@ DSTATUS disk_initialize (void){
     s_spi->freq = freq;
     SPI_Init(s_spi);
 #endif
-
+#endif
     return (CardType != CT_NONE) ? STA_OK : STA_NOINIT;
 }
 
@@ -377,6 +380,8 @@ DRESULT disk_readp (BYTE *buff,	DWORD lba, UINT ofs, UINT cnt){
  */
 DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
 #if ENABLE_SECTOR_WRITE
+    (void)buff;
+    (void)sa;
     DRESULT res;
     WORD bc;
     static WORD wc;
@@ -424,6 +429,9 @@ DRESULT disk_writep (const uint8_t *buff, DWORD sa ){
 
     return res;
 #else
+    (void)buff;
+    (void)sa;
+
     return RES_NOTRDY;
 #endif
 }

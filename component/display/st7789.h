@@ -1,7 +1,7 @@
 /**
 * @file     st7789.h
 * @brief    Contains the st7789 lcd controller API headers and symbols.
-*           
+*
 * @version  1.0
 * @date     1 April 2023
 * @author   Hugo Reis
@@ -18,9 +18,9 @@ extern "C" {
 #include "drvlcd.h"
 
 #define TFT_ST7789
-
-#define TFT_W 240
-#define TFT_H 240
+// Controller capability
+#define RES_H            240
+#define RES_V            320
 
 // commands
 #define ST7789_NOP       0x00

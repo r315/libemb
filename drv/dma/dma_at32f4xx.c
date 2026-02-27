@@ -77,7 +77,16 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
             break;
     }
 
+    /**
+     * End of transfer is always configured to disable
+     * DMA stream when finished.
+     */
     config |= DMA_CHCTRL1_TCIE;
+    // Optionally configure half transfer
+    if(dma->half){
+        config |= DMA_CHCTRL1_HTIE;
+    }
+
     NVIC_EnableIRQ(irqn);
 
     stream->CHCTRL = config;
@@ -113,6 +122,11 @@ void DMA_Cancel(dmatype_t *dma)
     stream->CHCTRL &= ~DMA_CHCTRL1_CHEN;
 }
 
+/**
+ * @brief Return the number transfers already made
+ * @param dma
+ * @return
+ */
 uint32_t DMA_GetTransfers(dmatype_t *dma)
 {
     DMA_Channel_Type *stream = dma->stream;
@@ -165,7 +179,7 @@ void DMA_SetDst(dmatype_t *dma, void *dst)
     }
 }
 
-static inline void dma_irq_handler(dmatype_t *dma)
+static void dma_irq_handler(dmatype_t *dma)
 {
     DMA_Channel_Type *stream = dma->stream;
     uint32_t ctrl = stream->CHCTRL;
@@ -184,7 +198,7 @@ void DMA1_Channel1_IRQHandler(void)
 {
     if(DMA1->ISTS & DMA_ISTS_GIF1){
         dma_irq_handler(hdma[0]);
-        DMA1->ICLR = (DMA_ICLR_CGIF1 | DMA_ICLR_CTCIF1 | DMA_ICLR_CERRIF1);
+        DMA1->ICLR = (DMA_ICLR_CGIF1 | DMA_ICLR_CTCIF1 | DMA_ICLR_CHTIF1 | DMA_ICLR_CERRIF1);
     }
 }
 
@@ -192,7 +206,7 @@ void DMA1_Channel2_IRQHandler(void)
 {
     if(DMA1->ISTS & DMA_ISTS_GIF2){
         dma_irq_handler(hdma[1]);
-        DMA1->ICLR = (DMA_ICLR_CGIF2 | DMA_ICLR_CTCIF2 | DMA_ICLR_CERRIF2);
+        DMA1->ICLR = (DMA_ICLR_CGIF2 | DMA_ICLR_CTCIF2 | DMA_ICLR_CHTIF2 | DMA_ICLR_CERRIF2);
     }
 }
 
@@ -200,7 +214,7 @@ void DMA1_Channel3_IRQHandler(void)
 {
     if(DMA1->ISTS & DMA_ISTS_GIF3){
         dma_irq_handler(hdma[2]);
-        DMA1->ICLR = (DMA_ICLR_CGIF3 | DMA_ICLR_CTCIF3 | DMA_ICLR_CERRIF3);
+        DMA1->ICLR = (DMA_ICLR_CGIF3 | DMA_ICLR_CTCIF3 | DMA_ICLR_CHTIF3 | DMA_ICLR_CERRIF3);
     }
 }
 
@@ -208,7 +222,7 @@ void DMA1_Channel4_IRQHandler(void)
 {
     if(DMA1->ISTS & DMA_ISTS_GIF4){
         dma_irq_handler(hdma[3]);
-        DMA1->ICLR = (DMA_ICLR_CGIF4 | DMA_ICLR_CTCIF4 | DMA_ICLR_CERRIF4);
+        DMA1->ICLR = (DMA_ICLR_CGIF4 | DMA_ICLR_CTCIF4 | DMA_ICLR_CHTIF4 | DMA_ICLR_CERRIF4);
     }
 }
 
@@ -216,7 +230,7 @@ void DMA1_Channel5_IRQHandler(void)
 {
     if(DMA1->ISTS & DMA_ISTS_GIF5){
         dma_irq_handler(hdma[4]);
-        DMA1->ICLR = (DMA_ICLR_CGIF5 | DMA_ICLR_CTCIF5 | DMA_ICLR_CERRIF5);
+        DMA1->ICLR = (DMA_ICLR_CGIF5 | DMA_ICLR_CTCIF5 | DMA_ICLR_CHTIF5 | DMA_ICLR_CERRIF5);
     }
 }
 
@@ -224,7 +238,7 @@ void DMA1_Channel6_IRQHandler(void)
 {
     if(DMA1->ISTS & DMA_ISTS_GIF6){
         dma_irq_handler(hdma[5]);
-        DMA1->ICLR = (DMA_ICLR_CGIF6 | DMA_ICLR_CTCIF6 | DMA_ICLR_CERRIF6);
+        DMA1->ICLR = (DMA_ICLR_CGIF6 | DMA_ICLR_CTCIF6 | DMA_ICLR_CHTIF6 | DMA_ICLR_CERRIF6);
     }
 }
 
@@ -232,7 +246,7 @@ void DMA1_Channel7_IRQHandler(void)
 {
     if(DMA1->ISTS & DMA_ISTS_GIF7){
         dma_irq_handler(hdma[6]);
-        DMA1->ICLR = (DMA_ICLR_CGIF7 | DMA_ICLR_CTCIF7 | DMA_ICLR_CERRIF7);
+        DMA1->ICLR = (DMA_ICLR_CGIF7 | DMA_ICLR_CTCIF7 | DMA_ICLR_CHTIF7 | DMA_ICLR_CERRIF7);
     }
 }
 
@@ -240,7 +254,7 @@ void DMA2_Channel1_IRQHandler(void)
 {
     if(DMA2->ISTS & DMA_ISTS_GIF1){
         dma_irq_handler(hdma[8]);
-        DMA2->ICLR = (DMA_ICLR_CGIF1 | DMA_ICLR_CTCIF1 | DMA_ICLR_CERRIF1);
+        DMA2->ICLR = (DMA_ICLR_CGIF1 | DMA_ICLR_CTCIF1 | DMA_ICLR_CHTIF1 | DMA_ICLR_CERRIF1);
     }
 }
 
@@ -248,7 +262,7 @@ void DMA2_Channel2_IRQHandler(void)
 {
     if(DMA2->ISTS & DMA_ISTS_GIF2){
         dma_irq_handler(hdma[9]);
-        DMA2->ICLR = (DMA_ICLR_CGIF2 | DMA_ICLR_CTCIF2 | DMA_ICLR_CERRIF2);
+        DMA2->ICLR = (DMA_ICLR_CGIF2 | DMA_ICLR_CTCIF2 | DMA_ICLR_CHTIF2 | DMA_ICLR_CERRIF2);
     }
 }
 
@@ -256,7 +270,7 @@ void DMA2_Channel3_IRQHandler(void)
 {
     if(DMA2->ISTS & DMA_ISTS_GIF3){
         dma_irq_handler(hdma[10]);
-        DMA2->ICLR = (DMA_ICLR_CGIF3 | DMA_ICLR_CTCIF3 | DMA_ICLR_CERRIF3);
+        DMA2->ICLR = (DMA_ICLR_CGIF3 | DMA_ICLR_CTCIF3 | DMA_ICLR_CHTIF3 | DMA_ICLR_CERRIF3);
     }
 }
 
@@ -264,11 +278,11 @@ void DMA2_Channel4_5_IRQHandler(void)
 {
     if(DMA2->ISTS & DMA_ISTS_GIF4){
         dma_irq_handler(hdma[11]);
-        DMA2->ICLR = (DMA_ICLR_CGIF4 | DMA_ICLR_CTCIF4 | DMA_ICLR_CERRIF4);
+        DMA2->ICLR = (DMA_ICLR_CGIF4 | DMA_ICLR_CTCIF4 | DMA_ICLR_CHTIF4 | DMA_ICLR_CERRIF4);
     }
 
     if(DMA2->ISTS & DMA_ISTS_GIF5){
         dma_irq_handler(hdma[12]);
-        DMA2->ICLR = (DMA_ICLR_CGIF5 | DMA_ICLR_CTCIF5 | DMA_ICLR_CERRIF5);
+        DMA2->ICLR = (DMA_ICLR_CGIF5 | DMA_ICLR_CTCIF5 | DMA_ICLR_CHTIF5 | DMA_ICLR_CERRIF5);
     }
 }

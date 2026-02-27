@@ -16,11 +16,11 @@ Console::Console(void) {
 
 }
 
-Console::Console(stdinout_t *out, const char *prompt) {
+Console::Console(const stdinout_t *out, const char *prompt) {
 	init(out, prompt);
 }
 
-void Console::init(stdinout_t *out, const char *prompt) {
+void Console::init(const stdinout_t *out, const char *prompt) {
 	memset(m_cmdList, '#', CONSOLE_MAX_COMMANDS * sizeof(ConsoleCommand*));
 	memset(m_line, '\0', CONSOLE_WIDTH);
 	m_cmdListSize = 0;
@@ -159,8 +159,9 @@ void Console::cls(void){
 
 /**
  * */
-void Console::setOutput(stdinout_t *sp){
-	m_out = sp;
+void Console::setOutput(const stdinout_t *sp){
+    if(sp)
+	    m_out = sp;
 }
 
 /**
@@ -263,7 +264,7 @@ int Console::printf(const char* fmt, ...)
 	va_list arp;
     int len;
 	va_start(arp, fmt);
-	len = strformater(m_buf, fmt, CONSOLE_WIDTH, arp);
+	len = strformater(m_buf, CONSOLE_WIDTH, fmt, arp);
 	va_end(arp);
 
 	return m_out->write(m_buf, len);
@@ -519,6 +520,11 @@ char Console::readchar(void)
 void Console::writechar(char c)
 {
     m_out->write((const char*)&c, 1);
+}
+
+int Console::write(const char* str, int len)
+{
+    return m_out->write(str, len);
 }
 
 void Console::replaceLine(char *new_line) {

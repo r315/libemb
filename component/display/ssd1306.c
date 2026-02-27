@@ -19,7 +19,7 @@ typedef struct ssd13xx_frame{
     uint8_t ctrl5;
     uint8_t parm5;
     uint8_t ctrl6;
-    uint8_t data[SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8];
+    uint8_t data[RES_H * RES_V / 8];
 }ssd13xx_frame_t;
 
 

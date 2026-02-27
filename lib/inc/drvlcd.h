@@ -46,11 +46,11 @@ typedef enum drvlcdorientation_e{
 typedef struct drvlcdspi_s {
     uint16_t w;
     uint16_t h;
-    uint8_t cs;
-    uint8_t cd;
-    uint8_t rst;
-    uint8_t bkl;
-    spibus_t spidev;
+    uint8_t cs;     /* GPIO pin name */
+    uint8_t cd;     /* GPIO pin name */
+    uint8_t rst;    /* GPIO pin name */
+    uint8_t bkl;    /* GPIO pin name */
+    spibus_t *spidev;
 }drvlcdspi_t;
 
 typedef struct drvlcdi2c_s {
@@ -75,7 +75,7 @@ typedef struct drvlcdparallel_s {
 typedef struct drvlcd_s{
     uint8_t (*init)(void *param);
     void (*drawFillRect)(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
-    void (*drawArea)(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data);
+    void (*drawArea)(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data);
     void (*drawPixel)(uint16_t x, uint16_t y, uint16_t color);
     void (*scrollScreen)(uint16_t sc);
     void (*setOrientation)(drvlcdorientation_t m);
@@ -89,9 +89,9 @@ typedef struct drvlcd_s{
 }drvlcd_t;
 
 
-uint8_t LCD_Init(void *param);  // void type, can be drvlcdspi/i2c/parallel
+uint8_t LCD_Init(void *param);  // void type, can be drvlcdspi/drvlcdi2c/drvlcdparallel
 void LCD_FillRect(uint16_t x, uint16_t y,  uint16_t w, uint16_t h, uint16_t color);
-void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data);
+void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data);
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color);
 void LCD_Scroll(uint16_t sc);
 void LCD_SetOrientation(drvlcdorientation_t m);
@@ -103,6 +103,8 @@ uint16_t LCD_GetHeight(void);
 uint32_t LCD_GetSize(void);
 void LCD_DataEnd(void);
 uint8_t LCD_Busy(void);
+// TODO: Define an api for this
+uint32_t LCD_DirectCommand(void *);
 
 #ifdef __cplusplus
 }

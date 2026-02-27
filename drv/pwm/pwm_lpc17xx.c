@@ -47,6 +47,8 @@
  *
  * */
 uint32_t PWM_Init(pwmchip_t *pwmchip){
+    (void)pwmchip;
+
     LPC_SC->PCONP |= PCONP_PCPWM1;                   // Enable PWM Module
 
 	CLOCK_SetPCLK(PCLK_PWM1, PCLK_1);
@@ -69,7 +71,7 @@ uint32_t PWM_Init(pwmchip_t *pwmchip){
  * \param freq [in] : New pwm frequency
  * */
 void PWM_Freq(uint32_t freq){
-
+    (void)freq;
 }
 
 /**
@@ -116,6 +118,7 @@ uint8_t PWM_Get(uint8_t channel){
  * */
 void PWM_Enable(pwmchip_t *pwmchip, uint8_t ch, enum pwmpstate state)
 {
+    (void)pwmchip;
     if(ch > PWM_MAX_CH)
         return;
 
@@ -142,4 +145,7 @@ void PWM_Enable(pwmchip_t *pwmchip, uint8_t ch, enum pwmpstate state)
 **/
 void PWM_Polarity(pwmchip_t *pwmchip, uint8_t ch, uint8_t pol)
 {
+    (void)pwmchip;
+    (void)ch;
+    (void)pol;
 }

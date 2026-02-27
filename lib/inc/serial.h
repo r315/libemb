@@ -41,8 +41,8 @@ typedef struct serialops_s{
 }serialops_t;
 
 typedef struct serialport_s {
-    serialbus_t port;
-    serialops_t serial;
+    serialbus_t bus;
+    serialops_t ops;
 }serialport_t;
 
 /**
@@ -65,7 +65,7 @@ void SERIAL_Init(void);
  *
  * @param config    New configuration bit mask
  */
-void SERIAL_Config(serialport_t *hserial, uint32_t config);
+void SERIAL_Config(serialport_t *hserial, int32_t nr, uint32_t config);
 
 /**
  * @brief Get serial bus handler.

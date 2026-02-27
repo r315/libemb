@@ -99,7 +99,7 @@ uint32_t SPI_Init(spibus_t *spi){
     return SPI_OK;
 }
 
-void SPI_Transfer(spibus_t *spi, uint8_t *buffer, uint32_t lenght){
+void SPI_Transfer(spibus_t *spi, const uint8_t *buffer, uint32_t lenght){
 
 	LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->handle;
 
@@ -132,6 +132,9 @@ uint16_t SPI_Xchg(spibus_t *spi, uint8_t *data){
 }
 
 void SPI_TransferDMA(spibus_t *spi, uint8_t *data, uint32_t count){
+    (void)spi;
+    (void)data;
+    (void)count;
 	//LPC_SSP_TypeDef *sspx = (LPC_SSP_TypeDef*)spi->ctrl;
 }
 

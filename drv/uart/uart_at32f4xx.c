@@ -73,7 +73,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB2EN |= RCC_APB2EN_USART1EN;
             RCC->APB2RST |= RCC_APB2RST_USART1RST;
             RCC->APB2RST &= ~RCC_APB2RST_USART1RST;
-            pclk = clocks.pclk2;
+            pclk = clocks.clk2;
             #endif
             huart = &huart1;
             huart->usart = USART1;
@@ -92,7 +92,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB1EN |= RCC_APB1EN_USART2EN;
             RCC->APB1RST |= RCC_APB1RST_USART2RST;
             RCC->APB1RST &= ~RCC_APB1RST_USART2RST;
-            pclk = clocks.pclk1;
+            pclk = clocks.clk1;
             #endif
             huart = &huart2;
             huart->usart = USART2;
@@ -111,7 +111,7 @@ void UART_Init(serialbus_t *serialbus){
             RCC->APB1EN |= RCC_APB1EN_USART3EN;
             RCC->APB1RST |= RCC_APB1RST_USART3RST;
             RCC->APB1RST &= ~RCC_APB1RST_USART3RST;
-            pclk = clocks.pclk1;
+            pclk = clocks.clk1;
             #endif
             huart = &huart3;
             huart->usart = USART3;
@@ -126,17 +126,17 @@ void UART_Init(serialbus_t *serialbus){
 
     huart->usart->BAUDR = pclk / serialbus->speed;
 
-    uint32_t tmp = serialbus->datalength == UART_DATA_9BIT ? USART_CTRL1_LEN : 0;
+    uint32_t tmp = serialbus->datalength == UART_CFG_9BIT ? USART_CTRL1_LEN : 0;
 
-    if(serialbus->parity != UART_PARITY_NONE){
-        tmp = tmp | USART_CTRL1_PCEN | ((serialbus->parity == UART_PARITY_ODD) ? USART_CTRL1_PSEL : 0);
+    if(serialbus->parity != UART_CFG_PARITY_NONE){
+        tmp = tmp | USART_CTRL1_PCEN | ((serialbus->parity == UART_CFG_PARITY_ODD) ? USART_CTRL1_PSEL : 0);
     }
 
     huart->usart->CTRL1 =   tmp |
                             USART_CTRL1_REN | USART_CTRL1_TEN |
                             USART_CTRL1_UEN | USART_CTRL1_RDNEIEN;
 
-    if(serialbus->stopbit == UART_STOP_2BIT){
+    if(serialbus->stopbit == UART_CFG_STOP_2BIT){
         huart->usart->CTRL2 |= (2 << 12);
     }
 

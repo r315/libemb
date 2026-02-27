@@ -9,7 +9,7 @@ typedef void (*eot_t)(void);
 static const void *s_dmachs[8] = {LPC_GPDMACH0, LPC_GPDMACH1, LPC_GPDMACH2, LPC_GPDMACH3, LPC_GPDMACH4, LPC_GPDMACH5, LPC_GPDMACH6, LPC_GPDMACH7};
 static dmalli_t s_lli[DMA_MAX_CHANNELS];
 static eot_t s_eot[DMA_MAX_CHANNELS];
-
+static uint8_t requested = 0;
 
 /**
  * @brief
@@ -30,7 +30,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
     if(dma->stream == NULL){
         do{
             // Select a channel starting from the lowest priority one
-            if((LPC_GPDMA->EnbldChns & (1 << ch_num)) == 0){
+            if((requested & (1 << ch_num)) == 0){
                 break;
             }
         }while((ch_num--) != 0);
@@ -99,14 +99,14 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
         config |= DMA_CONFIG_ITC;
     }
 
-    if(dma->single == 0){
+    if(dma->single){
+        dmach->CLLI = 0;
+    }else{
         s_lli[ch_num].src = (uint32_t)dma->src;
         s_lli[ch_num].dst = (uint32_t)dma->dst;
         s_lli[ch_num].lli = (uint32_t)&s_lli[ch_num];
         s_lli[ch_num].ctl = control;
         dmach->CLLI = s_lli[ch_num].lli;
-    }else{
-        dmach->CLLI = 0;
     }
 
     dmach->CSrcAddr = (uint32_t)dma->src;
@@ -116,6 +116,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
     dmach->CConfig = config;
     dma->stream = dmach;
 
+    requested |= (1 << ch_num);
     return 1;
 }
 

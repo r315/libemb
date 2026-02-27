@@ -278,7 +278,7 @@ void I2S_Start(i2sbus_t *i2s){
         s_i2s_tx_dma.src = i2s->txbuffer;
         s_i2s_tx_dma.len = i2s->tx_buf_len / 2; // divide buffer into two lists
         s_i2s_tx_dma.eot = I2S_DMAHandler;
-        DMA_Config(&s_i2s_tx_dma, DMA_REQ_PER_I2S_CH0);
+        DMA_Config(&s_i2s_tx_dma, DMA_REQ_SSP0_TX);
 
         // get configured lli then reconfigure it to use two linked lists
         dmalli_t *cfg_lli = (dmalli_t*)((LPC_GPDMACH_TypeDef *)s_i2s_tx_dma.stream)->CLLI;

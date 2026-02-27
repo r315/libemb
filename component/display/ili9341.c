@@ -4,7 +4,7 @@
 #include "spi.h"
 #include "gpio.h"
 
-#define DELAY 			0x0080
+#define DELAY       0x0080
 
 #define LCD_CS1     GPIO_Write(drvlcd->cs, GPIO_PIN_HIGH)
 #define LCD_CS0     GPIO_Write(drvlcd->cs, GPIO_PIN_LOW)
@@ -16,7 +16,7 @@
 #define LCD_RST0    GPIO_Write(drvlcd->rst, GPIO_PIN_LOW)
 
 static uint16_t _width, _height;
-static spibus_t *spibus;
+static spibus_t *spidev;
 static drvlcdspi_t *drvlcd;
 static uint8_t scratch[4];
 
@@ -62,7 +62,7 @@ static const uint8_t ili9341_init_seq[] =
 
 static void LCD_Command(uint8_t cmd){
     LCD_CD0;
-    SPI_Transfer(spibus, &cmd, 1);
+    SPI_Transfer(spidev, &cmd, 1);
     LCD_CD1;
 }
 
@@ -70,7 +70,7 @@ void LCD_Data(uint16_t data){
     // MSB first
     scratch[0] = data >> 8;
     scratch[1] = data;
-	SPI_Transfer(spibus, scratch, 2);
+    SPI_Transfer(spidev, scratch, 2);
 }
 
 /**
@@ -78,62 +78,61 @@ void LCD_Data(uint16_t data){
  * a series of LCD commands stored as byte array.
  * */
 static void LCD_InitSequence(const uint8_t *addr) {
-	uint8_t  numCommands, numArgs;
-	uint16_t ms;
+    uint8_t  numCommands, numArgs;
+    uint16_t ms;
 
-	numCommands = *addr++;          // Get total number os commands
-	while(numCommands--) {
-		LCD_Command(*addr++);       // Send command
-		numArgs  = *addr++;         // Get number of args
-		ms       = numArgs;         // Get argument
-		numArgs &= ~DELAY;          // Clear delay flag
-		SPI_Transfer(spibus, (uint8_t*)addr, numArgs); // Send arguments
-		addr += numArgs;            // Move to next command
+    numCommands = *addr++;          // Get total number os commands
+    while(numCommands--) {
+        LCD_Command(*addr++);       // Send command
+        numArgs  = *addr++;         // Get number of args
+        ms       = numArgs;         // Get argument
+        numArgs &= ~DELAY;          // Clear delay flag
+        SPI_Transfer(spidev, (uint8_t*)addr, numArgs); // Send arguments
+        addr += numArgs;            // Move to next command
 
-		if(ms & DELAY) {            // If argument was delay, do it
-			ms = *addr++;
-			if(ms == 255) ms = 500;
-			DelayMs(ms);
-		}
-	}
+        if(ms & DELAY) {            // If argument was delay, do it
+            ms = *addr++;
+            if(ms == 255) ms = 500;
+            DelayMs(ms);
+        }
+    }
 }
 
+static void LCD_WriteData(const uint16_t *data, uint32_t count){
 
-static void LCD_WriteData(uint16_t *data, uint32_t count){
-
-	if(spibus->cfg & SPI_CFG_DMA){
-        spibus->cfg |= SPI_CFG_TRF_16BIT;
-		SPI_TransferDMA(spibus, (uint8_t*)data, count);
-		//LCD_CS1; // SET by DMA handler
-	}else{
-		while(count--)
-			LCD_Data(*data++);
-		LCD_CS1;
-	}
+    if(spidev->cfg & SPI_CFG_DMA){
+        spidev->cfg |= SPI_CFG_TRF_16BIT;
+        SPI_TransferDMA(spidev, (uint8_t*)data, count);
+        //LCD_CS1; // SET by DMA handler
+    }else{
+        while(count--)
+            LCD_Data(*data++);
+        LCD_CS1;
+    }
 }
 
 void LCD_DataEnd(void){
-    spibus->cfg &= ~(SPI_CFG_TRF_16BIT | SPI_CFG_TRF_CONST);
-	SPI_WaitEOT(spibus);
-	LCD_CS1;
+    spidev->cfg &= ~(SPI_CFG_TRF_16BIT | SPI_CFG_TRF_CONST);
+    SPI_WaitEOT(spidev);
+    LCD_CS1;
 }
 
 static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
-	LCD_Command(ILI9341_CASET);
-	scratch[0] = x1 >> 8;
-	scratch[1] = x1;
-	scratch[2] = x2 >> 8;
-	scratch[3] = x2;
-	SPI_Transfer(spibus, scratch, 4);
+    LCD_Command(ILI9341_CASET);
+    scratch[0] = x1 >> 8;
+    scratch[1] = x1;
+    scratch[2] = x2 >> 8;
+    scratch[3] = x2;
+    SPI_Transfer(spidev, scratch, 4);
 
-	LCD_Command(ILI9341_PASET);
-	scratch[0] = y1 >> 8;
-	scratch[1] = y1;
-	scratch[2] = y2 >> 8;
-	scratch[3] = y2;
-	SPI_Transfer(spibus, scratch, 4);
+    LCD_Command(ILI9341_PASET);
+    scratch[0] = y1 >> 8;
+    scratch[1] = y1;
+    scratch[2] = y2 >> 8;
+    scratch[3] = y2;
+    SPI_Transfer(spidev, scratch, 4);
 
-	LCD_Command(ILI9341_RAMWR);
+    LCD_Command(ILI9341_RAMWR);
 }
 
 /**
@@ -146,14 +145,14 @@ static void LCD_CasRasSet(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2){
  */
 void LCD_Window(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
-    SPI_WaitEOT(spibus);
+    SPI_WaitEOT(spidev);
 
     LCD_CS0;
-	LCD_CasRasSet(x, y, x + (w - 1), y + (h - 1));
+    LCD_CasRasSet(x, y, x + (w - 1), y + (h - 1));
 }
 
 /**
- * @brief Fill's area with same color
+ * @brief Fill area with same color
  *
  * \param x :
  * \param y :
@@ -168,21 +167,21 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
         return;
     }
 
-	LCD_Window(x, y, w, h);
+    LCD_Window(x, y, w, h);
 
-	if(spibus->cfg & SPI_CFG_DMA){
-        spibus->cfg |= SPI_CFG_TRF_16BIT | SPI_CFG_TRF_CONST;
+    if(spidev->cfg & SPI_CFG_DMA){
+        spidev->cfg |= SPI_CFG_TRF_16BIT | SPI_CFG_TRF_CONST;
         *((uint16_t*)scratch) = color;
-		SPI_TransferDMA(spibus, (uint8_t*)scratch, count);
-		//LCD_CS1; // SET by DMA handler
-	}else{
-		while(count--){
+        SPI_TransferDMA(spidev, (uint8_t*)scratch, count);
+        //LCD_CS1; // SET by DMA handler
+    }else{
+        while(count--){
             scratch[1] = color >> 8;
             scratch[0] = color;
-	        SPI_Transfer(spibus, scratch, 2);
+            SPI_Transfer(spidev, scratch, 2);
         }
-		LCD_CS1;
-	}
+        LCD_CS1;
+    }
 }
 
 /**
@@ -194,14 +193,14 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
  * \param h :
  * \param data : Pointer to data
  */
-void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *data){
+void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data){
     uint32_t count = w * h;
 
     if(!count){
         return;
     }
 
-	LCD_Window(x, y, w, h);
+    LCD_Window(x, y, w, h);
     LCD_WriteData(data, count);
 }
 
@@ -214,7 +213,7 @@ void LCD_WriteArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t *dat
  */
 void LCD_Pixel(uint16_t x, uint16_t y, uint16_t color){
 
-    SPI_WaitEOT(spibus);
+    SPI_WaitEOT(spidev);
 
     LCD_CS0;
     LCD_CasRasSet(x, y, x, y);
@@ -234,10 +233,10 @@ uint8_t LCD_Init(void *driver)
     }
 
     drvlcd = (drvlcdspi_t*)driver;
-    spibus = &drvlcd->spidev;
+    spidev = drvlcd->spidev;
 
-    if(spibus->cfg & SPI_CFG_DMA){
-        SPI_SetEOT(spibus, LCD_DataEnd);
+    if(spidev->cfg & SPI_CFG_DMA){
+        SPI_SetEOT(spidev, LCD_DataEnd);
     }
 
     LCD_CD0;
@@ -300,11 +299,11 @@ void LCD_SetOrientation(drvlcdorientation_t m) {
          return;
     }
 
-    SPI_WaitEOT(spibus);
+    SPI_WaitEOT(spidev);
 
     LCD_CS0;
     LCD_Command(ILI9341_MADCTL);
-    SPI_Transfer(spibus, &m, 1);
+    SPI_Transfer(spidev, &m, 1);
     LCD_CS1;
 }
 
@@ -315,7 +314,7 @@ void LCD_SetOrientation(drvlcdorientation_t m) {
  */
 void LCD_Scroll(uint16_t sc){
 
-    SPI_WaitEOT(spibus);
+    SPI_WaitEOT(spidev);
 
     LCD_CS0;
     LCD_Command(ILI9341_VSCRSADD);
@@ -362,4 +361,18 @@ void LCD_Bkl(uint8_t state){
     else {
         LCD_BKL0;
     }
+}
+
+/**
+ * @brief Driver specific functionality
+ * TODO: create command specification
+ *
+ * | FUN | PARMS ...
+ * @param ptr
+ * @return
+ */
+uint32_t LCD_DirectCommand(void *ptr)
+{
+    (void)ptr;
+    return 0;
 }

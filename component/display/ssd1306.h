@@ -5,9 +5,9 @@
 #include "drvlcd.h"
 
 #define SSD1306_I2C_ADDRESS   			0x3C // 7-bit address
-
-#define SSD1306_LCDWIDTH                128
-#define SSD1306_LCDHEIGHT               64
+// Controller capability
+#define RES_H                           128
+#define RES_V                           64
 
 /* Commands */
 #define SSD1306_SETLOWCOLUMN 			0x00

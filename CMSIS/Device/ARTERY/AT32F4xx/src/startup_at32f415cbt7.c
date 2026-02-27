@@ -11,8 +11,12 @@
 ISR void *vector_table[];
 extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _stack, _estack;
 
-WEAK void  __libc_init_array(void);
 WEAK int main(void){}
+WEAK void  __libc_init_array(void);
+WEAK int _close(int file) { (void)file; return -1; }
+WEAK int _lseek(int file, int ptr, int dir) { (void)file; (void)ptr; (void)dir; return -1; }
+WEAK int _read(int file, char *ptr, int len) { (void)file; (void)ptr; (void)len; return -1; }
+WEAK int _write(int file, char *ptr, int len) { (void)file; (void)ptr; (void)len; return -1; }
 
 NORETURN void Reset_Handler(void)
 {
@@ -43,8 +47,6 @@ typedef struct {
 
 NORETURN void Stack_Dump(stackframe_t *stack){
     (void)stack;
-    //GPIOJ->MODER = (1 << 26);
-    //HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_13, GPIO_PIN_SET);
 
     asm volatile
     (
@@ -70,7 +72,7 @@ NORETURN void HardFault_Handler(void){
 
 void Default_Handler(void){
     volatile uint8_t isr_number = (SCB->ICSR & 255) - 16;
-    // See position number on Table 61 from RM0008
+    // See position number on Table 1-3 from RM AT32F415
     (void)isr_number;
 
     asm volatile

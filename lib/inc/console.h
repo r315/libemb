@@ -65,12 +65,12 @@ class History {
 class Console {
 	public:
 		Console(void);
-		Console(stdinout_t *, const char *);
-		void init(stdinout_t *, const char *);
+		Console(const stdinout_t *, const char *);
+		void init(const stdinout_t *, const char *);
 		char getLine(char *, uint8_t);
 		void process(void);
 		void cls(void);
-		void setOutput(stdinout_t *);
+		void setOutput(const stdinout_t *);
 
 		void addCommand(ConsoleCommand *);
         void addCommandArray(ConsoleCommand *, int count);
@@ -85,6 +85,9 @@ class Console {
         int println(const char*);
 		int printf(const char*, ...);
         int printchar(int c);
+
+        int write(const char* str, int len);
+
         void asciiprint(const uint8_t *mem, uint32_t len);
         void hexprint(const uint8_t *addr, uint32_t len, uint8_t ascii);
         void hexdump(const uint8_t *addr, uint32_t len, uint8_t ncols, uint8_t ascii);
@@ -103,7 +106,7 @@ class Console {
 		char *m_argv[CONSOLE_COMMAND_PARAMS];
     	int m_argc;
 		const char *m_prompt;
-        stdinout_t *m_out;
+        const stdinout_t *m_out;
 		uint8_t m_cmdListSize;
 		uint8_t m_active;
 		uint8_t m_line_len;

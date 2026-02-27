@@ -7,68 +7,77 @@ extern "C" {
 
 #include <stdint.h>
 
-// TODO: This API needs to be improved.
-
 typedef struct {
-    void *per;          // ADC peripheral
-    uint16_t *buf;      // Buffer for DMA
-    void (*eoc)(void);  // End of conversion callback
+    void *handle;           // ADC internal structure
+    void (*eoc)(uint16_t *, uint16_t);      // End of conversion callback
 }adctype_t;
 
 /**
- * @brief Initialyzes adc peripheral
+ * @brief Powerup and initializes ADC peripheral
+ *
  * @param adc pointer to handle structure
- * @return 1 on success, o otherwise
+ * @return Internal reference voltage value
  */
-uint8_t ADC_Init(adctype_t *adc);
+uint16_t ADC_Init(adctype_t *adc);
 
 /**
- * @brief Start of convertion or multiple convertions
- * which will ended in callback
+ * @brief Starts acquiring data from a sequence of channels
+ * and calling end of conversion callback with converted data.
  **/
-void ADC_Start(adctype_t *adc);
+void ADC_StartAcquisition(adctype_t *adc);
 
 /**
- * @brief
+ * @brief Stops a running acquisition
  *
  * @param adc
  */
-void ADC_Stop(adctype_t *adc);
+void ADC_StopAcquisition(adctype_t *adc);
 
 /**
- * @brief Get single convertion on current selected channel
+ * @brief Do a single conversion on a channel
  **/
-uint16_t ADC_ConvertSingle(adctype_t *adc);
+uint16_t ADC_ConvertSingle(adctype_t *adc, uint8_t ch);
 
 /**
- * @brief Convert multiple channels
+ * @brief Single conversion on a sequence of channels
+ *
+ * @param wait 0: Returns immediately, otherwise waits for end of conversion
  **/
-uint8_t ADC_Acquire(adctype_t *adc, uint8_t wait);
-
+uint8_t ADC_Convert(adctype_t *adc, uint8_t wait);
 
 /**
- * @brief Get data of last acquisition for a given channel
+ * @brief Get data of a given channel obtained from last
+ * converted sequence
  *
  */
-uint16_t ADC_ChannelDataGet(adctype_t *adc, uint8_t ch);
+uint16_t ADC_ConvertedDataGet(adctype_t *adc, uint8_t ch);
 
 /**
- * @brief Set the channel for conversion
+ * @brief Configure a channel to make part of a conversion sequence
+ *
+ * @param adc           ADC handle
+ * @param ch            Channel number to be converted
+ * @param seq           Sequence index for this channel
+ * @param sampletime    Sample time for this channel
+ */
+void ADC_ConfigChannel(adctype_t *adc, uint8_t ch, uint8_t seq, uint8_t sampletime);
+
+/**
+ * @brief Configures a sequence acquisition stream
  *
  * @param adc
+ * @param freq
+ */
+void ADC_ConfigAcquisition(adctype_t *adct, uint32_t freq, uint16_t *samples, uint16_t size);
+
+/**
+ * @brief Same as config channel, but for acquisition sequence
+ * @param adct
  * @param ch
- * @param seq
+ * @param seq_idx
  * @param sampletime
  */
-void ADC_ChannelSet(adctype_t *adc, uint8_t ch, uint8_t seq, uint8_t sampletime);
-
-/**
- * @brief Set the length of the conversion sequence
- *
- * @param adc
- * @param new_lenght
- */
-void ADC_ChannelLenSet(adctype_t *adc, uint8_t new_lenght);
+void ADC_ConfigAcquisitionChannel(adctype_t *adct, uint8_t ch, uint8_t seq_idx, uint8_t sampletime);
 
 #ifdef __cplusplus
 }

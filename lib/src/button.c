@@ -1,122 +1,137 @@
 /**
 * @file		button.c
 * @brief	Contains API source code for reading buttons.
-*     		
+*
 * @version	1.0
 * @date		3 Nov. 2016
 * @author	Hugo Reis
 **********************************************************************/
-#include "board.h"
+#include <stddef.h>
 #include "button.h"
 
-extern void DelayMs(uint32_t ms);
-extern uint32_t GetTick(void);
-extern uint32_t ElapsedTicks(uint32_t start_ticks);
+#define BUTTON_DEFAULT_HOLD_TIME 2000   //2 seconds
 
-static BUTTON_Controller __button;
+typedef struct{
+	uint32_t pressed;
+	uint32_t last;
+	uint32_t counter;
+	uint32_t state;
+    uint32_t htime;
+    uint32_t (*scan)(void); /* return bitmask with pressed buttons */
+}bctrl_t;
+
+extern uint32_t GetTick(void);
+
+static bctrl_t __button;
 
 /**
  * @brief Initialise internal state variables
- * 
+ *
  * @param ht : time in ms before HOLD state
  */
-void BUTTON_Init(int ht){    
-    __button.cur  = BUTTON_EMPTY;
-    __button.last = BUTTON_EMPTY;
-    __button.events = BUTTON_EMPTY;
-    __button.htime = ht;
-	BUTTON_HW_INIT;
+void BUTTON_Init(uint32_t (*scan)(void))
+{
+    __button.pressed = 0;
+    __button.last = 0;
+    __button.state = BUTTON_NONE;
+    __button.htime = BUTTON_DEFAULT_HOLD_TIME;
+    __button.scan = scan;
 }
 
-int BUTTON_Read(void){
-uint32_t cur;
+bevt_t BUTTON_Read(void){
+    uint32_t scanned;
 
-    cur = BUTTON_HW_READ;
+    if( __button.scan == NULL){
+        return BUTTON_NONE;
+    }
 
-    switch(__button.events){
+    scanned = __button.scan();
 
-        case BUTTON_EMPTY:
-            if(cur == BUTTON_EMPTY)
-                break;            
-            __button.cur = cur;
-            __button.events = BUTTON_PRESSED;
+    switch(__button.state){
+        case BUTTON_NONE:
+            if(scanned){
+                __button.state = BUTTON_PRESSED;
+            }
+            __button.pressed = scanned;
             break;
 
         case BUTTON_PRESSED:
-            if(cur == BUTTON_EMPTY){
-                __button.events = BUTTON_RELEASED;
+            if(scanned == 0){
+                __button.state = BUTTON_RELEASED;
                 break;
             }
-            if(cur == __button.cur){             // same key still pressed
-                __button.events = BUTTON_TIMING; // start timer
+            if(scanned == __button.pressed){           // same key still pressed
+                __button.state = BUTTON_TIMING;    // start timer
                 __button.counter = GetTick();
                 break;
             }
-            __button.cur = cur; // another key was pressed 
-            break;              // TODO: optionaly implement if one key is relesed
+            __button.pressed = scanned;                // another key was pressed
+            break;                                  // TODO: optionally implement if one key is released
 
         case BUTTON_TIMING:
-            if(cur == BUTTON_EMPTY){
-                __button.events = BUTTON_RELEASED;
-                break;
-            }            
-            if(cur == __button.cur){
-                if(ElapsedTicks(__button.counter) > __button.htime){
-                    __button.events = BUTTON_HOLD;
-                }   
+            if(scanned == 0){
+                __button.state = BUTTON_RELEASED;
                 break;
             }
-            __button.cur = cur; // another key was pressed 
-            __button.events = BUTTON_PRESSED;
+            if(scanned == __button.pressed){
+                if(GetTick() - __button.counter > __button.htime){
+                    __button.state = BUTTON_HOLD;
+                }
+                break;
+            }
+            __button.pressed = scanned;                // another key was pressed
+            __button.state = BUTTON_PRESSED;
             break;
 
         case BUTTON_HOLD:
-            if(cur == BUTTON_EMPTY){
-                __button.events = BUTTON_RELEASED;
+            if(scanned == 0){
+                __button.state = BUTTON_RELEASED;
                 break;
             }
-            if(cur == __button.cur)
-                break;            
-            __button.cur = cur; // another key was pressed 
-            __button.events = BUTTON_PRESSED;            
+            if(scanned == __button.pressed)
+                break;
+            __button.pressed = scanned;                // another key was pressed
+            __button.state = BUTTON_PRESSED;
             break;
-            
-        case BUTTON_RELEASED:
-            __button.last= __button.cur;
-            __button.cur = BUTTON_EMPTY;
-            __button.events = BUTTON_EMPTY;
+
+        case BUTTON_RELEASED:{
+            uint32_t released = __button.pressed ^ scanned;
+            __button.last = __button.pressed;
+            __button.pressed = released;
+            __button.state = BUTTON_NONE;
             break;
-            
+        }
+
         default: break;
     }
-    return __button.events;
+    return __button.state;
 }
 
-void BUTTON_WaitEvent(int event){
- do{
-     BUTTON_Read();
- }while(__button.events != event);    
+void BUTTON_WaitEvent(bevt_t event){
+    do{
+        BUTTON_Read();
+    }while(__button.state != event);
 }
 
-int BUTTON_Get(void){
+uint32_t BUTTON_Get(void){
 	BUTTON_WaitEvent(BUTTON_PRESSED);
-	return __button.cur; 
+	return __button.pressed;
 }
 
-int BUTTON_GetEvents(void){	
-	return __button.events;
+bevt_t BUTTON_GetEvents(void){
+	return __button.state;
 }
 
-int BUTTON_GetValue(void){
-	return __button.cur;
+uint32_t BUTTON_GetValue(void){
+	return __button.pressed;
 }
 
-void BUTTON_SetHoldTime(int t){
+void BUTTON_SetHoldTime(uint32_t t){
     __button.htime = t;
 }
 
-char BUTTON_Pressed(int button){
-	return (__button.cur & button) != 0 ? 1 : 0;
+uint32_t BUTTON_Pressed(uint32_t mask){
+	return !!(__button.pressed & mask);
 }
 
 

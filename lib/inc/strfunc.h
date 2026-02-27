@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-#define XPITOA_BUF_SIZE		20
 #define FLOAT_MAX_PRECISION 6
 
 #include <stdint.h>
@@ -20,6 +19,7 @@ extern "C" {
 	uint8_t isNextWord(char **str, const char *word);
 	void xstrcpy(char *dst, const char *src, uint8_t maxLen);
 	char xstrcmp(char const *str1, char const *str2);
+    int xstrlen(const char *str);
 	//size_t strlen(const char *str);
 	uint8_t ia2i(const char *str, int32_t *value);
 	uint8_t ha2u(const char *str, uint32_t *value);
@@ -28,15 +28,15 @@ extern "C" {
 	uint32_t i2ia(char *dst, int32_t val, int radix, int ndig);
 	char *chrinstr(const char *str, char c);
 	char *strsub(char *str, const char token, uint8_t len, char **saveptr);
-	uint32_t strformater(char *dst, const char* fmt, int len, va_list arp);
+	uint32_t strformater(char *dst, int len, const char* fmt, va_list arp);
+    int strsnprintf(char *out, int len, const char* fmt, ...);
 	void memset16(uint16_t *dst, uint16_t c, uint32_t n);
 	void memcpy16(uint16_t *dst, uint16_t *src, uint32_t n);
 	void memset32(uint32_t *dst, uint32_t c, uint32_t n);
 	void memcpy32(uint32_t *dst, uint32_t *src, uint32_t n);
-  void *memmove(void * dst, const void * src, size_t len);
+    void *memmove(void * dst, const void * src, size_t len);
 	char *skipSpaces(char *str);
 	uint32_t strToArray(char *str, char **argv, int max_arg);
-	void xsprintf(char *out, const char* fmt, ...);
 	int32_t strFind(const char *str, char *strarr[], uint16_t arrsize);
 #ifdef __cplusplus
 }

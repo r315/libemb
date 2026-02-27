@@ -2,50 +2,19 @@
 #include "stm32f1xx.h"
 
 #define WEAK __attribute__((weak))
-#define NAKED __attribute__((naked, aligned(8)))
+#define NAKED __attribute__((noreturn, naked, aligned(4)))
 #define ISR __attribute__((section(".isr_vector")))
 
-/* RCC_CR Bit Banding definitions
-    address = bit_banding_peripheral_base + (offset * 32) + (bit * 4)
-*/
-#define RCC_CR_HSEON_bb     (*(uint8_t *)0x42420040UL)
-#define RCC_CR_HSERDY_bb    (*(uint8_t *)0x42420044UL)
-#define RCC_CR_PLLON_bb     (*(uint8_t *)0x42420060UL)
-#define RCC_CR_PLLRDY_bb    (*(uint8_t *)0x42420064UL)
-
 ISR void *g_pfnVectors[];
-uint32_t SystemCoreClock = 8000000UL;
 extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _stack, _estack;
 extern uint32_t _siram_code, _sram_code, _eram_code;
 
-static void errorHandler(void);
 extern void __libc_init_array(void);
-
-#ifdef USE_HAL_DRIVER
-const uint8_t APBPrescTable[8U] =  {0, 0, 0, 0, 1, 2, 3, 4};
-const uint8_t AHBPrescTable[16U] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
-#endif
-
-#ifdef USE_FREERTOS
-
-#define USER_TSK_SIZE       1024
-#define USER_TSK_PRIO       (configMAX_PRIORITIES / 4)
-#define USER_TSK_HANDLE     &husertsk
-#define USER_TSK_PARAM      NULL
-
-static TaskHandle_t         husertsk;
-
-static void user_task(void *ptr){
-    while(1){
-        app_loop(ptr);
-    }
-}
-#else
 WEAK int main(void){}
-#endif
 
-NAKED void Reset_Handler(void){
-volatile uint32_t *src, *dest;
+NAKED void Reset_Handler(void)
+{
+    volatile uint32_t *src, *dest;
 
     /* Copy initialize variables with .data section values*/
     for (src = &_sidata, dest = &_sdata; dest < &_edata; src++, dest++){
@@ -64,93 +33,11 @@ volatile uint32_t *src, *dest;
     while (dest < &_ebss)
         *dest++ = 0;
 
-    /* Reset the RCC clock configuration to the default reset state(for debug purpose) */
-    /* Set HSION bit */
-    RCC->CR |= 0x00000001U;
-    /* Reset SW, HPRE, PPRE1, PPRE2, ADCPRE and MCO bits */
-    RCC->CFGR &= 0xF8FF0000U;
-    /* Reset HSEON, CSSON and PLLON bits */
-    RCC->CR &= 0xFEF6FFFFU;
-    /* Reset HSEBYP bit */
-    RCC->CR &= 0xFFFBFFFFU;
-    /* Reset PLLSRC, PLLXTPRE, PLLMUL and USBPRE/OTGFSPRE bits */
-    RCC->CFGR &= 0xFF80FFFFU;
-    /* Disable all interrupts and clear pending bits  */
-    RCC->CIR = 0x009F0000U;
-
-#ifdef VECT_TAB_SRAM
-    SCB->VTOR = SRAM_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM. */
-#else
-    /* Vector Table Relocation to startup (g_pfnVectors) vector table  */
-    //SCB->VTOR = FLASH_BASE;
-    SCB->VTOR = (uint32_t)(&g_pfnVectors) & 0xFFFF;
-#endif
-
-    /* ------------- Configure system clock --------------- */
-#define CLOCK_CFG_TIMEOUT 0x10000
-    uint32_t timeout = CLOCK_CFG_TIMEOUT;
-
-    /* Enable HSE */
-    RCC->CR |= RCC_CR_HSEON;
-    while ((RCC->CR & RCC_CR_HSERDY) == 0){
-        timeout--;
-        if (timeout == 0)
-        {
-            errorHandler();
-        }
-    }
-
-    /* Configure and enable PLL oscillator (sysclk = 72Mhz) */
-
-    RCC->CFGR =
-#ifdef HSE12MHZ
-                (4 << 18) |                 // PLLMUL = 6
-#else
-                (7 << 18) |                 // PLLMUL = 9
-#endif
-                (1 << 16) |                 // PLLSRC = PREDIV1
-                (2 << 14) |                 // ADCPRE = 6
-                (4 << 8);                   // PPRE1 = 2
-
-    timeout = CLOCK_CFG_TIMEOUT;
-    RCC->CR |= RCC_CR_PLLON;
-    while ((RCC->CR & RCC_CR_PLLRDY) == 0){
-        timeout--;
-        if (timeout == 0)
-        {
-            errorHandler();
-        }
-    }
-
-    /* Configure flash latency */
-    FLASH->ACR |= 2;                        // Two wait states
-
-    /* Switch  sysclk */
-    RCC->CFGR |= (1 << 1);                  // select PLL as system clock
-    timeout = CLOCK_CFG_TIMEOUT;
-    while ((RCC->CFGR & (1 << 3)) == 0){
-        timeout--;
-        if (timeout == 0)
-        {
-            errorHandler();
-        }
-    }
-
-    SystemCoreClock = 72000000UL;
-    __asm volatile("sub sp, sp, #64");         // Give some heap
+    SystemInit();
     __libc_init_array();
 
-#if defined(USE_FREERTOS)
-    app_setup();
-    /* Configure tasks*/
-    if(xTaskCreate(user_task, "User Task", USER_TSK_SIZE, USER_TSK_PARAM, USER_TSK_PRIO, USER_TSK_HANDLE) != pdPASS){
-        errorHandler();
-    }
-    /* Start scheduler */
-    vTaskStartScheduler();
-#else
     main();
-#endif
+
     /* case returns... */
     __asm volatile("b .");
 }
@@ -181,14 +68,6 @@ NAKED void HardFault_Handler(void){
         " ldr r2, dumpHandler_address                \n"
         " bx r2                                      \n"
         " dumpHandler_address: .word RegistersDump   \n"
-    );
-}
-
-void errorHandler(void){
-    __asm volatile
-    (
-        "bkpt #01 \n"
-        "b .      \n"
     );
 }
 

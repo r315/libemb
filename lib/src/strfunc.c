@@ -4,6 +4,8 @@
 
 /**
  * @brief Find next character in a string
+ *
+ * Note: change to const char* creates multiple errors
  * */
 char *skipSpaces(char *str){
 	while((*str == ' ' || *str == '\t') && *str != '\0')
@@ -56,9 +58,9 @@ uint32_t strToArray(char *str, char **argv, int max_arg)
  * @brief Unsafe String length
  * last time this was changed, was due
  * to compiler optimization.
- * somehow with -Os compiler create an infiniteve loop
+ * somehow with -Os compiler create an infinite loop
  * not sure if was due to function name, so name was changed,
- * aplications should be updated
+ * applications should be updated
  * */
 int xstrlen(const char *str) {
 	int count = 0;
@@ -257,7 +259,7 @@ char *strsub(char *str, const char token, uint8_t len, char **saveptr) {
  *
  * @return 0 if equal, difference of first non equal char
  * */
-char xstrcmp(char const *str1, char const *str2) {
+char xstrcmp(const char *str1, const char *str2) {
 	while (*str1 == *str2) {
 		if (*str1 == '\0')
 			return 0;
@@ -267,6 +269,12 @@ char xstrcmp(char const *str1, char const *str2) {
 	return (*str1 - *str2);
 }
 
+/**
+ * @brief
+ * @param dst
+ * @param src
+ * @param maxLen
+ */
 void xstrcpy(char *dst, const char *src, uint8_t maxLen) {
 	while(maxLen--){
 		*dst++ = *src;
@@ -426,62 +434,76 @@ uint8_t da2d(const char *str, double *value) {
  *
  * \param dst 	:	pointer to destination buffer
  * \param val	:	value to be converted
- * \param radix	:	base of convertion [-10, 10, 16]
- * \param ndig 	:	minimum number of digits, ndig > 0 pad with ' ', ndig < 0 pad with '0'
+ * \param radix	:	base of conversion (10/16) if positive
+ *                  convert as unsigned
+ * \param ndig 	:	Minimum number of digits, still limited
+ *                  to local buffer with size I2IA_MAX_DIG
+ *                  ndig > 0 pad with ' ', right aligned
+ *                  ndig < 0 pad with '0', right aligned
+ *                  ndig = 0 no padding, Left aligned
+ *
  * \return 		:	number of digits written to dst
  * */
-
-uint32_t i2ia(char *dst, int32_t val, int radix, int ndig){
-	char buf[XPITOA_BUF_SIZE];
-	uint8_t i, c, r, sgn = 0, pad = ' ';
-	uint32_t v;
-
-	if (radix < 0) {
-		radix = -radix;
-		if (val < 0) {
-			val = -val;
-			sgn = '-';
-		}
+#define I2IA_MAX_DIG    10
+uint32_t i2ia(char *dst, int32_t val, int base, int ndig){
+	char buf[I2IA_MAX_DIG + 2];  // '-' + 10 + '\0' Maximum number of digits used by int32
+	uint8_t i, c, sgn = 0, pad;
+    // convert as signed?
+    if(base < 0){
+	    base = -base;
+	    if (val < 0) {
+            val = -val;
+            sgn = '-';
+        }
 	}
-
-	v = val;
-	r = radix;
-
+    // Select padding
 	if (ndig < 0) {
 		ndig = -ndig;
 		pad = '0';
+	}else{
+        pad = ' ';
+    }
+    // limit number of digits to buffer size
+	if (ndig > I2IA_MAX_DIG) {
+		ndig = I2IA_MAX_DIG;
 	}
-
-	if (ndig > XPITOA_BUF_SIZE) {
-		ndig = XPITOA_BUF_SIZE;
-	}
-
-	ndig = XPITOA_BUF_SIZE - 1 - ndig;
-	i = XPITOA_BUF_SIZE;
-	buf[--i] = '\0';
-
+	//ndig = I2IA_MAX_DIG - 1 - ndig;
+	// convert from right to left
+	i = I2IA_MAX_DIG - 1;
+    // Terminate string
+	buf[i] = '\0';
+    // do conversion
 	do {
-		c = (uint8_t)(v % r);
+		c = (uint8_t)((uint32_t)val % base);
 		if (c >= 10) c += 7;
 		c += '0';
 		buf[--i] = c;
-		v /= r;
-	} while (v);
-
-	if (sgn) buf[--i] = sgn;
-
-	while (i > ndig) {
+		val = (uint32_t)val / base;
+	} while (val);
+    // calculate numver of converted digits
+    uint8_t nconverted = I2IA_MAX_DIG - i - 1;
+    // sign counts as converted char
+	if (sgn) nconverted++;
+    // add padding if necessary
+	while (nconverted < ndig) {
 		buf[--i] = pad;
+		nconverted++;
 	}
-
-	ndig = XPITOA_BUF_SIZE - 1 - i;
-
-	while(buf[i]){
+	// add sign if negative number
+	if (sgn) buf[--i] = sgn;
+    // Copy only ndig if specified
+    if(ndig){
+	    nconverted = ndig;
+    }else{
+        ndig = nconverted;
+    }
+    // copy to output buffer
+	while(nconverted--){
 		*dst++ = buf[i++];
 	}
-
+	// terminate output string
 	*dst = '\0';
-
+    // return number of converted digits
 	return ndig;
 }
 
@@ -523,63 +545,71 @@ uint32_t d2da(char *dst, double f, uint8_t places){
 
 /**
  * @brief String formater
- *   %nu, %nd, %nb, %c, %s, %l, %x, %.nf
  *
- * TODO: fix print percent sign (%)
+ * Supported format specifiers: %c, %s, %d, %u, %x, %f, %lu, %#d %#u, %#b, %.#f
+ *
  * */
-uint32_t strformater(char *dst, const char* fmt, int len, va_list arp)
+uint32_t strformater(char *dst, int len, const char* fmt, va_list arp)
 {
-	int d, r, w, s, l, f;
-    char *p, *start = dst;
+	int r, w, zp, l, f;
+    char c, *p, *start = dst;
     char *end = dst + (len > 0 ? len - 1 : 0); // leave space for '\0'
 
     if (len <= 0) {
         return 0;  // nothing can be written
     }
 
-    while ((d = *fmt++) != '\0') {
+    while ((c = *fmt++) != '\0') {
         if (dst >= end) break;  // buffer full
 
-        if (d != '%') {
-            *dst++ = (char)d;
-            continue;
+        // output character if not format specifier start character
+        if (c != '%') { *dst++ = (char)c; continue; }
+        c = *fmt++;
+        // %%
+        if(c == '%'){ *dst++ = (char)c; continue; }
+        // handle specifier
+        f = w = r = zp = l = 0;
+        // handle %0# or %.#
+        if (c == '.') { f = 1; c = *fmt++; }
+        if (c == '0') { zp = 1; c = *fmt++; }
+        // width of number
+        while ((c >= '0') && (c <= '9')) {
+            w = w * 10 + (c - '0');
+            c = *fmt++;
         }
-
-        d = *fmt++;
-        f = w = r = s = l = 0;
-
-        if (d == '.') { d = *fmt++; f = 1; }
-        if (d == '0') { d = *fmt++; s = 1; }
-
-        while ((d >= '0') && (d <= '9')) {
-            w = w * 10 + (d - '0');
-            d = *fmt++;
+        // only %lu is implemented
+        if (c == 'l') {
+            l = 1;
+            if (*fmt != 'u') {
+                *dst++ = '%';   // echo %
+                continue;       // ignore specifier
+            }
+            c = *fmt++;
         }
-
-        if (d == 'l') { l = 1; d = *fmt++; }
-        if (d == '\0') break;
-
-        if (d == 's') {
+        // break on unexpected string end
+        if (c == '\0') break;
+        // normal string
+        if (c == 's') {
             p = va_arg(arp, char*);
             while (*p && dst < end) {
                 *dst++ = *p++;
             }
             continue;
         }
-
-        if (d == 'c') {
+        // normal character
+        if (c == 'c') {
             if (dst < end) {
                 *dst++ = (char)va_arg(arp, int);
             }
             continue;
         }
 
-        if (d == 'u') r = 10;
-        if (d == 'd') r = -10;
-        if (d == 'X' || d == 'x') r = 16;
-        if (d == 'b') r = 2;
+        if (c == 'u') r = 10;
+        if (c == 'd') r = -10;
+        if (c == 'X' || c == 'x') r = 16;
+        if (c == 'b') r = 2;
 
-        if (d == 'f') {
+        if (c == 'f') {
             if (!f) w = FLOAT_MAX_PRECISION;
             if (dst < end) {
                 int space = end - dst;
@@ -591,7 +621,7 @@ uint32_t strformater(char *dst, const char* fmt, int len, va_list arp)
         }
 
         if (r == 0) break;
-        if (s) w = -w;
+        if (zp) w = -w;
 
         if (dst < end) {
             int space = end - dst;
@@ -613,6 +643,14 @@ uint32_t strformater(char *dst, const char* fmt, int len, va_list arp)
     return (uint32_t)(dst - start);
 }
 
+int strsnprintf(char *out, int len, const char* fmt, ...)
+{
+	va_list arp;
+	va_start(arp, fmt);
+	len = strformater(out, len, fmt, arp);
+	va_end(arp);
+	return len;
+}
 //-----------------------------------------------------------
 //
 //-----------------------------------------------------------
@@ -665,3 +703,40 @@ void memset32(uint32_t *dst, uint32_t c, uint32_t n){
 void memcpy32(uint32_t *dst, uint32_t *src, uint32_t n){
     while(n--){ *dst++ = *src++;  }
 }
+
+#if STRFUNC_TEST
+
+uint32_t test(char*buf, int len, int (*write)(const char*, int), const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    uint32_t n = strformater(buf, len, fmt, ap);
+    va_end(ap);
+
+    return write(buf, n);
+}
+
+void strfunc_test(int (*write)(const char*, int))
+{
+    char buf[128];
+
+    test(buf, sizeof(buf), write, "char      : %c\n", 'A');         // A
+    test(buf, sizeof(buf), write, "string    : %s\n", "hello");     // hello
+    test(buf, sizeof(buf), write, "percent   : %%\n");              // %
+    test(buf, sizeof(buf), write, "int       : %d\n", -12345678);   // -12345678
+    test(buf, sizeof(buf), write, "uint      : %u\n", 456u);        // 456
+    test(buf, sizeof(buf), write, "hex       : %x\n", 0xabc);       // ABC
+    test(buf, sizeof(buf), write, "bin       : %b\n", 0b101101);    // 101101
+    test(buf, sizeof(buf), write, "long      : %l\n", -123456789L); // %
+    test(buf, sizeof(buf), write, "ulong     : %lu\n",-123456789L); // 4282621618
+    test(buf, sizeof(buf), write, "float     : %f\n", 3.141592653); // 3.141592
+    test(buf, sizeof(buf), write, "float prec: %.3f\n",3.141592653);// 3.141
+    test(buf, sizeof(buf), write, "zero pad  : %05x\n", 0x42);      // 00042
+    test(buf, sizeof(buf), write, "width     : %7d\n", 42);         //      42
+
+    // buffer limit test
+    test(buf, 20, write, "Small buffer: %s\n", "1234567890A");      // 12345
+    write("\n", 1);
+}
+
+#endif

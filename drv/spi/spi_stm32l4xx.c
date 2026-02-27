@@ -145,13 +145,43 @@ uint32_t SPI_Init(spibus_t *spibus){
     return SPI_OK;
 }
 
+
+
+uint32_t SPI_Xchg(spibus_t *spibus, uint8_t *buffer, uint32_t count)
+{
+    SPI_TypeDef *spi = ((hspi_t*)spibus->handle)->spi;
+    uint32_t total = count;
+
+    if(spibus->cfg & SPI_CFG_TRF_16BIT){
+        spi->CR2 |= SPI_CR2_DS_3;       // 16-bit
+        while(count--){
+            while((spi->SR & SPI_SR_TXE) != 0);
+            *((__IO uint16_t *)&spi->DR) = *(uint16_t*)buffer;
+            while((spi->SR & SPI_SR_BSY) != 0);
+            *(uint16_t*)buffer = *((__IO uint16_t *)&spi->DR);
+            buffer++;
+        }
+    }else{
+         spi->CR2 &= ~SPI_CR2_DS;        // Invalid forced 8-bit
+        while(count--){
+            while((spi->SR & SPI_SR_TXE) != 0);
+            *((__IO uint8_t *)&spi->DR) = *buffer;
+            while((spi->SR & SPI_SR_BSY) != 0);
+            *buffer = *((__IO uint8_t *)&spi->DR);
+            buffer++;
+        }
+    }
+
+    return total - count;
+}
+
 /**
  * @brief Write data to SPI
  *
  * \param data  : Pointer to data
  * \param count : total number of bytes to transfer
  * */
-void SPI_Transfer(spibus_t *spibus, uint8_t *src, uint32_t count)
+void SPI_Transfer(spibus_t *spibus, const uint8_t *src, uint32_t count)
 {
     SPI_TypeDef *spi = ((hspi_t*)spibus->handle)->spi;
 
@@ -176,7 +206,7 @@ void SPI_Transfer(spibus_t *spibus, uint8_t *src, uint32_t count)
  * \param data  : Pointer to data
  * \param count : total number of transfers
  * */
-void SPI_TransferDMA(spibus_t *spibus, uint8_t *src, uint32_t count)
+void SPI_TransferDMA(spibus_t *spibus, const uint8_t *src, uint32_t count)
 {
     hspi_t *hspi = (hspi_t*)spibus->handle;
     SPI_TypeDef *spi = hspi->spi;
