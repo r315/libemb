@@ -60,6 +60,9 @@ void GPIO_Function(uint32_t name, uint32_t func)
         return;
     }
 
+    shift = (pin << 1);
+    port->MODER = (port->MODER & ~(3 << shift)) | (GPIO_IOM_AF << shift);
+
     afr = (pin < 8) ? &port->AFR[0] : &port->AFR[1];
 
     shift = ((pin & 7) << 2);

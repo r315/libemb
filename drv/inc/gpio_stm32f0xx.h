@@ -123,6 +123,23 @@ typedef enum {
 
 #define GPI_ANALOG                  (GPIO_IOM_ANALOG)
 
+#define GPIO_AF0  ((uint8_t)0x00)
+#define GPIO_AF1  ((uint8_t)0x01)
+#define GPIO_AF2  ((uint8_t)0x02)
+#define GPIO_AF3  ((uint8_t)0x03)
+#define GPIO_AF4  ((uint8_t)0x04)
+#define GPIO_AF5  ((uint8_t)0x05)
+#define GPIO_AF6  ((uint8_t)0x06)
+#define GPIO_AF7  ((uint8_t)0x07)
+#define GPIO_AF8  ((uint8_t)0x08)
+#define GPIO_AF9  ((uint8_t)0x09)
+#define GPIO_AF10 ((uint8_t)0x0A)
+#define GPIO_AF11 ((uint8_t)0x0B)
+#define GPIO_AF12 ((uint8_t)0x0C)
+#define GPIO_AF13 ((uint8_t)0x0D)
+#define GPIO_AF14 ((uint8_t)0x0E)
+#define GPIO_AF15 ((uint8_t)0x0F)
+
 
 void GPIO_PORT_Write(pinName_e name, uint32_t value);
 uint32_t GPIO_PORT_Read(pinName_e name);
