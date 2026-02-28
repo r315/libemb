@@ -36,9 +36,9 @@ static uint32_t pwm_freq_cfg(TMR_Type *tmr, uint32_t frequency)
     }else{
         pclk = (RCC->CFG & (4 << 8)) ? clocks.APB1CLK_Freq << 1 : clocks.APB1CLK_Freq;
 #else
-        pclk = (RCC->CFG & (4 << 11)) ? clocks.pclk2 << 1 : clocks.pclk2;
+        pclk = (RCC->CFG & (4 << 11)) ? clocks.clk2 << 1 : clocks.clk2;
     }else{
-        pclk = (RCC->CFG & (4 << 8)) ? clocks.pclk1 << 1 : clocks.pclk1;
+        pclk = (RCC->CFG & (4 << 8)) ? clocks.clk1 << 1 : clocks.clk1;
 #endif
     }
 
@@ -374,7 +374,7 @@ void PWM_Enable(pwmchip_t *pwmchip, uint8_t channel, enum pwmpstate state)
             *ccmx = (*ccmx & ~(TMR_CCM1_OC1MODE << ccmx_shift)) | (TMR_CCM1_OC1MODE_PWM_A << ccmx_shift);
             tmr->CCE = tmr->CCE | cce_mask;
             break;
-            
+
         case PWM_PIN_LOW: break;
         case PWM_PIN_HIGH: break;
         default: break;

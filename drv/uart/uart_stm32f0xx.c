@@ -191,6 +191,8 @@ void UART_Init(serialbus_t *serialbus){
 
     huart->usart->CR1 |= USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;
 
+    // Pins should be configured first to avoid spurious received data when uart is enabled
+
 #if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
     NVIC_EnableIRQ(irq);
 #endif
