@@ -40,10 +40,12 @@ NAKED void Reset_Handler(void)
 #endif
 
     /* Fill stack */
-    dst = &_sstack;
+    dst = &_estack;
 
-    while (dst < &_estack)
-        *dst++ = *(uint32_t*)"STAK";
+    while (dst > &_sstack){
+        dst--;
+        *dst = *(uint32_t*)"STAK";
+    }
 
     /* Configure system clocks */
     SystemInit();
