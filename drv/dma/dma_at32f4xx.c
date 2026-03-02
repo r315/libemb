@@ -30,15 +30,12 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
         return 0; // request is already in use
     }
 
-
     if((request & DMA_NUMBER_MASK) == 0){
         RCC->AHBEN |= RCC_AHBPERIPH_DMA1;
-        dma->per = DMA1;
         irqn = DMA1_Channel1_IRQn + ch_num;
         stream = (DMA_Channel_Type*)((uint32_t)DMA1_Channel1 + (ch_num * 0x14));
     }else{
         RCC->AHBEN |= RCC_AHBPERIPH_DMA2;
-        dma->per = DMA2;
         irqn = DMA2_Channel1_IRQn + ((ch_num == 4) ? 3 : ch_num);
         stream = (DMA_Channel_Type*)((uint32_t)DMA2_Channel1 + (ch_num * 0x14));
     }

@@ -1,10 +1,12 @@
-#include <stdint.h>
 #include <stddef.h>
-#include "stm32f1xx.h"
-#include "dma_stm32f1xx.h"
+#include "stm32f071xb.h"
 #include "dma.h"
+#include "dma_stm32f07xx.h"
+
+
 
 static dmatype_t *hdma[DMA_NUM_CHANNELS];
+
 
 /**
  * @brief Request dma controller/channel
@@ -78,6 +80,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
 
     return 1;
 }
+
 
 void DMA_Start(dmatype_t *dma)
 {
@@ -175,28 +178,32 @@ void DMA1_Channel1_IRQHandler(void){
     dma_irq_handler(hdma[0]);
     DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF1 | DMA_IFCR_CTCIF1 | DMA_IFCR_CHTIF1);
 }
-void DMA1_Channel2_IRQHandler(void){
-    dma_irq_handler(hdma[1]);
-    DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF2 | DMA_IFCR_CTCIF2 | DMA_IFCR_CHTIF2);
-}
-void DMA1_Channel3_IRQHandler(void){
-    dma_irq_handler(hdma[2]);
-    DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF3 | DMA_IFCR_CTCIF3 | DMA_IFCR_CHTIF3);
-}
-void DMA1_Channel4_IRQHandler(void){
-    dma_irq_handler(hdma[3]);
-    DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF4 | DMA_IFCR_CTCIF4 | DMA_IFCR_CHTIF4);
-}
-void DMA1_Channel5_IRQHandler(void){
-    dma_irq_handler(hdma[4]);
-    DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF5 | DMA_IFCR_CTCIF5 | DMA_IFCR_CHTIF5);
-}
-void DMA1_Channel6_IRQHandler(void){
-    dma_irq_handler(hdma[5]);
-    DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF6 | DMA_IFCR_CTCIF6 | DMA_IFCR_CHTIF6);
-}
-void DMA1_Channel7_IRQHandler(void){
-    dma_irq_handler(hdma[6]);
-    DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF7 | DMA_IFCR_CTCIF7 | DMA_IFCR_CHTIF7);
+
+void DMA1_Channel2_3_IRQHandler(void){
+    if(DMA1->ISR & DMA_ISR_GIF2){
+        dma_irq_handler(hdma[1]);
+        DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF2 | DMA_IFCR_CTCIF2 | DMA_IFCR_CHTIF2);
+    }
+
+    if(DMA1->ISR & DMA_ISR_GIF3){
+        dma_irq_handler(hdma[3]);
+        DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF3 | DMA_IFCR_CTCIF3 | DMA_IFCR_CHTIF3);
+    }
 }
 
+void DMA1_Channel4_5_6_7_IRQHandler(void){
+    if(DMA1->ISR & DMA_ISR_GIF4){
+        dma_irq_handler(hdma[3]);
+        DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF4 | DMA_IFCR_CTCIF4 | DMA_IFCR_CHTIF4);
+    }
+
+    if(DMA1->ISR & DMA_ISR_GIF5){
+        dma_irq_handler(hdma[4]);
+        DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF5 | DMA_IFCR_CTCIF5 | DMA_IFCR_CHTIF5);
+    }
+
+    if(DMA1->ISR & DMA_ISR_GIF6){
+        dma_irq_handler(hdma[5]);
+        DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF6 | DMA_IFCR_CTCIF6 | DMA_IFCR_CHTIF6);
+    }
+}

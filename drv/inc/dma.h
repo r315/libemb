@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 typedef struct dmactrl{
-   void *per;
    void *stream;
    void *src;
    void *dst;

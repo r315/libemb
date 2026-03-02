@@ -4,6 +4,8 @@
 #include "uart.h"
 #include "fifo.h"
 #include "clock.h"
+#include "dma.h"
+#include "dma_stm32f07xx.h"
 
 #define GPIO_IN_PU              ((2 << 2)|(0 << 0))  // CNF | MODE
 #define GPIO_OUT_AF             ((2 << 2)|(2 << 0))
@@ -13,11 +15,11 @@
 #define UART_MODE_DMA           2
 
 #ifndef UART_RX_MODE
-#define UART_RX_MODE            UART_MODE_FIFO
+#define UART_RX_MODE            UART_MODE_DMA
 #endif
 
 #ifndef UART_TX_MODE
-#define UART_TX_MODE            UART_MODE_FIFO
+#define UART_TX_MODE            UART_MODE_DMA
 #endif
 
 #ifndef UART_DMA_BUF_SIZE
@@ -159,7 +161,7 @@ void UART_Init(serialbus_t *serialbus){
 
 #if UART_RX_MODE == UART_MODE_DMA
     huart->dma_rx.dir = DMA_DIR_P2M;
-    huart->dma_rx.src = (void*)&huart->usart->DR;
+    huart->dma_rx.src = (void*)&huart->usart->RDR;
     huart->dma_rx.dst = (void*)huart->rx_buf;
     huart->dma_rx.ssize = DMA_CCR_PSIZE_8;
     huart->dma_rx.dsize = DMA_CCR_MSIZE_8;
@@ -177,7 +179,7 @@ void UART_Init(serialbus_t *serialbus){
 #if UART_TX_MODE == UART_MODE_DMA
     huart->dma_tx.dir = DMA_DIR_M2P;
     huart->dma_tx.src = (void*)huart->tx_buf;
-    huart->dma_tx.dst = (void*)&huart->usart->DR;
+    huart->dma_tx.dst = (void*)&huart->usart->TDR;
     huart->dma_tx.ssize = DMA_CCR_PSIZE_8;
     huart->dma_tx.dsize = DMA_CCR_MSIZE_8;
     huart->dma_tx.len = 0;
