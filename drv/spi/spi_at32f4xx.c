@@ -52,7 +52,7 @@ static hspi_t hspia = {
 static void spi_eot(hspi_t *hspi)
 {
     SPI_Type *spi = hspi->spi;
-    DMA_Channel_Type *dma = hspi->dma_tx.per;
+    DMA_Channel_Type *dma = hspi->dma_tx.stream;
 
     if(hspi->trf_counter > 0x10000UL){
         hspi->trf_counter -= 0x10000UL;
