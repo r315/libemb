@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 typedef struct dmactrl{
-   void *stream;
+   void *handle;
    void *src;
    void *dst;
    uint32_t len;            // Number of elements on transfer, rename to count?

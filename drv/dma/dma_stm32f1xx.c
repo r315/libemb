@@ -72,7 +72,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
     NVIC_EnableIRQ(DMA1_Channel1_IRQn + ch_num);
 
     stream->CCR = config;
-    dma->stream = stream;
+    dma->handle = stream;
 
     hdma[ch_num] = dma;
 
@@ -81,7 +81,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
 
 void DMA_Start(dmatype_t *dma)
 {
-    DMA_Channel_TypeDef *stream = dma->stream;
+    DMA_Channel_TypeDef *stream = dma->handle;
     uint32_t cfg = stream->CCR & ~(DMA_CCR_MINC | DMA_CCR_CIRC);
 
     stream->CNDTR = dma->len;
@@ -99,19 +99,19 @@ void DMA_Start(dmatype_t *dma)
 
 void DMA_Cancel(dmatype_t *dma)
 {
-    DMA_Channel_TypeDef *stream = dma->stream;
+    DMA_Channel_TypeDef *stream = dma->handle;
     stream->CCR &= ~DMA_CCR_EN;
 }
 
 uint32_t DMA_GetTransfers(dmatype_t *dma)
 {
-    DMA_Channel_TypeDef *stream = dma->stream;
+    DMA_Channel_TypeDef *stream = dma->handle;
     return dma->len - stream->CNDTR;
 }
 
 void DMA_SetSrc(dmatype_t *dma, void *src)
 {
-    DMA_Channel_TypeDef *stream = dma->stream;
+    DMA_Channel_TypeDef *stream = dma->handle;
 
     switch(dma->dir){
         case DMA_DIR_P2P:
@@ -134,7 +134,7 @@ void DMA_SetSrc(dmatype_t *dma, void *src)
 
 void DMA_SetDst(dmatype_t *dma, void *dst)
 {
-    DMA_Channel_TypeDef *stream = dma->stream;
+    DMA_Channel_TypeDef *stream = dma->handle;
 
     switch(dma->dir){
         case DMA_DIR_P2P:
@@ -158,7 +158,7 @@ void DMA_SetDst(dmatype_t *dma, void *dst)
 
 static void dma_irq_handler(dmatype_t *dma)
 {
-    DMA_Channel_TypeDef *stream = dma->stream;
+    DMA_Channel_TypeDef *stream = dma->handle;
     uint32_t ccr = stream->CCR;
 
     if(!(ccr & DMA_CCR_CIRC)){

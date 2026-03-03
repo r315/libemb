@@ -27,7 +27,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
         NVIC_EnableIRQ(DMA_IRQn);
     }
 
-    if(dma->stream == NULL){
+    if(dma->handle == NULL){
         do{
             // Select a channel starting from the lowest priority one
             if((requested & (1 << ch_num)) == 0){
@@ -41,7 +41,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
     }else{
         // Channel has been configured
         for (ch_num = 0; ch_num < DMA_MAX_CHANNELS; ch_num++){
-            if(s_dmachs[ch_num] == dma->stream){
+            if(s_dmachs[ch_num] == dma->handle){
                 break;
             }
         }
@@ -114,7 +114,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
 
     dmach->CControl = control;
     dmach->CConfig = config;
-    dma->stream = dmach;
+    dma->handle = dmach;
 
     requested |= (1 << ch_num);
     return 1;
@@ -127,7 +127,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t req){
  */
 void DMA_Start(dmatype_t *dma)
 {
-    LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)dma->stream;
+    LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)dma->handle;
     uint32_t ctrl = (stream->CControl & 0xFFFFF000) | dma->len;
 
     if(dma->dir == DMA_DIR_P2P){
@@ -144,9 +144,9 @@ void DMA_Start(dmatype_t *dma)
  *
  * @param ch
  */
-void DMA_Cancel(dmatype_t *ch)
+void DMA_Cancel(dmatype_t *dma)
 {
-    LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)ch->stream;
+    LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)dma->handle;
 
     #if 0 // forced stop
     ((LPC_GPDMACH_TypeDef *)ch->stream)->CConfig &= ~DMA_CONFIG_E;
@@ -170,7 +170,7 @@ void DMA_Cancel(dmatype_t *ch)
  */
 uint32_t DMA_GetTransfers(dmatype_t *dma)
 {
-    LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)dma->stream;
+    LPC_GPDMACH_TypeDef *stream = (LPC_GPDMACH_TypeDef *)dma->handle;
 
     return dma->len - (stream->CControl & 0xFFF);
 }

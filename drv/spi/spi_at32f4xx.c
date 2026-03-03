@@ -52,7 +52,7 @@ static hspi_t hspia = {
 static void spi_eot(hspi_t *hspi)
 {
     SPI_Type *spi = hspi->spi;
-    DMA_Channel_Type *dma = hspi->dma_tx.stream;
+    DMA_Channel_Type *dma = hspi->dma_tx.handle;
 
     if(hspi->trf_counter > 0x10000UL){
         hspi->trf_counter -= 0x10000UL;
@@ -305,7 +305,7 @@ void SPI_TransferDMA(spibus_t *spibus, const uint8_t *src, uint32_t count)
 {
     hspi_t *hspi = (hspi_t*)spibus->handle;
     SPI_Type *spi = hspi->spi;
-    DMA_Channel_Type *dma = hspi->dma_tx.stream;
+    DMA_Channel_Type *dma = hspi->dma_tx.handle;
 
     if(spibus->cfg & SPI_CFG_TRF_16BIT){
         spi->CTRL1 |= SPI_CTRL1_DFF16;

@@ -26,7 +26,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
         return 0; // request is already in use
     }
 
-    if(dma->stream == NULL){
+    if(dma->handle == NULL){
         if(request == 0){
             //__HAL_RCC_DMA1_CLK_ENABLE();
             RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
@@ -72,7 +72,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
 
         stream->CCR = config;
         stream->CPAR = (uint32_t)dma->dst;
-        dma->stream = stream;
+        dma->handle = stream;
     }
 
     hdma[(request * DMA1_MAX_CHANNELS) + ch_num] = dma;
@@ -82,7 +82,7 @@ uint32_t DMA_Config(dmatype_t *dma, uint32_t request){
 
 static inline void dma_irq_handler(dmatype_t *dma)
 {
-    DMA_Channel_TypeDef *stream = dma->stream;
+    DMA_Channel_TypeDef *stream = dma->handle;
     uint32_t ccr = stream->CCR;
 
     if(!(ccr & DMA_CCR_CIRC)){
