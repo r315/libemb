@@ -8,7 +8,7 @@
 #define DMA_CHANNEL_MASK        (15 << DMA_CHANNEL_POS)
 
 #define DMA1_MAX_CHANNELS       7
-#define DMA2_MAX_CHANNELS       5
+#define DMA2_MAX_CHANNELS       0
 #define DMA_NUM_CHANNELS        (DMA1_MAX_CHANNELS + DMA2_MAX_CHANNELS)
 
 #define DMA_CCR_PSIZE_CFG(x)    (x << 8)

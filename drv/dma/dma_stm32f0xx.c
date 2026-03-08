@@ -206,4 +206,9 @@ void DMA1_Channel4_5_6_7_IRQHandler(void){
         dma_irq_handler(hdma[5]);
         DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF6 | DMA_IFCR_CTCIF6 | DMA_IFCR_CHTIF6);
     }
+
+    if(DMA1->ISR & DMA_ISR_GIF7){
+        dma_irq_handler(hdma[6]);
+        DMA1->IFCR = DMA1->ISR & (DMA_IFCR_CGIF7 | DMA_IFCR_CTCIF7 | DMA_IFCR_CHTIF7);
+    }
 }

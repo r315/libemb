@@ -29,8 +29,8 @@
 typedef struct {
     USART_TypeDef *usart;
 #if UART_RX_MODE == UART_MODE_DMA
-    dmatype_t dma_rx;
     volatile uint16_t rx_rd;
+    dmatype_t dma_rx;
     uint8_t rx_buf[UART_DMA_BUF_SIZE];
 #elif UART_RX_MODE == UART_MODE_FIFO
     fifo_t rxfifo;
@@ -55,7 +55,7 @@ static void uart_set_baudrate(USART_TypeDef *usart, uint32_t speed)
 {
     float uartdiv = (float)(SystemCoreClock/speed) / 32;
 
-    if(usart == USART1){
+    if(!(usart->CR1 & USART_CR1_OVER8)){
         uartdiv *= 2;
     }
 
@@ -157,7 +157,19 @@ void UART_Init(serialbus_t *serialbus){
     }
 
     serialbus->handle = huart;
+    huart->usart->CR1 = 0;
+
     uart_set_baudrate(huart->usart, serialbus->speed);
+
+    if(serialbus->datalength == UART_CFG_9BIT){
+        huart->usart->CR1 |= USART_CR1_M0;
+    }
+
+    if(serialbus->parity != UART_CFG_PARITY_NONE){
+        huart->usart->CR1 |= USART_CR1_PCE |
+            ((serialbus->parity == UART_CFG_PARITY_ODD) ? USART_CR1_PS : 0);
+    }
+
 
 #if UART_RX_MODE == UART_MODE_DMA
     huart->dma_rx.dir = DMA_DIR_P2M;
@@ -217,6 +229,7 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
     DMA_Cancel(&huart->dma_tx);
     memcpy(huart->tx_buf, buf, len);
     huart->dma_tx.len = len;
+    huart->usart->ICR = USART_ICR_TCCF;
     DMA_Start(&huart->dma_tx);
 #elif UART_TX_MODE == UART_MODE_FIFO
     const uint8_t *end = buf + len;

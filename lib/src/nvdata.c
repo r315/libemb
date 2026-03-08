@@ -35,7 +35,7 @@ static nvdata_t *nvdata;
 
 /**
  * @brief Initializes internal nvdata structure with next freeblock
- *             and presistent data
+ *             and persistent data
  *
  * @return :    0 if no valid data or sector was initialized, data size
  *                 if valid data read
@@ -265,7 +265,7 @@ static uint32_t verify(void){
     for (uint16_t i = 0; i < NVDATA_SIZE; i++)
     {
         if(nvdata->nvb.data[i] != ptr[i]){
-            DBG_NVDATA_INF("Data missmatch at 0x%x", (unsigned int)(ptr + i));
+            DBG_NVDATA_INF("Data mismatch at 0x%x", (unsigned int)(ptr + i));
             return 0;
         }
     }
