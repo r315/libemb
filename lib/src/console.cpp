@@ -530,7 +530,7 @@ int Console::write(const char* str, int len)
 void Console::replaceLine(char *new_line) {
     int new_line_len;
 
-    new_line_len = strlen((const char*)new_line);
+    new_line_len = xstrlen((const char*)new_line);
 
     if(new_line_len > 0 && new_line_len < CONSOLE_WIDTH){
     	memcpy(m_line, new_line, new_line_len);
