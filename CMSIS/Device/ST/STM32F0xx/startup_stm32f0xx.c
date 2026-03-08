@@ -39,6 +39,7 @@ NAKED void Reset_Handler(void)
     }
 #endif
 
+#if 0
     /* Fill stack */
     dst = &_estack;
 
@@ -46,7 +47,7 @@ NAKED void Reset_Handler(void)
         dst--;
         *dst = *(uint32_t*)"STAK";
     }
-
+#endif
     /* Configure system clocks */
     SystemInit();
     /* Call c++ constructors */
