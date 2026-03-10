@@ -37,5 +37,6 @@ void UART_Init(serialbus_t *huart);
 uint32_t UART_Write(serialbus_t *huart, const uint8_t *data, uint32_t len);
 uint32_t UART_Read(serialbus_t *huart, uint8_t *data, uint32_t len);
 uint32_t UART_Available(serialbus_t *huart);
+uint32_t UART_Peek(serialbus_t *serialbus, uint8_t *data);
 
 #endif /* _usart_h_ */

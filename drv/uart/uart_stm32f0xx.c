@@ -304,6 +304,19 @@ uint32_t UART_Available(serialbus_t *serialbus){
 #endif
 }
 
+uint32_t UART_Peek(serialbus_t *serialbus, uint8_t *data)
+{
+    huart_t *huart = (huart_t*)serialbus->handle;
+
+    uint32_t available = UART_Available(serialbus);
+
+    if(available){
+        *data = huart->rx_buf[huart->rx_rd];
+    }
+
+    return available;
+}
+
 /**
  * @brief Common interrupt handler for fifo mode
  * @param huart

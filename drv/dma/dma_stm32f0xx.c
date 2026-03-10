@@ -166,6 +166,9 @@ static void dma_irq_handler(dmatype_t *dma)
 
     if(!(ccr & DMA_CCR_CIRC)){
         // Disable stream if circular mode is disabled
+        while(stream->CNDTR){
+
+        }
         stream->CCR = ccr & ~DMA_CCR_EN;
     }
 
