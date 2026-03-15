@@ -101,14 +101,22 @@ static uint16_t drawCharSimple(uint16_t x, uint16_t y, uint8_t c){
 
 static uint16_t drawCharTransparent(uint16_t x, uint16_t y, uint8_t c)
 {
-	uint8_t w,h;
+	uint8_t w, h, mask;
+	const font_t *fnt = plib2d->font;
+	const uint8_t *pd = fnt->data + ((c - fnt->offset) * fnt->h * fnt->bpl);
 
-	for (h=0; h < plib2d->font->h; h++){
-		for(w=0;w<plib2d->font->w; w++){
-			if(c & (0x80 >> w))
+	for (h = 0; h < plib2d->font->h; h++){
+        uint8_t pxdata;
+		for(mask = 0, w = 0; w < fnt->w; w++, mask >>= 1){
+			if(mask == 0){      // Reset mask for every byte on row
+				mask = 0x80;
+				pxdata = *pd++;
+			}
+
+			if(pxdata & mask){
 				LCD_Pixel(x + w, y + h, plib2d->forecolor);
+			}
 		}
-		c += 1;
 	}
 
 	return x+(plib2d->font->w);
