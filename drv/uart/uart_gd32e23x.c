@@ -19,8 +19,8 @@ typedef struct huart{
     uint8_t rxbuffer[UART_BUFFER_SIZE];
 }huart_t;
 
-static huart_t uart0 = {USART0, DMA_CH1, DMA_CH2, 0};
-static huart_t uart1 = {USART1, DMA_CH3, DMA_CH4, 0};
+static huart_t uart0 = {USART0, DMA_CH1, DMA_CH2, 0, {0}, {0}};
+static huart_t uart1 = {USART1, DMA_CH3, DMA_CH4, 0, {0}, {0}};
 
 /**
  * API
@@ -97,6 +97,15 @@ void UART_Init(serialbus_t *serialbus)
     usart_receive_config(huart->usart, USART_RECEIVE_ENABLE);
     usart_transmit_config(huart->usart, USART_TRANSMIT_ENABLE);
 
+    if(serialbus->datalength == UART_CFG_9BIT){
+        USART_CTL0(huart->usart) |= USART_CTL0_WL;
+    }
+
+    if(serialbus->parity != UART_CFG_PARITY_NONE){
+        USART_CTL0(huart->usart) |= USART_CTL0_PCEN |
+            ((serialbus->parity == UART_CFG_PARITY_ODD) ? USART_CTL0_PM : 0);
+    }
+
     usart_enable(huart->usart);
 
     dma_deinit(huart->tx_dma);
@@ -150,40 +159,42 @@ uint32_t UART_Write(serialbus_t *serialbus, const uint8_t *buf, uint32_t len)
     dma_parameter_struct dma_init_struct;
     huart_t *huart = serialbus->handle;
 
-    if(len == 1){
-        /* Single byte, is faster just write it*/
-        while(RESET == usart_flag_get(huart->usart, USART_FLAG_TBE));
-        usart_data_transmit(huart->usart, buf[0]);
-        //while(SET == usart_flag_get(huart->uart, USART_FLAG_BSY));
-    }else {
-        /* TX_DMA */
-
-        if(DMA_CHCTL(huart->tx_dma) & DMA_CHXCTL_CHEN){
-            while(RESET == dma_flag_get(huart->tx_dma, DMA_FLAG_FTF));
-            dma_channel_disable(huart->tx_dma);
-            dma_flag_clear(huart->tx_dma, DMA_FLAG_G);
-        }
-        /**
-         * @brief Copy buffer, this avoids corruption
-         * if buffer is changed while DMA occurs
-         */
-        memcpy(huart->txbuffer, buf, len);
-
-        dma_init_struct.direction = DMA_MEMORY_TO_PERIPHERAL;
-        dma_init_struct.memory_addr = (uint32_t)huart->txbuffer;
-        dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;
-        dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;
-        dma_init_struct.number = len;
-        dma_init_struct.periph_addr = (uint32_t)&USART_TDATA(huart->usart);
-        dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
-        dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;
-        dma_init_struct.priority = DMA_PRIORITY_LOW;
-        dma_init(huart->tx_dma, &dma_init_struct);
-        /* configure DMA mode */
-        dma_circulation_disable(huart->tx_dma);
-        dma_memory_to_memory_disable(huart->tx_dma);
-        dma_channel_enable(huart->tx_dma);
+    /* TX_DMA */
+    if(DMA_CHCTL(huart->tx_dma) & DMA_CHXCTL_CHEN){
+        while(RESET == dma_flag_get(huart->tx_dma, DMA_FLAG_FTF));
+        dma_channel_disable(huart->tx_dma);
+        dma_flag_clear(huart->tx_dma, DMA_FLAG_G);
     }
 
+    memcpy(huart->txbuffer, buf, len);
+
+    dma_init_struct.direction = DMA_MEMORY_TO_PERIPHERAL;
+    dma_init_struct.memory_addr = (uint32_t)huart->txbuffer;
+    dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;
+    dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;
+    dma_init_struct.number = len;
+    dma_init_struct.periph_addr = (uint32_t)&USART_TDATA(huart->usart);
+    dma_init_struct.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
+    dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;
+    dma_init_struct.priority = DMA_PRIORITY_LOW;
+    dma_init(huart->tx_dma, &dma_init_struct);
+    /* configure DMA mode */
+    dma_circulation_disable(huart->tx_dma);
+    dma_memory_to_memory_disable(huart->tx_dma);
+    dma_channel_enable(huart->tx_dma);
+
     return len;
+}
+
+uint32_t UART_Peek(serialbus_t *serialbus, uint8_t *data)
+{
+    huart_t *huart = (huart_t*)serialbus->handle;
+
+    uint32_t available = UART_Available(serialbus);
+
+    if(available){
+        *data = huart->rxbuffer[huart->rx_rd];
+    }
+
+    return available;
 }
