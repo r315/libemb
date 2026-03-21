@@ -26,6 +26,25 @@
 
 #include "gd32e23x.h"
 
+
+/* Cortex-M23 Fault Register Addresses */
+#define HFSR    (*((volatile uint32_t *)0xE000ED2C))
+#define DFSR    (*((volatile uint32_t *)0xE000ED30))
+
+/* HFSR bit definitions */
+#define HFSR_VECTTBL    (1UL << 1)   /* Bus fault on vector table read     */
+#define HFSR_FORCED     (1UL << 30)  /* Forced HardFault (escalated fault) */
+#define HFSR_DEBUGEVT   (1UL << 31)  /* Debug event                        */
+
+/* DFSR bit definitions */
+#define DFSR_HALTED     (1UL << 0)
+#define DFSR_BKPT       (1UL << 1)
+#define DFSR_DWTTRAP    (1UL << 2)
+#define DFSR_VCATCH     (1UL << 3)
+#define DFSR_EXTERNAL   (1UL << 4)
+
+#define NORETURN   __attribute__((naked, __noreturn__))
+
 /*----------------------------------------------------------------------------
   External References
  *----------------------------------------------------------------------------*/
@@ -185,9 +204,142 @@ __NO_RETURN void Reset_Handler(void)
 /*----------------------------------------------------------------------------
   Hard Fault Handler
  *----------------------------------------------------------------------------*/
-void HardFault_Handler(void)
+typedef struct {
+    uint32_t r0;
+    uint32_t r1;
+    uint32_t r2;
+    uint32_t r3;
+    uint32_t r12;
+    uint32_t lr;
+    uint32_t pc;
+    union{
+        uint32_t xpsr;
+        struct {
+            uint32_t exception : 9;
+            uint32_t _0_0 : 1;
+            uint32_t ici_itl : 6;
+            uint32_t ge : 4;
+            uint32_t _0_1 : 1;
+            uint32_t b : 1;
+            uint32_t res0 : 2;
+            uint32_t t : 1;
+            uint32_t ici_ith : 2;
+            uint32_t q : 1;
+            uint32_t v : 1;
+            uint32_t c : 1;
+            uint32_t z : 1;
+            uint32_t n : 1;
+        }xpsr_bit;
+    };
+} ExceptionFrame_t;
+
+void fault_print_char(char c)
 {
-  while(1);
+    USART_TDATA(USART0) = c;
+    while(!(USART_STAT(USART0) & USART_STAT_TBE));
+}
+
+void fault_print(const char *reason)
+{
+    while (*reason)
+    {
+        fault_print_char(*reason++);
+    }
+}
+
+void fault_print_hex(const char *label, uint32_t value)
+{
+    fault_print(label);
+    char *pval = (char*)&value + 3;
+    for(int8_t i = 0; i < 4; i++, pval--){
+        uint8_t byte = *pval >> 4;
+        // print hex byte
+        fault_print_char(byte + ((byte > 9) ? '7' : '0'));
+        byte = *pval & 15;
+        fault_print_char(byte + ((byte > 9) ? '7' : '0'));
+    }
+}
+
+void CoreDump(ExceptionFrame_t *frame)
+{
+    uint32_t hfsr = HFSR;
+    uint32_t dfsr = DFSR;
+
+    RCU_APB2EN |= RCU_APB2EN_USART0EN;
+    RCU_APB2RST |= RCU_APB2RST_USART0RST;
+    RCU_AHBEN |= RCU_AHBEN_PAEN;
+    RCU_APB2RST &= ~RCU_APB2RST_USART0RST;
+    GPIO_CTL(GPIOA) = 0x28080000;   // Cfg PA9 as AF
+    GPIO_AFSEL1(GPIOA) = (1 << 4);  // AF1_UART1_TX
+
+    USART_BAUD(USART0) = 0x271;
+    USART_CTL0(USART0) = 0x09;
+
+    fault_print("\n========== HARDFAULT ==========\n");
+
+    /* --- Stacked register dump --- */
+    fault_print("-- Stacked Registers --\n");
+    fault_print_hex(" R0 : 0x", frame->r0);
+    fault_print_hex("  R1 : 0x", frame->r1);
+    fault_print_hex("  R2 : 0x", frame->r2);
+    fault_print_hex("  R3 : 0x", frame->r3);
+    fault_print_char('\n');
+    fault_print_hex(" R12: 0x", frame->r12);
+    fault_print_hex("  LR : 0x", frame->lr);
+    fault_print_hex("  PC : 0x", frame->pc);   /* <-- faulting address */
+    fault_print_hex("  xPSR: 0x", frame->xpsr);
+
+    /* --- HFSR analysis --- */
+    fault_print("\n-- HardFault Status --\n");
+    fault_print_hex(" HFSR ", hfsr);
+
+    if (hfsr & HFSR_VECTTBL) {
+        fault_print("  [!] VECTTBL: Bus fault on vector table read\n");
+    }
+    if (hfsr & HFSR_FORCED) {
+        fault_print("  [!] FORCED: Escalated fault (usage/bus/mem fault)\n");
+        fault_print("      -> Check PC for the faulting instruction\n");
+    }
+    if (hfsr & HFSR_DEBUGEVT) {
+        fault_print("  [!] DEBUGEVT: Debug event caused HardFault\n");
+    }
+
+    /* --- DFSR analysis --- */
+    fault_print("\n-- Debug Fault Status --\n");
+    fault_print_hex(" DFSR ", dfsr);
+
+    if (dfsr & DFSR_HALTED)   fault_print("  [!] HALTED: C_HALT or C_STEP debug halt\n");
+    if (dfsr & DFSR_BKPT)     fault_print("  [!] BKPT: Breakpoint instruction\n");
+    if (dfsr & DFSR_DWTTRAP)  fault_print("  [!] DWTTRAP: DWT watchpoint match\n");
+    if (dfsr & DFSR_VCATCH)   fault_print("  [!] VCATCH: Vector catch triggered\n");
+    if (dfsr & DFSR_EXTERNAL) fault_print("  [!] EXTERNAL: External debug request\n");
+
+    fault_print("\n================================\n");
+
+    /* Clear fault status registers by writing 1s */
+    HFSR = hfsr;
+    DFSR = dfsr;
+}
+
+NORETURN void HardFault_Handler(void)
+{
+    /* Determine which stack was active: MSP or PSP */
+    /* EXC_RETURN in LR: bit 2 = 1 means PSP was used  */
+    asm("mov r0, lr");
+    asm("movs r1, #4");
+    asm("tst r0,r1");
+    asm("beq use_msp");
+    asm("mrs r0, psp");
+    asm("b CoreDump");
+    asm("use_msp:");
+    asm("mrs r0, msp");
+    asm("push {lr}");   /* save lr for later */
+    asm("bl CoreDump");
+    asm("pop {r0}");
+    asm("mov lr, r0");  /* restore lr to maintain stack */
+
+    asm("bkpt #01");
+    asm("b .");
 }
 
 /*----------------------------------------------------------------------------
@@ -195,7 +347,12 @@ void HardFault_Handler(void)
  *----------------------------------------------------------------------------*/
 void Default_Handler(void)
 {
-  while(1);
+    volatile uint8_t isr_number = (SCB->ICSR & 255) - 16;
+    // See position number on __VECTOR_TABLE
+    (void)isr_number;
+
+    asm("bkpt #01");
+    asm("b .");
 }
 
 #if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
