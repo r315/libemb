@@ -41,7 +41,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>STAT</name>
-          <displayName>STAT</displayName>
           <description>status register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -82,7 +81,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 0</description>
           <addressOffset>0x4</addressOffset>
           <size>0x20</size>
@@ -176,7 +174,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>control register 1</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -269,7 +266,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SAMPT0</name>
-          <displayName>SAMPT0</displayName>
           <description>Sampling time register 0</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -294,7 +290,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SAMPT1</name>
-          <displayName>SAMPT1</displayName>
           <description>Sampling time register 1</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -375,7 +370,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IOFF0</name>
-          <displayName>IOFF0</displayName>
           <description>Inserted channel data offset register
           0</description>
           <addressOffset>0x14</addressOffset>
@@ -394,7 +388,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IOFF1</name>
-          <displayName>IOFF1</displayName>
           <description>Inserted channel data offset register
           1</description>
           <addressOffset>0x18</addressOffset>
@@ -413,7 +406,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IOFF2</name>
-          <displayName>IOFF2</displayName>
           <description>Inserted channel data offset register
           2</description>
           <addressOffset>0x1C</addressOffset>
@@ -432,7 +424,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IOFF3</name>
-          <displayName>IOFF3</displayName>
           <description>Inserted channel data offset register
           3</description>
           <addressOffset>0x20</addressOffset>
@@ -451,7 +442,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>WDHT</name>
-          <displayName>WDHT</displayName>
           <description>watchdog higher threshold
           register</description>
           <addressOffset>0x24</addressOffset>
@@ -470,7 +460,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>WDLT</name>
-          <displayName>WDLT</displayName>
           <description>watchdog low threshold
           register</description>
           <addressOffset>0x28</addressOffset>
@@ -489,7 +478,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RSQ0</name>
-          <displayName>RSQ0</displayName>
           <description>regular sequence register 0</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -535,7 +523,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RSQ1</name>
-          <displayName>RSQ1</displayName>
           <description>regular sequence register 1</description>
           <addressOffset>0x30</addressOffset>
           <size>0x20</size>
@@ -588,7 +575,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RSQ2</name>
-          <displayName>RSQ2</displayName>
           <description>regular sequence register 2</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -641,7 +627,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISQ</name>
-          <displayName>ISQ</displayName>
           <description>injected sequence register</description>
           <addressOffset>0x38</addressOffset>
           <size>0x20</size>
@@ -686,7 +671,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IDATA0</name>
-          <displayName>IDATA0</displayName>
           <description>injected data register 0</description>
           <addressOffset>0x3C</addressOffset>
           <size>0x20</size>
@@ -703,7 +687,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IDATA1</name>
-          <displayName>IDATA1</displayName>
           <description>injected data register 1</description>
           <addressOffset>0x40</addressOffset>
           <size>0x20</size>
@@ -720,7 +703,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IDATA2</name>
-          <displayName>IDATA2</displayName>
           <description>injected data register 2</description>
           <addressOffset>0x44</addressOffset>
           <size>0x20</size>
@@ -737,7 +719,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IDATA3</name>
-          <displayName>IDATA3</displayName>
           <description>injected data register 3</description>
           <addressOffset>0x48</addressOffset>
           <size>0x20</size>
@@ -754,7 +735,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RDATA</name>
-          <displayName>RDATA</displayName>
           <description>regular data register</description>
           <addressOffset>0x4C</addressOffset>
           <size>0x20</size>
@@ -771,7 +751,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OVSAMPCTL</name>
-          <displayName>OVSAMPCTL</displayName>
           <description>ADC oversample control register</description>
           <addressOffset>0x80</addressOffset>
           <size>0x20</size>
@@ -819,7 +798,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CS</name>
-          <displayName>CS</displayName>
           <description> control and status register</description>
           <addressOffset>0x00</addressOffset>
           <size>0x20</size>
@@ -905,7 +883,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
           <registers>
              <register>
           <name>DATA</name>
-          <displayName>DATA</displayName>
           <description>Data register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -922,7 +899,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>FDATA</name>
-          <displayName>FDATA</displayName>
           <description>Free data register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -940,7 +916,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>Control register</description>
           <addressOffset>0x8</addressOffset>
           <size>0x20</size>
@@ -975,7 +950,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IDATA</name>
-          <displayName>IDATA</displayName>
           <description>Initialization Data Register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -992,7 +966,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>POLY</name>
-          <displayName>POLY</displayName>
           <description>Polynomial register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -1022,7 +995,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>ID</name>
-          <displayName>ID</displayName>
           <description>MCU Device ID Code Register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -1039,7 +1011,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>Debug Control Register 0</description>
           <addressOffset>0x4</addressOffset>
           <size>0x20</size>
@@ -1116,7 +1087,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>Debug Control Register 1</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -1176,7 +1146,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>INTF</name>
-          <displayName>INTF</displayName>
           <description>DMA interrupt flag register
           (DMA_INTF)</description>
           <addressOffset>0x0</addressOffset>
@@ -1326,7 +1295,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INTC</name>
-          <displayName>INTC</displayName>
           <description>DMA interrupt flag clear register
           (DMA_INTC)</description>
           <addressOffset>0x4</addressOffset>
@@ -1478,7 +1446,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0CTL</name>
-          <displayName>CH0CTL</displayName>
           <description>DMA channel configuration register
           (DMA_CH0CTL)</description>
           <addressOffset>0x8</addressOffset>
@@ -1565,7 +1532,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0CNT</name>
-          <displayName>CH0CNT</displayName>
           <description>DMA channel 0 counter
           register</description>
           <addressOffset>0x0C</addressOffset>
@@ -1583,7 +1549,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0PADDR</name>
-          <displayName>CH0PADDR</displayName>
           <description>DMA channel 0 peripheral base address
           register</description>
           <addressOffset>0x10</addressOffset>
@@ -1601,7 +1566,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0MADDR</name>
-          <displayName>CH0MADDR</displayName>
           <description>DMA channel 0 memory base address
           register</description>
           <addressOffset>0x14</addressOffset>
@@ -1619,7 +1583,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH1CTL</name>
-          <displayName>CH1CTL</displayName>
           <description>DMA channel configuration register
           (DMA_CH1CTL)</description>
           <addressOffset>0x1C</addressOffset>
@@ -1706,7 +1669,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH1CNT</name>
-          <displayName>CH1CNT</displayName>
           <description>DMA channel 1 counter
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -1725,7 +1687,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH1PADDR</name>
-          <displayName>CH1PADDR</displayName>
           <description>DMA channel 1 peripheral base address
           register</description>
           <addressOffset>0x24</addressOffset>
@@ -1743,7 +1704,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH1MADDR</name>
-          <displayName>CH1MADDR</displayName>
           <description>DMA channel 1 memory base address
           register</description>
           <addressOffset>0x28</addressOffset>
@@ -1761,7 +1721,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH2CTL</name>
-          <displayName>CH2CTL</displayName>
           <description>DMA channel configuration register
           (DMA_CH2CTL)</description>
           <addressOffset>0x30</addressOffset>
@@ -1848,7 +1807,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH2CNT</name>
-          <displayName>CH2CNT</displayName>
           <description>DMA channel 2 counter
           register</description>
           <addressOffset>0x34</addressOffset>
@@ -1867,7 +1825,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH2PADDR</name>
-          <displayName>CH2PADDR</displayName>
           <description>DMA channel 2 peripheral base address
           register</description>
           <addressOffset>0x38</addressOffset>
@@ -1885,7 +1842,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH2MADDR</name>
-          <displayName>CH2MADDR</displayName>
           <description>DMA channel 2 memory base address
           register</description>
           <addressOffset>0x3C</addressOffset>
@@ -1903,7 +1859,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH3CTL</name>
-          <displayName>CH3CTL</displayName>
           <description>DMA channel configuration register
           (DMA_CH3CTL)</description>
           <addressOffset>0x44</addressOffset>
@@ -1990,7 +1945,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH3CNT</name>
-          <displayName>CH3CNT</displayName>
           <description>DMA channel 3 counter
           register</description>
           <addressOffset>0x48</addressOffset>
@@ -2008,7 +1962,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH3PADDR</name>
-          <displayName>CH3PADDR</displayName>
           <description>DMA channel 3 peripheral base address
           register</description>
           <addressOffset>0x4C</addressOffset>
@@ -2026,7 +1979,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH3MADDR</name>
-          <displayName>CH3MADDR</displayName>
           <description>DMA channel 3 memory base address
           register</description>
           <addressOffset>0x50</addressOffset>
@@ -2044,7 +1996,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH4CTL</name>
-          <displayName>CH4CTL</displayName>
           <description>DMA channel configuration register
           (DMA_CH4CTL)</description>
           <addressOffset>0x58</addressOffset>
@@ -2131,7 +2082,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH4CNT</name>
-          <displayName>CH4CNT</displayName>
           <description>DMA channel 4 counter
           register</description>
           <addressOffset>0x5C</addressOffset>
@@ -2149,7 +2099,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH4PADDR</name>
-          <displayName>CH4PADDR</displayName>
           <description>DMA channel 4 peripheral base address
           register</description>
           <addressOffset>0x60</addressOffset>
@@ -2167,7 +2116,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH4MADDR</name>
-          <displayName>CH4MADDR</displayName>
           <description>DMA channel 4 memory base address
           register</description>
           <addressOffset>0x64</addressOffset>
@@ -2215,7 +2163,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>INTEN</name>
-          <displayName>INTEN</displayName>
           <description>Interrupt enable register
           (EXTI_INTEN)</description>
           <addressOffset>0x0</addressOffset>
@@ -2395,7 +2342,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>EVEN</name>
-          <displayName>EVEN</displayName>
           <description>Event enable register (EXTI_EVEN)</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -2574,7 +2520,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RTEN</name>
-          <displayName>RTEN</displayName>
           <description>Rising Edge Trigger Enable register
           (EXTI_RTEN)</description>
           <addressOffset>0x08</addressOffset>
@@ -2726,7 +2671,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>FTEN</name>
-          <displayName>FTEN</displayName>
           <description>Falling Egde Trigger Enable register
           (EXTI_FTEN)</description>
           <addressOffset>0x0C</addressOffset>
@@ -2878,7 +2822,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SWIEV</name>
-          <displayName>SWIEV</displayName>
           <description>Software interrupt event register
           (EXTI_SWIEV)</description>
           <addressOffset>0x10</addressOffset>
@@ -3030,7 +2973,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PD</name>
-          <displayName>PD</displayName>
           <description>Pending register (EXTI_PD)</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -3178,7 +3120,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>WS</name>
-          <displayName>WS</displayName>
           <description>wait state register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -3207,7 +3148,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>KEY</name>
-          <displayName>KEY</displayName>
           <description>Unlock key register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -3224,7 +3164,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OBKEY</name>
-          <displayName>OBKEY</displayName>
           <description>Option byte unlock key register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -3241,7 +3180,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT</name>
-          <displayName>STAT</displayName>
           <description>Status register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -3286,7 +3224,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>Control register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -3363,7 +3300,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ADDR</name>
-          <displayName>ADDR</displayName>
           <description>Address register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -3380,7 +3316,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OBSTAT</name>
-          <displayName>OBSTAT</displayName>
           <description>Option byte control register</description>
           <addressOffset>0x1C</addressOffset>
           <size>0x20</size>
@@ -3415,7 +3350,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>WP</name>
-          <displayName>WP</displayName>
           <description>Erase/Program Protection register</description>
           <addressOffset>0x20</addressOffset>
           <size>0x20</size>
@@ -3432,7 +3366,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PID</name>
-          <displayName>PID</displayName>
           <description>Product ID register</description>
           <addressOffset>0x100</addressOffset>
           <size>0x20</size>
@@ -3462,7 +3395,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>Control register</description>
           <addressOffset>0x00</addressOffset>
           <size>0x20</size>
@@ -3479,7 +3411,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PSC</name>
-          <displayName>PSC</displayName>
           <description>Prescaler register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -3496,7 +3427,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RLD</name>
-          <displayName>RLD</displayName>
           <description>Reload register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -3514,7 +3444,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT</name>
-          <displayName>STAT</displayName>
           <description>Status register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -3546,7 +3475,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>WND</name>
-          <displayName>WND</displayName>
           <description>Window register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -3577,7 +3505,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>GPIO port control register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -3700,7 +3627,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OMODE</name>
-          <displayName>OMODE</displayName>
           <description>GPIO port output type register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -3813,7 +3739,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OSPD</name>
-          <displayName>OSPD</displayName>
           <description>GPIO port output speed
           register </description>
           <addressOffset>0x08</addressOffset>
@@ -3937,7 +3862,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PUD</name>
-          <displayName>PUD</displayName>
           <description>GPIO port pull-up/pull-down
           register</description>
           <addressOffset>0x0C</addressOffset>
@@ -4061,7 +3985,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISTAT</name>
-          <displayName>ISTAT</displayName>
           <description>GPIO port input data register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -4184,7 +4107,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OCTL</name>
-          <displayName>OCTL</displayName>
           <description>GPIO port output data register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -4307,7 +4229,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BOP</name>
-          <displayName>BOP</displayName>
           <description>GPIO port bit set/reset
           register</description>
           <addressOffset>0x18</addressOffset>
@@ -4543,7 +4464,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>LOCK</name>
-          <displayName>LOCK</displayName>
           <description>GPIO port configuration lock
           register</description>
           <addressOffset>0x1C</addressOffset>
@@ -4674,7 +4594,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>AFSEL0</name>
-          <displayName>AFSEL0</displayName>
           <description>GPIO alternate function low
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -4742,7 +4661,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>AFSEL1</name>
-          <displayName>AFSEL1</displayName>
           <description>GPIO alternate function
           register 1</description>
           <addressOffset>0x24</addressOffset>
@@ -4810,7 +4728,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BC</name>
-          <displayName>BC</displayName>
           <description>Port bit reset register</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -4917,7 +4834,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TG</name>
-          <displayName>TG</displayName>
           <description>Port bit toggle register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -5037,7 +4953,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>GPIO port control register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -5160,7 +5075,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OMODE</name>
-          <displayName>OMODE</displayName>
           <description>GPIO port output type register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -5273,7 +5187,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OSPD</name>
-          <displayName>OSPD</displayName>
           <description>GPIO port output speed
           register </description>
           <addressOffset>0x08</addressOffset>
@@ -5397,7 +5310,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PUD</name>
-          <displayName>PUD</displayName>
           <description>GPIO port pull-up/pull-down
           register</description>
           <addressOffset>0x0C</addressOffset>
@@ -5521,7 +5433,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISTAT</name>
-          <displayName>ISTAT</displayName>
           <description>GPIO port input data register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -5644,7 +5555,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OCTL</name>
-          <displayName>OCTL</displayName>
           <description>GPIO port output data register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -5767,7 +5677,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BOP</name>
-          <displayName>BOP</displayName>
           <description>GPIO port bit set/reset
           register</description>
           <addressOffset>0x18</addressOffset>
@@ -6003,7 +5912,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>LOCK</name>
-          <displayName>LOCK</displayName>
           <description>GPIO port configuration lock
           register</description>
           <addressOffset>0x1C</addressOffset>
@@ -6134,7 +6042,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>AFSEL0</name>
-          <displayName>AFSEL0</displayName>
           <description>GPIO alternate function low
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -6202,7 +6109,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>AFSEL1</name>
-          <displayName>AFSEL1</displayName>
           <description>GPIO alternate function
           register 1</description>
           <addressOffset>0x24</addressOffset>
@@ -6270,7 +6176,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BC</name>
-          <displayName>BC</displayName>
           <description>Port bit reset register</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -6377,7 +6282,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TG</name>
-          <displayName>TG</displayName>
           <description>Port bit toggle register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -6497,7 +6401,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>GPIO port control register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -6620,7 +6523,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OMODE</name>
-          <displayName>OMODE</displayName>
           <description>GPIO port output type register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -6733,7 +6635,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OSPD</name>
-          <displayName>OSPD</displayName>
           <description>GPIO port output speed
           register </description>
           <addressOffset>0x08</addressOffset>
@@ -6857,7 +6758,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PUD</name>
-          <displayName>PUD</displayName>
           <description>GPIO port pull-up/pull-down
           register</description>
           <addressOffset>0x0C</addressOffset>
@@ -6981,7 +6881,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISTAT</name>
-          <displayName>ISTAT</displayName>
           <description>GPIO port input data register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -7104,7 +7003,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OCTL</name>
-          <displayName>OCTL</displayName>
           <description>GPIO port output data register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -7227,7 +7125,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BOP</name>
-          <displayName>BOP</displayName>
           <description>GPIO port bit set/reset
           register</description>
           <addressOffset>0x18</addressOffset>
@@ -7463,7 +7360,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>AFSEL0</name>
-          <displayName>AFSEL0</displayName>
           <description>GPIO alternate function low
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -7531,7 +7427,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>AFSEL1</name>
-          <displayName>AFSEL1</displayName>
           <description>GPIO alternate function
           register 1</description>
           <addressOffset>0x24</addressOffset>
@@ -7599,7 +7494,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BC</name>
-          <displayName>BC</displayName>
           <description>Port bit reset register</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -7706,7 +7600,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TG</name>
-          <displayName>TG</displayName>
           <description>Port bit toggle register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -7826,7 +7719,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>GPIOF port control register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -7949,7 +7841,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OMODE</name>
-          <displayName>OMODE</displayName>
           <description>GPIO port output type register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -8062,7 +7953,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OSPD</name>
-          <displayName>OSPD</displayName>
           <description>GPIO port output speed
           register </description>
           <addressOffset>0x08</addressOffset>
@@ -8186,7 +8076,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PUD</name>
-          <displayName>PUD</displayName>
           <description>GPIO port pull-up/pull-down
           register</description>
           <addressOffset>0x0C</addressOffset>
@@ -8310,7 +8199,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISTAT</name>
-          <displayName>ISTAT</displayName>
           <description>GPIO port input data register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -8433,7 +8321,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>OCTL</name>
-          <displayName>OCTL</displayName>
           <description>GPIO port output data register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -8556,7 +8443,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BOP</name>
-          <displayName>BOP</displayName>
           <description>GPIO port bit set/reset
           register</description>
           <addressOffset>0x18</addressOffset>
@@ -8792,7 +8678,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BC</name>
-          <displayName>BC</displayName>
           <description>Port bit reset register</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -8899,7 +8784,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TG</name>
-          <displayName>TG</displayName>
           <description>Port bit toggle register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -9027,7 +8911,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>Control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -9124,7 +9007,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>Control register 1</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -9171,7 +9053,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SADDR0</name>
-          <displayName>SADDR0</displayName>
           <description>Own address register 0</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -9195,7 +9076,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SADDR1</name>
-          <displayName>SADDR1</displayName>
           <description>Own address register 1</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -9219,7 +9099,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DATA</name>
-          <displayName>DATA</displayName>
           <description>Data register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -9236,7 +9115,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT0</name>
-          <displayName>STAT0</displayName>
           <description>Transfer status register 0</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -9347,7 +9225,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT1</name>
-          <displayName>STAT1</displayName>
           <description>Transfer status register 1</description>
           <addressOffset>0x18</addressOffset>
           <size>0x20</size>
@@ -9410,7 +9287,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CKCFG</name>
-          <displayName>CKCFG</displayName>
           <description>Clock configure register</description>
           <addressOffset>0x1C</addressOffset>
           <size>0x20</size>
@@ -9440,7 +9316,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RT</name>
-          <displayName>RT</displayName>
           <description>Rise time register</description>
           <addressOffset>0x20</addressOffset>
           <size>0x20</size>
@@ -9457,7 +9332,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SAMCS</name>
-          <displayName>SAMCS</displayName>
           <description>SAM control and status register</description>
           <addressOffset>0x80</addressOffset>
           <size>0x20</size>
@@ -9540,7 +9414,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>FMPCFG</name>
-          <displayName>FMPCFG</displayName>
           <description>Fast-mode-plus configure register</description>
           <addressOffset>0x90</addressOffset>
           <size>0x20</size>
@@ -9588,7 +9461,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>ISER0</name>
-          <displayName>ISER0</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -9605,7 +9477,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER1</name>
-          <displayName>ISER1</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -9622,7 +9493,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER2</name>
-          <displayName>ISER2</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -9639,7 +9509,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER3</name>
-          <displayName>ISER3</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -9656,7 +9525,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER4</name>
-          <displayName>ISER4</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -9673,7 +9541,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER5</name>
-          <displayName>ISER5</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -9690,7 +9557,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER6</name>
-          <displayName>ISER6</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x18</addressOffset>
           <size>0x20</size>
@@ -9707,7 +9573,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER7</name>
-          <displayName>ISER7</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x1C</addressOffset>
           <size>0x20</size>
@@ -9724,7 +9589,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER8</name>
-          <displayName>ISER8</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x20</addressOffset>
           <size>0x20</size>
@@ -9741,7 +9605,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER9</name>
-          <displayName>ISER9</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -9758,7 +9621,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER10</name>
-          <displayName>ISER10</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -9775,7 +9637,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER11</name>
-          <displayName>ISER11</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -9792,7 +9653,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER12</name>
-          <displayName>ISER12</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x30</addressOffset>
           <size>0x20</size>
@@ -9809,7 +9669,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER13</name>
-          <displayName>ISER13</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -9826,7 +9685,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER14</name>
-          <displayName>ISER14</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x38</addressOffset>
           <size>0x20</size>
@@ -9843,7 +9701,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ISER15</name>
-          <displayName>ISER15</displayName>
           <description>Interrupt Set Enable Register</description>
           <addressOffset>0x3C</addressOffset>
           <size>0x20</size>
@@ -9860,7 +9717,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICER0</name>
-          <displayName>ICER0</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0x80</addressOffset>
@@ -9878,7 +9734,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER1</name>
-          <displayName>ICER1</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0x84</addressOffset>
@@ -9896,7 +9751,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER2</name>
-          <displayName>ICER2</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0x8C</addressOffset>
@@ -9914,7 +9768,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER3</name>
-          <displayName>ICER3</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0x90</addressOffset>
@@ -9932,7 +9785,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER4</name>
-          <displayName>ICER4</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0x94</addressOffset>
@@ -9950,7 +9802,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER5</name>
-          <displayName>ICER5</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0x98</addressOffset>
@@ -9968,7 +9819,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER6</name>
-          <displayName>ICER6</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0x9C</addressOffset>
@@ -9986,7 +9836,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER7</name>
-          <displayName>ICER7</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xA0</addressOffset>
@@ -10004,7 +9853,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER8</name>
-          <displayName>ICER8</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xA4</addressOffset>
@@ -10022,7 +9870,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER9</name>
-          <displayName>ICER9</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xA8</addressOffset>
@@ -10040,7 +9887,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER10</name>
-          <displayName>ICER10</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xAC</addressOffset>
@@ -10058,7 +9904,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER11</name>
-          <displayName>ICER11</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xB0</addressOffset>
@@ -10076,7 +9921,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER12</name>
-          <displayName>ICER12</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xB4</addressOffset>
@@ -10094,7 +9938,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER13</name>
-          <displayName>ICER13</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xB8</addressOffset>
@@ -10112,7 +9955,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER14</name>
-          <displayName>ICER14</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xBC</addressOffset>
@@ -10130,7 +9972,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
 	<register>
           <name>ICER15</name>
-          <displayName>ICER15</displayName>
           <description>Interrupt Clear Enable
           Register</description>
           <addressOffset>0xC0</addressOffset>
@@ -10148,7 +9989,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR0</name>
-          <displayName>ISPR0</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x100</addressOffset>
           <size>0x20</size>
@@ -10165,7 +10005,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR1</name>
-          <displayName>ISPR1</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x104</addressOffset>
           <size>0x20</size>
@@ -10182,7 +10021,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR2</name>
-          <displayName>ISPR2</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x108</addressOffset>
           <size>0x20</size>
@@ -10199,7 +10037,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR3</name>
-          <displayName>ISPR3</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x10C</addressOffset>
           <size>0x20</size>
@@ -10216,7 +10053,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR4</name>
-          <displayName>ISPR4</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x110</addressOffset>
           <size>0x20</size>
@@ -10233,7 +10069,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR5</name>
-          <displayName>ISPR5</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x114</addressOffset>
           <size>0x20</size>
@@ -10250,7 +10085,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR6</name>
-          <displayName>ISPR6</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x118</addressOffset>
           <size>0x20</size>
@@ -10267,7 +10101,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR7</name>
-          <displayName>ISPR7</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x11C</addressOffset>
           <size>0x20</size>
@@ -10284,7 +10117,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR8</name>
-          <displayName>ISPR8</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x120</addressOffset>
           <size>0x20</size>
@@ -10301,7 +10133,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR9</name>
-          <displayName>ISPR9</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x124</addressOffset>
           <size>0x20</size>
@@ -10318,7 +10149,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR10</name>
-          <displayName>ISPR10</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x128</addressOffset>
           <size>0x20</size>
@@ -10335,7 +10165,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR11</name>
-          <displayName>ISPR11</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x12C</addressOffset>
           <size>0x20</size>
@@ -10352,7 +10181,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR12</name>
-          <displayName>ISPR12</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x130</addressOffset>
           <size>0x20</size>
@@ -10369,7 +10197,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR13</name>
-          <displayName>ISPR13</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x134</addressOffset>
           <size>0x20</size>
@@ -10386,7 +10213,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR14</name>
-          <displayName>ISPR14</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x138</addressOffset>
           <size>0x20</size>
@@ -10403,7 +10229,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ISPR15</name>
-          <displayName>ISPR15</displayName>
           <description>Interrupt Set-Pending Register</description>
           <addressOffset>0x13C</addressOffset>
           <size>0x20</size>
@@ -10420,7 +10245,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR0</name>
-          <displayName>ICPR0</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x180</addressOffset>
@@ -10438,7 +10262,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR1</name>
-          <displayName>ICPR1</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x184</addressOffset>
@@ -10456,7 +10279,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR2</name>
-          <displayName>ICPR2</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x188</addressOffset>
@@ -10474,7 +10296,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR3</name>
-          <displayName>ICPR3</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x18C</addressOffset>
@@ -10492,7 +10313,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR4</name>
-          <displayName>ICPR4</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x190</addressOffset>
@@ -10510,7 +10330,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR5</name>
-          <displayName>ICPR5</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x194</addressOffset>
@@ -10528,7 +10347,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR6</name>
-          <displayName>ICPR6</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x198</addressOffset>
@@ -10546,7 +10364,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR7</name>
-          <displayName>ICPR7</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x19C</addressOffset>
@@ -10564,7 +10381,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR8</name>
-          <displayName>ICPR8</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x1A0</addressOffset>
@@ -10582,7 +10398,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR9</name>
-          <displayName>ICPR9</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x1A4</addressOffset>
@@ -10600,7 +10415,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR10</name>
-          <displayName>ICPR10</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x1A8</addressOffset>
@@ -10618,7 +10432,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR11</name>
-          <displayName>ICPR11</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x1AC</addressOffset>
@@ -10636,7 +10449,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR12</name>
-          <displayName>ICPR12</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x1B0</addressOffset>
@@ -10654,7 +10466,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR13</name>
-          <displayName>ICPR13</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x1B4</addressOffset>
@@ -10672,7 +10483,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR14</name>
-          <displayName>ICPR14</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x1B8</addressOffset>
@@ -10690,7 +10500,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ICPR15</name>
-          <displayName>ICPR15</displayName>
           <description>Interrupt Clear-Pending
           Register</description>
           <addressOffset>0x1BC</addressOffset>
@@ -10708,7 +10517,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR0</name>
-          <displayName>IABR0</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x200</addressOffset>
@@ -10726,7 +10534,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR1</name>
-          <displayName>IABR1</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x204</addressOffset>
@@ -10744,7 +10551,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR2</name>
-          <displayName>IABR2</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x208</addressOffset>
@@ -10762,7 +10568,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR3</name>
-          <displayName>IABR3</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x20C</addressOffset>
@@ -10780,7 +10585,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR4</name>
-          <displayName>IABR4</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x210</addressOffset>
@@ -10798,7 +10602,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR5</name>
-          <displayName>IABR5</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x214</addressOffset>
@@ -10816,7 +10619,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR6</name>
-          <displayName>IABR6</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x218</addressOffset>
@@ -10834,7 +10636,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR7</name>
-          <displayName>IABR7</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x21C</addressOffset>
@@ -10852,7 +10653,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR8</name>
-          <displayName>IABR8</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x220</addressOffset>
@@ -10870,7 +10670,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR9</name>
-          <displayName>IABR9</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x224</addressOffset>
@@ -10888,7 +10687,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR10</name>
-          <displayName>IABR10</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x228</addressOffset>
@@ -10906,7 +10704,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR11</name>
-          <displayName>IABR11</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x22C</addressOffset>
@@ -10924,7 +10721,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR12</name>
-          <displayName>IABR12</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x230</addressOffset>
@@ -10942,7 +10738,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR13</name>
-          <displayName>IABR13</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x234</addressOffset>
@@ -10960,7 +10755,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR14</name>
-          <displayName>IABR14</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x238</addressOffset>
@@ -10978,7 +10772,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>IABR15</name>
-          <displayName>IABR15</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x23C</addressOffset>
@@ -10996,7 +10789,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS0</name>
-          <displayName>ITNS0</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x280</addressOffset>
@@ -11014,7 +10806,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS1</name>
-          <displayName>ITNS1</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x284</addressOffset>
@@ -11032,7 +10823,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS2</name>
-          <displayName>ITNS2</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x288</addressOffset>
@@ -11050,7 +10840,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS3</name>
-          <displayName>ITNS3</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x28C</addressOffset>
@@ -11068,7 +10857,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS4</name>
-          <displayName>ITNS4</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x290</addressOffset>
@@ -11086,7 +10874,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS5</name>
-          <displayName>ITNS5</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x294</addressOffset>
@@ -11104,7 +10891,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS6</name>
-          <displayName>ITNS6</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x298</addressOffset>
@@ -11122,7 +10908,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS7</name>
-          <displayName>ITNS7</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x29C</addressOffset>
@@ -11140,7 +10925,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS8</name>
-          <displayName>ITNS8</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x2A0</addressOffset>
@@ -11158,7 +10942,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS9</name>
-          <displayName>ITNS9</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x2A4</addressOffset>
@@ -11176,7 +10959,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS10</name>
-          <displayName>ITNS10</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x2A8</addressOffset>
@@ -11194,7 +10976,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS11</name>
-          <displayName>ITNS11</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x2AC</addressOffset>
@@ -11212,7 +10993,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS12</name>
-          <displayName>ITNS12</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x2B0</addressOffset>
@@ -11230,7 +11010,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS13</name>
-          <displayName>ITNS13</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x2B4</addressOffset>
@@ -11248,7 +11027,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS14</name>
-          <displayName>ITNS14</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x2B8</addressOffset>
@@ -11266,7 +11044,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>ITNS15</name>
-          <displayName>ITNS15</displayName>
           <description>Interrupt Active bit
           Register</description>
           <addressOffset>0x2BC</addressOffset>
@@ -11284,7 +11061,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IPR0</name>
-          <displayName>IPR0</displayName>
           <description>Interrupt Priority Register 0</description>
           <addressOffset>0x300</addressOffset>
           <size>0x08</size>
@@ -11301,7 +11077,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
       <register>
           <name>IPR1</name>
-          <displayName>IPR1</displayName>
           <description>Interrupt Priority Register 1</description>
           <addressOffset>0x301</addressOffset>
           <size>0x08</size>
@@ -11318,7 +11093,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR2</name>
-          <displayName>IPR2</displayName>
           <description>Interrupt Priority Register 2</description>
           <addressOffset>0x302</addressOffset>
           <size>0x08</size>
@@ -11335,7 +11109,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR3</name>
-          <displayName>IPR3</displayName>
           <description>Interrupt Priority Register 3</description>
           <addressOffset>0x303</addressOffset>
           <size>0x08</size>
@@ -11352,7 +11125,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR4</name>
-          <displayName>IPR4</displayName>
           <description>Interrupt Priority Register 4</description>
           <addressOffset>0x304</addressOffset>
           <size>0x08</size>
@@ -11369,7 +11141,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR5</name>
-          <displayName>IPR5</displayName>
           <description>Interrupt Priority Register 5</description>
           <addressOffset>0x305</addressOffset>
           <size>0x08</size>
@@ -11386,7 +11157,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR6</name>
-          <displayName>IPR6</displayName>
           <description>Interrupt Priority Register 6</description>
           <addressOffset>0x306</addressOffset>
           <size>0x08</size>
@@ -11403,7 +11173,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR7</name>
-          <displayName>IPR7</displayName>
           <description>Interrupt Priority Register 7</description>
           <addressOffset>0x307</addressOffset>
           <size>0x08</size>
@@ -11420,7 +11189,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR8</name>
-          <displayName>IPR8</displayName>
           <description>Interrupt Priority Register 8</description>
           <addressOffset>0x308</addressOffset>
           <size>0x08</size>
@@ -11437,7 +11205,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR9</name>
-          <displayName>IPR9</displayName>
           <description>Interrupt Priority Register 9</description>
           <addressOffset>0x309</addressOffset>
           <size>0x08</size>
@@ -11454,7 +11221,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR10</name>
-          <displayName>IPR10</displayName>
           <description>Interrupt Priority Register 10</description>
           <addressOffset>0x30A</addressOffset>
           <size>0x08</size>
@@ -11471,7 +11237,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR11</name>
-          <displayName>IPR11</displayName>
           <description>Interrupt Priority Register 11</description>
           <addressOffset>0x30B</addressOffset>
           <size>0x08</size>
@@ -11488,7 +11253,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR12</name>
-          <displayName>IPR12</displayName>
           <description>Interrupt Priority Register 12</description>
           <addressOffset>0x30C</addressOffset>
           <size>0x08</size>
@@ -11505,7 +11269,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR13</name>
-          <displayName>IPR13</displayName>
           <description>Interrupt Priority Register 13</description>
           <addressOffset>0x30D</addressOffset>
           <size>0x08</size>
@@ -11522,7 +11285,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR14</name>
-          <displayName>IPR14</displayName>
           <description>Interrupt Priority Register 14</description>
           <addressOffset>0x30E</addressOffset>
           <size>0x08</size>
@@ -11539,7 +11301,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR15</name>
-          <displayName>IPR15</displayName>
           <description>Interrupt Priority Register 15</description>
           <addressOffset>0x30F</addressOffset>
           <size>0x08</size>
@@ -11556,7 +11317,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR16</name>
-          <displayName>IPR16</displayName>
           <description>Interrupt Priority Register 16</description>
           <addressOffset>0x310</addressOffset>
           <size>0x08</size>
@@ -11573,7 +11333,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR17</name>
-          <displayName>IPR17</displayName>
           <description>Interrupt Priority Register 17</description>
           <addressOffset>0x311</addressOffset>
           <size>0x08</size>
@@ -11590,7 +11349,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR18</name>
-          <displayName>IPR18</displayName>
           <description>Interrupt Priority Register 18</description>
           <addressOffset>0x312</addressOffset>
           <size>0x08</size>
@@ -11607,7 +11365,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR19</name>
-          <displayName>IPR19</displayName>
           <description>Interrupt Priority Register 19</description>
           <addressOffset>0x313</addressOffset>
           <size>0x08</size>
@@ -11624,7 +11381,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR20</name>
-          <displayName>IPR20</displayName>
           <description>Interrupt Priority Register 20</description>
           <addressOffset>0x314</addressOffset>
           <size>0x08</size>
@@ -11641,7 +11397,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR21</name>
-          <displayName>IPR21</displayName>
           <description>Interrupt Priority Register 21</description>
           <addressOffset>0x315</addressOffset>
           <size>0x08</size>
@@ -11658,7 +11413,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR22</name>
-          <displayName>IPR22</displayName>
           <description>Interrupt Priority Register 22</description>
           <addressOffset>0x316</addressOffset>
           <size>0x08</size>
@@ -11675,7 +11429,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR23</name>
-          <displayName>IPR23</displayName>
           <description>Interrupt Priority Register 23</description>
           <addressOffset>0x317</addressOffset>
           <size>0x08</size>
@@ -11692,7 +11445,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR24</name>
-          <displayName>IPR24</displayName>
           <description>Interrupt Priority Register 24</description>
           <addressOffset>0x318</addressOffset>
           <size>0x08</size>
@@ -11709,7 +11461,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR25</name>
-          <displayName>IPR25</displayName>
           <description>Interrupt Priority Register 25</description>
           <addressOffset>0x319</addressOffset>
           <size>0x08</size>
@@ -11726,7 +11477,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR26</name>
-          <displayName>IPR26</displayName>
           <description>Interrupt Priority Register 26</description>
           <addressOffset>0x31A</addressOffset>
           <size>0x08</size>
@@ -11743,7 +11493,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR27</name>
-          <displayName>IPR27</displayName>
           <description>Interrupt Priority Register 27</description>
           <addressOffset>0x31B</addressOffset>
           <size>0x08</size>
@@ -11760,7 +11509,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR28</name>
-          <displayName>IPR28</displayName>
           <description>Interrupt Priority Register 28</description>
           <addressOffset>0x31C</addressOffset>
           <size>0x08</size>
@@ -11777,7 +11525,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR29</name>
-          <displayName>IPR29</displayName>
           <description>Interrupt Priority Register 29</description>
           <addressOffset>0x31D</addressOffset>
           <size>0x08</size>
@@ -11794,7 +11541,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR30</name>
-          <displayName>IPR30</displayName>
           <description>Interrupt Priority Register 30</description>
           <addressOffset>0x31E</addressOffset>
           <size>0x08</size>
@@ -11811,7 +11557,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
      <register>
           <name>IPR31</name>
-          <displayName>IPR31</displayName>
           <description>Interrupt Priority Register 31</description>
           <addressOffset>0x31F</addressOffset>
           <size>0x08</size>
@@ -11841,7 +11586,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>power control register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -11900,7 +11644,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CS</name>
-          <displayName>CS</displayName>
           <description>power control/status register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -11972,7 +11715,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>Control register 0 (RCU_CTL0)</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -12053,7 +11795,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CFG0</name>
-          <displayName>CFG0</displayName>
           <description>Clock configuration register 0
           (RCU_CFG0)</description>
           <addressOffset>0x04</addressOffset>
@@ -12157,7 +11898,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INT</name>
-          <displayName>INT</displayName>
           <description>Clock interrupt register
           (RCU_INT)</description>
           <addressOffset>0x08</addressOffset>
@@ -12309,7 +12049,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>APB2RST</name>
-          <displayName>APB2RST</displayName>
           <description>APB2 reset register
           (RCU_APB2RST)</description>
           <addressOffset>0x0C</addressOffset>
@@ -12369,7 +12108,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>APB1RST</name>
-          <displayName>APB1RST</displayName>
           <description>APB1 reset register
           (RCU_APB1RST)</description>
           <addressOffset>0x10</addressOffset>
@@ -12435,7 +12173,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>AHBEN</name>
-          <displayName>AHBEN</displayName>
           <description>AHB enable register
           (RCU_AHBEN)</description>
           <addressOffset>0x14</addressOffset>
@@ -12495,7 +12232,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>APB2EN</name>
-          <displayName>APB2EN</displayName>
           <description>APB2 enable register
           (RCU_APB2EN)</description>
           <addressOffset>0x18</addressOffset>
@@ -12561,7 +12297,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>APB1EN</name>
-          <displayName>APB1EN</displayName>
           <description>APB1 enable register
           (RCU_APB1EN)</description>
           <addressOffset>0x1C</addressOffset>
@@ -12627,7 +12362,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BDCTL</name>
-          <displayName>BDCTL</displayName>
           <description>Backup domain control register
           (RCU_BDCTL)</description>
           <addressOffset>0x20</addressOffset>
@@ -12687,7 +12421,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RSTSCK</name>
-          <displayName>RSTSCK</displayName>
           <description>Reset source /clock register
           (RCU_RSTSCK)</description>
           <addressOffset>0x24</addressOffset>
@@ -12775,7 +12508,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>AHBRST</name>
-          <displayName>AHBRST</displayName>
           <description>AHB reset register</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -12810,7 +12542,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CFG1</name>
-          <displayName>CFG1</displayName>
           <description>Configuration register 1</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -12827,7 +12558,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CFG2</name>
-          <displayName>CFG2</displayName>
           <description>Configuration register 2</description>
           <addressOffset>0x30</addressOffset>
           <size>0x20</size>
@@ -12862,7 +12592,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>Control register 1</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -12900,7 +12629,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>VKEY</name>
-          <displayName>VKEY</displayName>
           <description>Voltage key register</description>
           <addressOffset>0x100</addressOffset>
           <size>0x20</size>
@@ -12917,7 +12645,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DSV</name>
-          <displayName>DSV</displayName>
           <description>Deep-sleep mode voltage register</description>
           <addressOffset>0x134</addressOffset>
           <size>0x20</size>
@@ -12951,7 +12678,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>TIME</name>
-          <displayName>TIME</displayName>
           <description>time register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -13004,7 +12730,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DATE</name>
-          <displayName>DATE</displayName>
           <description>date register</description>
           <addressOffset>0x4</addressOffset>
           <size>0x20</size>
@@ -13057,7 +12782,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>control register</description>
           <addressOffset>0x8</addressOffset>
           <size>0x20</size>
@@ -13179,7 +12903,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT</name>
-          <displayName>STAT</displayName>
           <description>initialization and status
           register</description>
           <addressOffset>0xC</addressOffset>
@@ -13275,7 +12998,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PSC</name>
-          <displayName>PSC</displayName>
           <description>prescaler register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -13300,7 +13022,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ALRM0TD</name>
-          <displayName>ALRM0TD</displayName>
           <description>alarm A register</description>
           <addressOffset>0x1C</addressOffset>
           <size>0x20</size>
@@ -13398,7 +13119,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>WPK</name>
-          <displayName>WPK</displayName>
           <description>write protection register</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -13415,7 +13135,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SS</name>
-          <displayName>SS</displayName>
           <description>sub second register</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -13432,7 +13151,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SHIFTCTL</name>
-          <displayName>SHIFTCTL</displayName>
           <description>shift control register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -13456,7 +13174,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TTS</name>
-          <displayName>TTS</displayName>
           <description>timestamp time register</description>
           <addressOffset>0x30</addressOffset>
           <size>0x20</size>
@@ -13509,7 +13226,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DTS</name>
-          <displayName>DTS</displayName>
           <description>Date of time stamp register</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -13550,7 +13266,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SSTS</name>
-          <displayName>SSTS</displayName>
           <description>time-stamp sub second register</description>
           <addressOffset>0x38</addressOffset>
           <size>0x20</size>
@@ -13567,7 +13282,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>HRFC</name>
-          <displayName>HRFC</displayName>
           <description>High resolution frequency compensation register</description>
           <addressOffset>0x3C</addressOffset>
           <size>0x20</size>
@@ -13602,7 +13316,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TAMP</name>
-          <displayName>TAMP</displayName>
           <description>tamper and alternate function configuration
           register</description>
           <addressOffset>0x40</addressOffset>
@@ -13714,7 +13427,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>ALRM0SS</name>
-          <displayName>ALRM0SS</displayName>
           <description>alarm 0 sub second register</description>
           <addressOffset>0x44</addressOffset>
           <size>0x20</size>
@@ -13737,7 +13449,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BKP0</name>
-          <displayName>BKP0</displayName>
           <description>backup register</description>
           <addressOffset>0x50</addressOffset>
           <size>0x20</size>
@@ -13754,7 +13465,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BKP1</name>
-          <displayName>BKP1</displayName>
           <description>backup register</description>
           <addressOffset>0x54</addressOffset>
           <size>0x20</size>
@@ -13771,7 +13481,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BKP2</name>
-          <displayName>BKP2</displayName>
           <description>backup register</description>
           <addressOffset>0x58</addressOffset>
           <size>0x20</size>
@@ -13788,7 +13497,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BKP3</name>
-          <displayName>BKP3</displayName>
           <description>backup register</description>
           <addressOffset>0x5C</addressOffset>
           <size>0x20</size>
@@ -13805,7 +13513,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BKP4</name>
-          <displayName>BKP4</displayName>
           <description>backup register</description>
           <addressOffset>0x60</addressOffset>
           <size>0x20</size>
@@ -13839,7 +13546,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -13934,7 +13640,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>control register 1</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -13993,7 +13698,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT</name>
-          <displayName>STAT</displayName>
           <description>status register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -14066,7 +13770,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DATA</name>
-          <displayName>DATA</displayName>
           <description>data register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -14083,7 +13786,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CPCPOLY</name>
-          <displayName>CPCPOLY</displayName>
           <description>CRC polynomial register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -14100,7 +13802,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RCRC</name>
-          <displayName>RCRC</displayName>
           <description>RX CRC register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -14117,7 +13818,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TCRC</name>
-          <displayName>TCRC</displayName>
           <description>TX CRC register</description>
           <addressOffset>0x18</addressOffset>
           <size>0x20</size>
@@ -14134,7 +13834,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>I2SCTL</name>
-          <displayName>I2SCTL</displayName>
           <description>I2S configuration register</description>
           <addressOffset>0x1C</addressOffset>
           <size>0x20</size>
@@ -14195,7 +13894,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>I2SPSC</name>
-          <displayName>I2SPSC</displayName>
           <description>I2S prescaler register</description>
           <addressOffset>0x20</addressOffset>
           <size>0x20</size>
@@ -14241,7 +13939,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -14336,7 +14033,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>control register 1</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -14419,7 +14115,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT</name>
-          <displayName>STAT</displayName>
           <description>status register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -14492,7 +14187,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DATA</name>
-          <displayName>DATA</displayName>
           <description>data register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -14509,7 +14203,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CPCPOLY</name>
-          <displayName>CPCPOLY</displayName>
           <description>CRC polynomial register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -14526,7 +14219,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RCRC</name>
-          <displayName>RCRC</displayName>
           <description>RX CRC register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -14543,7 +14235,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TCRC</name>
-          <displayName>TCRC</displayName>
           <description>TX CRC register</description>
           <addressOffset>0x18</addressOffset>
           <size>0x20</size>
@@ -14560,7 +14251,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>I2SCTL</name>
-          <displayName>I2SCTL</displayName>
           <description>I2S configuration register</description>
           <addressOffset>0x1C</addressOffset>
           <size>0x20</size>
@@ -14621,7 +14311,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>I2SPSC</name>
-          <displayName>I2SPSC</displayName>
           <description>I2S prescaler register</description>
           <addressOffset>0x20</addressOffset>
           <size>0x20</size>
@@ -14651,7 +14340,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>QCTL</name>
-          <displayName>QCTL</displayName>
           <description>SPI quad wird control register</description>
           <addressOffset>0x80</addressOffset>
           <size>0x20</size>
@@ -14694,7 +14382,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CFG0</name>
-          <displayName>CFG0</displayName>
           <description>System configuration register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -14754,7 +14441,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>EXTISS0</name>
-          <displayName>EXTISS0</displayName>
           <description>EXTI sources selection register
           0</description>
           <addressOffset>0x8</addressOffset>
@@ -14790,7 +14476,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>EXTISS1</name>
-          <displayName>EXTISS1</displayName>
           <description>EXTI sources selection register
           1</description>
           <addressOffset>0xC</addressOffset>
@@ -14826,7 +14511,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>EXTISS2</name>
-          <displayName>EXTISS2</displayName>
           <description>EXTI sources selection register
           2</description>
           <addressOffset>0x10</addressOffset>
@@ -14862,7 +14546,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>EXTISS3</name>
-          <displayName>EXTISS3</displayName>
           <description>EXTI sources selection register
           3</description>
           <addressOffset>0x14</addressOffset>
@@ -14898,7 +14581,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CFG2</name>
-          <displayName>CFG2</displayName>
           <description>System configuration register 2</description>
           <addressOffset>0x18</addressOffset>
           <size>0x20</size>
@@ -14933,7 +14615,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CPU_IRQ_LAT</name>
-          <displayName>CPU_IRQ_LAT</displayName>
           <description>IRQ Latency register</description>
           <addressOffset>0x100</addressOffset>
           <size>0x20</size>
@@ -14971,7 +14652,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -15031,7 +14711,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>control register 1</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -15114,7 +14793,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SMCFG</name>
-          <displayName>SMCFG</displayName>
           <description>slave mode configuration register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -15173,7 +14851,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMAINTEN</name>
-          <displayName>DMAINTEN</displayName>
           <description>DMA/Interrupt enable register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -15282,7 +14959,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INTF</name>
-          <displayName>INTF</displayName>
           <description>status register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -15369,7 +15045,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SWEVG</name>
-          <displayName>SWEVG</displayName>
           <description>Software event generation register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -15428,7 +15103,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Output</name>
-          <displayName>CHCTL0_Output</displayName>
           <description>capture/compare mode register (output
           mode)</description>
           <addressOffset>0x18</addressOffset>
@@ -15500,7 +15174,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Input</name>
-          <displayName>CHCTL0_Input</displayName>
           <description>capture/compare mode register 0 (input
           mode)</description>
           <alternateRegister>CHCTL0_Output</alternateRegister>
@@ -15549,7 +15222,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL1_Output</name>
-          <displayName>CHCTL1_Output</displayName>
           <description>capture/compare mode register (output
           mode)</description>
           <addressOffset>0x1C</addressOffset>
@@ -15621,7 +15293,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL1_Input</name>
-          <displayName>CHCTL1_Input</displayName>
           <description>capture/compare mode register 1 (input
           mode)</description>
           <alternateRegister>CHCTL1_Output</alternateRegister>
@@ -15671,7 +15342,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL2</name>
-          <displayName>CHCTL2</displayName>
           <description>capture/compare enable
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -15781,7 +15451,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CNT</name>
-          <displayName>CNT</displayName>
           <description>counter</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -15798,7 +15467,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PSC</name>
-          <displayName>PSC</displayName>
           <description>prescaler</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -15815,7 +15483,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CAR</name>
-          <displayName>CAR</displayName>
           <description>auto-reload register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -15832,7 +15499,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CREP</name>
-          <displayName>CREP</displayName>
           <description>repetition counter register</description>
           <addressOffset>0x30</addressOffset>
           <size>0x20</size>
@@ -15849,7 +15515,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0CV</name>
-          <displayName>CH0CV</displayName>
           <description>capture/compare register 0</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -15866,7 +15531,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH1CV</name>
-          <displayName>CH1CV</displayName>
           <description>capture/compare register 1</description>
           <addressOffset>0x38</addressOffset>
           <size>0x20</size>
@@ -15883,7 +15547,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH2CV</name>
-          <displayName>CH2CV</displayName>
           <description>capture/compare register 2</description>
           <addressOffset>0x3C</addressOffset>
           <size>0x20</size>
@@ -15900,7 +15563,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH3CV</name>
-          <displayName>CH3CV</displayName>
           <description>capture/compare register 3</description>
           <addressOffset>0x40</addressOffset>
           <size>0x20</size>
@@ -15917,7 +15579,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CCHP</name>
-          <displayName>CCHP</displayName>
           <description>channel complementary protection register</description>
           <addressOffset>0x44</addressOffset>
           <size>0x20</size>
@@ -15978,7 +15639,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMACFG</name>
-          <displayName>DMACFG</displayName>
           <description>DMA configuration register</description>
           <addressOffset>0x48</addressOffset>
           <size>0x20</size>
@@ -16001,7 +15661,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMATB</name>
-          <displayName>DMATB</displayName>
           <description>DMA address for full transfer</description>
           <addressOffset>0x4C</addressOffset>
           <size>0x20</size>
@@ -16019,7 +15678,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
        </register>
         <register>
           <name>CFG</name>
-          <displayName>CFG</displayName>
           <description>Configuration register</description>
           <addressOffset>0xFC</addressOffset>
           <size>0x20</size>
@@ -16059,7 +15717,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -16119,7 +15776,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>control register 1</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -16149,7 +15805,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SMCFG</name>
-          <displayName>SMCFG</displayName>
           <description>slave mode control register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -16208,7 +15863,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMAINTEN</name>
-          <displayName>DMAINTEN</displayName>
           <description>DMA/Interrupt enable register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -16299,7 +15953,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INTF</name>
-          <displayName>INTF</displayName>
           <description>interrupt flag register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -16378,7 +16031,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SWEVG</name>
-          <displayName>SWEVG</displayName>
           <description>event generation register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -16429,7 +16081,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Output</name>
-          <displayName>CHCTL0_Output</displayName>
           <description>capture/compare mode register 0 (output
           mode)</description>
           <addressOffset>0x18</addressOffset>
@@ -16509,7 +16160,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Input</name>
-          <displayName>CHCTL0_Input</displayName>
           <description>capture/compare mode register 0 (input
           mode)</description>
           <alternateRegister>CHCTL0_Output</alternateRegister>
@@ -16560,7 +16210,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL1_Output</name>
-          <displayName>CHCTL1_Output</displayName>
           <description>capture/compare mode register 1 (output
           mode)</description>
           <addressOffset>0x1C</addressOffset>
@@ -16640,7 +16289,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL1_Input</name>
-          <displayName>CHCTL1_Input</displayName>
           <description>capture/compare mode register 1 (input
           mode)</description>
           <alternateRegister>CHCTL1_Output</alternateRegister>
@@ -16691,7 +16339,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL2</name>
-          <displayName>CHCTL2</displayName>
           <description>capture/compare enable
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -16787,7 +16434,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CNT</name>
-          <displayName>CNT</displayName>
           <description>counter</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -16804,7 +16450,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PSC</name>
-          <displayName>PSC</displayName>
           <description>prescaler</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -16821,7 +16466,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CAR</name>
-          <displayName>CAR</displayName>
           <description>auto-reload register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -16838,7 +16482,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0CV</name>
-          <displayName>CH0CV</displayName>
           <description>capture/compare register 1</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -16856,7 +16499,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH1CV</name>
-          <displayName>CH1CV</displayName>
           <description>capture/compare register 2</description>
           <addressOffset>0x38</addressOffset>
           <size>0x20</size>
@@ -16874,7 +16516,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH2CV</name>
-          <displayName>CH2CV</displayName>
           <description>capture/compare register 2</description>
           <addressOffset>0x3C</addressOffset>
           <size>0x20</size>
@@ -16892,7 +16533,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH3CV</name>
-          <displayName>CH3CV</displayName>
           <description>capture/compare register 3</description>
           <addressOffset>0x40</addressOffset>
           <size>0x20</size>
@@ -16910,7 +16550,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMACFG</name>
-          <displayName>DMACFG</displayName>
           <description>DMA control register</description>
           <addressOffset>0x48</addressOffset>
           <size>0x20</size>
@@ -16933,7 +16572,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMATB</name>
-          <displayName>DMATB</displayName>
           <description>DMA address for full transfer</description>
           <addressOffset>0x4C</addressOffset>
           <size>0x20</size>
@@ -16951,7 +16589,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
       <register>
           <name>CFG</name>
-          <displayName>CFG</displayName>
           <description>Configuration</description>
           <addressOffset>0xFC</addressOffset>
           <size>0x20</size>
@@ -16985,7 +16622,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -17026,7 +16662,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>control register 1</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -17043,7 +16678,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMAINTEN</name>
-          <displayName>DMAINTEN</displayName>
           <description>DMA/Interrupt enable register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -17066,7 +16700,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INTF</name>
-          <displayName>INTF</displayName>
           <description>status register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -17083,7 +16716,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SWEVG</name>
-          <displayName>SWEVG</displayName>
           <description>event generation register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -17100,7 +16732,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CNT</name>
-          <displayName>CNT</displayName>
           <description>counter</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -17117,7 +16748,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PSC</name>
-          <displayName>PSC</displayName>
           <description>prescaler</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -17134,7 +16764,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CAR</name>
-          <displayName>CAR</displayName>
           <description>auto-reload register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -17168,7 +16797,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 1</description>
           <addressOffset>0x00</addressOffset>
           <size>0x20</size>
@@ -17209,7 +16837,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMAINTEN</name>
-          <displayName>DMAINTEN</displayName>
           <description>DMA/Interrupt enable register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -17233,7 +16860,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INTF</name>
-          <displayName>INTF</displayName>
           <description>interrupt flag register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -17264,7 +16890,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SWEVG</name>
-          <displayName>SWEVG</displayName>
           <description>event generation register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -17288,7 +16913,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Output</name>
-          <displayName>CHCTL0_Output</displayName>
           <description>capture/compare mode register (output
           mode)</description>
           <addressOffset>0x18</addressOffset>
@@ -17327,7 +16951,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Input</name>
-          <displayName>CHCTL0_Input</displayName>
           <description>capture/compare mode register (input
           mode)</description>
           <alternateRegister>CHCTL0_Output</alternateRegister>
@@ -17359,7 +16982,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL2</name>
-          <displayName>CHCTL2</displayName>
           <description>capture/compare enable
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -17392,7 +17014,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CNT</name>
-          <displayName>CNT</displayName>
           <description>counter</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -17409,7 +17030,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PSC</name>
-          <displayName>PSC</displayName>
           <description>prescaler</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -17426,7 +17046,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CAR</name>
-          <displayName>CAR</displayName>
           <description>auto-reload register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -17443,7 +17062,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0CV</name>
-          <displayName>CH0CV</displayName>
           <description>capture/compare register 0</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -17460,7 +17078,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>IRMP</name>
-          <displayName>IRMP</displayName>
           <description>channel input remap register</description>
           <addressOffset>0x50</addressOffset>
           <size>0x20</size>
@@ -17477,7 +17094,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>CFG</name>
-          <displayName>CFG</displayName>
           <description>configuration register</description>
           <addressOffset>0xFC</addressOffset>
           <size>0x20</size>
@@ -17511,7 +17127,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -17558,7 +17173,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>control register 1</description>
           <addressOffset>0x4</addressOffset>
           <size>0x20</size>
@@ -17614,7 +17228,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SMCFG</name>
-          <displayName>SMCFG</displayName>
           <description>slave mode configuration register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -17643,7 +17256,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMAINTEN</name>
-          <displayName>DMAINTEN</displayName>
           <description>DMA/Interrupt enable register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -17724,7 +17336,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INTF</name>
-          <displayName>INTF</displayName>
           <description>interrupt flag register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -17787,7 +17398,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SWEVG</name>
-          <displayName>SWEVG</displayName>
           <description>event generation register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -17837,7 +17447,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Output</name>
-          <displayName>CHCTL0_Output</displayName>
           <description>capture/compare mode register (output
           mode)</description>
           <addressOffset>0x18</addressOffset>
@@ -17903,7 +17512,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Input</name>
-          <displayName>CHCTL0_Input</displayName>
           <description>capture/compare mode register 0 (input
           mode)</description>
           <alternateRegister>CHCTL0_Output</alternateRegister>
@@ -17954,7 +17562,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL2</name>
-          <displayName>CHCTL2</displayName>
           <description>capture/compare enable
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -18015,7 +17622,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CNT</name>
-          <displayName>CNT</displayName>
           <description>counter</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -18032,7 +17638,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PSC</name>
-          <displayName>PSC</displayName>
           <description>prescaler</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -18049,7 +17654,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CAR</name>
-          <displayName>CAR</displayName>
           <description>auto-reload register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -18066,7 +17670,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CREP</name>
-          <displayName>CREP</displayName>
           <description>repetition counter register</description>
           <addressOffset>0x30</addressOffset>
           <size>0x20</size>
@@ -18083,7 +17686,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0CV</name>
-          <displayName>CH0CV</displayName>
           <description>capture/compare register 0</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -18100,7 +17702,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH1CV</name>
-          <displayName>CH1CV</displayName>
           <description>capture/compare register 1</description>
           <addressOffset>0x38</addressOffset>
           <size>0x20</size>
@@ -18117,7 +17718,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CCHP</name>
-          <displayName>CCHP</displayName>
           <description>break and dead-time register</description>
           <addressOffset>0x44</addressOffset>
           <size>0x20</size>
@@ -18178,7 +17778,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMACFG</name>
-          <displayName>DMACFG</displayName>
           <description>DMA configuration register</description>
           <addressOffset>0x48</addressOffset>
           <size>0x20</size>
@@ -18201,7 +17800,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMATB</name>
-          <displayName>DMATB</displayName>
           <description>DMA transfer buffer register</description>
           <addressOffset>0x4C</addressOffset>
           <size>0x20</size>
@@ -18219,7 +17817,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>CFG</name>
-          <displayName>CFG</displayName>
           <description>configuration register</description>
           <addressOffset>0xFC</addressOffset>
           <size>0x20</size>
@@ -18259,7 +17856,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -18306,7 +17902,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>control register 1</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -18350,7 +17945,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMAINTEN</name>
-          <displayName>DMAINTEN</displayName>
           <description>DMA/Interrupt enable register</description>
           <addressOffset>0x0C</addressOffset>
           <size>0x20</size>
@@ -18399,7 +17993,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INTF</name>
-          <displayName>INTF</displayName>
           <description>interrupt flag register</description>
           <addressOffset>0x10</addressOffset>
           <size>0x20</size>
@@ -18442,7 +18035,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>SWEVG</name>
-          <displayName>SWEVG</displayName>
           <description>event generation register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -18479,7 +18071,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Output</name>
-          <displayName>CHCTL0_Output</displayName>
           <description>capture/compare mode register (output
           mode)</description>
           <addressOffset>0x18</addressOffset>
@@ -18518,7 +18109,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL0_Input</name>
-          <displayName>CHCTL0_Input</displayName>
           <description>capture/compare mode register 0 (input
           mode)</description>
           <alternateRegister>CHCTL0_Output</alternateRegister>
@@ -18550,7 +18140,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHCTL2</name>
-          <displayName>CHCTL2</displayName>
           <description>capture/compare enable
           register</description>
           <addressOffset>0x20</addressOffset>
@@ -18590,7 +18179,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CNT</name>
-          <displayName>CNT</displayName>
           <description>counter</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -18607,7 +18195,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>PSC</name>
-          <displayName>PSC</displayName>
           <description>prescaler</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -18624,7 +18211,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CAR</name>
-          <displayName>CAR</displayName>
           <description>auto-reload register</description>
           <addressOffset>0x2C</addressOffset>
           <size>0x20</size>
@@ -18641,7 +18227,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CREP</name>
-          <displayName>CREP</displayName>
           <description>repetition counter register</description>
           <addressOffset>0x30</addressOffset>
           <size>0x20</size>
@@ -18658,7 +18243,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CH0CV</name>
-          <displayName>CH0CV</displayName>
           <description>capture/compare register 0</description>
           <addressOffset>0x34</addressOffset>
           <size>0x20</size>
@@ -18675,7 +18259,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CCHP</name>
-          <displayName>CCHP</displayName>
           <description>break and dead-time register</description>
           <addressOffset>0x44</addressOffset>
           <size>0x20</size>
@@ -18736,7 +18319,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMACFG</name>
-          <displayName>DMACFG</displayName>
           <description>DMA configuration register</description>
           <addressOffset>0x48</addressOffset>
           <size>0x20</size>
@@ -18759,7 +18341,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>DMATB</name>
-          <displayName>DMATB</displayName>
           <description>DMA transfer buffer register</description>
           <addressOffset>0x4C</addressOffset>
           <size>0x20</size>
@@ -18777,7 +18358,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
        <register>
           <name>CFG</name>
-          <displayName>CFG</displayName>
           <description>configuration register</description>
           <addressOffset>0xFC</addressOffset>
           <size>0x20</size>
@@ -18826,7 +18406,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL0</name>
-          <displayName>CTL0</displayName>
           <description>Control register 0</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -18963,7 +18542,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL1</name>
-          <displayName>CTL1</displayName>
           <description>Control register 1</description>
           <addressOffset>0x4</addressOffset>
           <size>0x20</size>
@@ -19086,7 +18664,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CTL2</name>
-          <displayName>CTL2</displayName>
           <description>Control register 2</description>
           <addressOffset>0x8</addressOffset>
           <size>0x20</size>
@@ -19216,7 +18793,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>BAUD</name>
-          <displayName>BAUD</displayName>
           <description>Baud rate register</description>
           <addressOffset>0xC</addressOffset>
           <size>0x20</size>
@@ -19239,7 +18815,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>GP</name>
-          <displayName>GP</displayName>
           <description>Guard time and prescaler
           register</description>
           <addressOffset>0x10</addressOffset>
@@ -19263,7 +18838,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RT</name>
-          <displayName>RT</displayName>
           <description>Receiver timeout register</description>
           <addressOffset>0x14</addressOffset>
           <size>0x20</size>
@@ -19286,7 +18860,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CMD</name>
-          <displayName>CMD</displayName>
           <description>Request register</description>
           <addressOffset>0x18</addressOffset>
           <size>0x20</size>
@@ -19328,7 +18901,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT</name>
-          <displayName>STAT</displayName>
           <description>Interrupt &amp; status
           register</description>
           <addressOffset>0x1C</addressOffset>
@@ -19477,7 +19049,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>INTC</name>
-          <displayName>INTC</displayName>
           <description>Interrupt flag clear register</description>
           <addressOffset>0x20</addressOffset>
           <size>0x20</size>
@@ -19565,7 +19136,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RDATA</name>
-          <displayName>RDATA</displayName>
           <description>Receive data register</description>
           <addressOffset>0x24</addressOffset>
           <size>0x20</size>
@@ -19582,7 +19152,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>TDATA</name>
-          <displayName>TDATA</displayName>
           <description>Transmit data register</description>
           <addressOffset>0x28</addressOffset>
           <size>0x20</size>
@@ -19599,7 +19168,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CHC</name>
-          <displayName>CHC</displayName>
           <description> coherence control register</description>
           <addressOffset>0xC0</addressOffset>
           <size>0x20</size>
@@ -19622,7 +19190,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>RFCS</name>
-          <displayName>RFCS</displayName>
           <description>USART receive FIFO control and status register</description>
           <addressOffset>0xD0</addressOffset>
           <size>0x20</size>
@@ -19706,7 +19273,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
       <registers>
         <register>
           <name>CTL</name>
-          <displayName>CTL</displayName>
           <description>Control register</description>
           <addressOffset>0x0</addressOffset>
           <size>0x20</size>
@@ -19729,7 +19295,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>CFG</name>
-          <displayName>CFG</displayName>
           <description>Configuration register</description>
           <addressOffset>0x04</addressOffset>
           <size>0x20</size>
@@ -19758,7 +19323,6 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
         <register>
           <name>STAT</name>
-          <displayName>STAT</displayName>
           <description>Status register</description>
           <addressOffset>0x08</addressOffset>
           <size>0x20</size>
@@ -19776,7 +19340,66 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
         </register>
       </registers>
     </peripheral>
-
+    <peripheral>
+      <name>CoreDebug</name>
+      <description>Debug control Block</description>
+      <groupName>DEBUG</groupName>
+      <baseAddress>0xE000EDF0</baseAddress>
+      <addressBlock>
+        <offset>0x0</offset>
+        <size>0x400</size>
+        <usage>registers</usage>
+      </addressBlock>
+      <registers>
+        <register>
+          <name>DHCSR</name>
+          <description>Debug Halting Control and Status Register</description>
+          <addressOffset>0x0</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x00000000</resetValue>
+        </register>
+        <register>
+          <name>DCRSR</name>
+          <description>Debug Core Register Select Register</description>
+          <addressOffset>0x4</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x00000000</resetValue>
+        </register>
+        <register>
+          <name>DCRDR</name>
+          <description>Debug Core Register Data Register</description>
+          <addressOffset>0x8</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x00000000</resetValue>
+        </register>
+        <register>
+          <name>DEMCR</name>
+          <description>Debug Exception and Monitor Control Register</description>
+          <addressOffset>0xc</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x00000000</resetValue>
+        </register>
+        <register>
+          <name>DAUTHCTRL</name>
+          <description>Debug Authentication Control Register</description>
+          <addressOffset>0x14</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x00000000</resetValue>
+        </register>
+        <register>
+          <name>DSCSR</name>
+          <description>Debug Security Control and Status Register</description>
+          <addressOffset>0x18</addressOffset>
+          <size>0x20</size>
+          <access>read-write</access>
+          <resetValue>0x00000000</resetValue>
+        </register>
+      </registers>
+    </peripheral>
   </peripherals>
-
 </device>
