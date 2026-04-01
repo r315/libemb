@@ -37,7 +37,7 @@ static hspi_t hspia = {
 void SPI_DMA_IRQHandler(hspi_t *hspi)
 {
     SPI_TypeDef *spi = hspi->spi;
-    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)hspi->dma_tx.stream;
+    DMA_Channel_TypeDef *dma_channel = (DMA_Channel_TypeDef*)hspi->dma_tx.handle;
 
     if(hspi->trf_counter > 0x10000UL){
         hspi->trf_counter -= 0x10000UL;
@@ -210,7 +210,7 @@ void SPI_TransferDMA(spibus_t *spibus, const uint8_t *src, uint32_t count)
 {
     hspi_t *hspi = (hspi_t*)spibus->handle;
     SPI_TypeDef *spi = hspi->spi;
-    DMA_Channel_TypeDef *dma_channel = hspi->dma_tx.stream;
+    DMA_Channel_TypeDef *dma_channel = hspi->dma_tx.handle;
 
     if(spibus->cfg & SPI_CFG_TRF_16BIT){
         spi->CR2 |= SPI_CR2_DS_3;       // 16-bit

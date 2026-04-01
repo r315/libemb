@@ -272,7 +272,7 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len)
 uint32_t UART_Available(serialbus_t *serialbus){
     huart_t *huart = (huart_t*)serialbus->handle;
 #if UART_RX_MODE == UART_MODE_DMA
-    DMA_Channel_TypeDef *stream = (DMA_Channel_TypeDef *)huart->dma_rx.stream;
+    DMA_Channel_TypeDef *stream = (DMA_Channel_TypeDef *)huart->dma_rx.handle;
 
     uint16_t idx = huart->dma_rx.len - stream->CNDTR;
     return (idx > huart->rx_rd) ? idx - huart->rx_rd : huart->rx_rd - idx;
