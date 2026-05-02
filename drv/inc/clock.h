@@ -11,7 +11,8 @@ enum clocknr {
     CLOCK_CPU = 0,
     CLOCK_CLK1,
     CLOCK_CLK2,
-    CLOCK_CLK3
+    CLOCK_CLK3,
+    CLOCK_CLK4
 };
 
 typedef struct sysclock {

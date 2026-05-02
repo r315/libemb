@@ -111,6 +111,17 @@ static uint32_t adcclk(uint32_t pclk2)
     return pclk2 / psc;
 }
 
+/**
+ * By default, the CK_INT divided by the prescaler is used to drive the counter to start counting.
+ * When TMR’s APB clock prescaler factor is 1, the CK_INT frequency is equal to that of APB,
+ * otherwise, it doubles the APB clock frequency.
+ * */
+static uint32_t tmrclk(uint32_t pclk2)
+{
+    uint32_t pclk2_div = (RCC->CFG >> 11) & 7;
+    return (pclk2_div < 4) ? pclk2 : pclk2 << 1;
+}
+
 void CLOCK_GetAll(sysclock_t *clk)
 {
     uint32_t h_clk = hclk(sclk());
@@ -133,6 +144,7 @@ uint32_t CLOCK_Get(enum clocknr clock)
         case CLOCK_CLK1: return pclk1(clk);
         case CLOCK_CLK2: return pclk2(clk);
         case CLOCK_CLK3: return adcclk(pclk2(clk));
+        case CLOCK_CLK4: return tmrclk(pclk2(clk));
         default: return 0;
     }
 }
