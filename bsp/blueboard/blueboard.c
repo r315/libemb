@@ -16,11 +16,13 @@ static drvlcdparallel_s lcd0;
 
 static void displayWrite(uint32_t data)
 {
-	LCD_DATAPORT = data >> 8;
-	LCDWR0;
+    LCD_DATAPORT = data >> 8;
+    LCDWR0;
+    asm("nop");
     LCDWR1;
     LCD_DATAPORT = data;
-	LCDWR0;
+    LCDWR0;
+    asm("nop");
     LCDWR1;
 }
 
