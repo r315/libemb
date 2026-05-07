@@ -373,7 +373,6 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len){
     huart_t *huart = (huart_t *)serialbus->handle;
     uint32_t count = len;
     #if UART_RX_MODE == UART_MODE_FIFO
-    uint32_t count = len;
 	while(count--){
         while(!fifo_get(&huart->rxfifo, buf));
         buf++;
