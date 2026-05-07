@@ -189,6 +189,30 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *data, uint32_t len)
     return len;
 }
 
+/**
+ * @brief Read first byte on queue without removing it
+ *
+ * @param serialbus
+ * @param data
+ * @return
+ */
+uint32_t UART_Peek(serialbus_t *serialbus, uint8_t *data)
+{
+    huart_t *huart = (huart_t*)serialbus->handle;
+
+    uint32_t available = UART_Available(serialbus);
+
+    if(available){
+        #if UART_RX_MODE == UART_MODE_DMA
+        *data = huart->rx_buf[huart->rx_rd];
+        #else
+        *data = fifo_peek(&huart->rxfifo);
+        #endif
+    }
+
+    return available;
+}
+
 static void UART_IRQHandler(huart_t *huart)
 {
     volatile uint32_t isrflags = huart->usart->STS;

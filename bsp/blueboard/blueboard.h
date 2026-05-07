@@ -107,6 +107,9 @@ extern "C" {
 //
 //-----------------------------------------------------
 
+#define DISPLAY_W               240
+#define DISPLAY_H               320
+
 #define  LCD_CS         (1<<10) //P1.10
 #define  LCD_RS         (1<<9)  //P1.9
 #define  LCD_WR         (1<<8)  //P1.8

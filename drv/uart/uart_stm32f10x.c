@@ -265,6 +265,30 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len)
 }
 
 /**
+ * @brief Read first byte on queue without removing it
+ *
+ * @param serialbus
+ * @param data
+ * @return
+ */
+uint32_t UART_Peek(serialbus_t *serialbus, uint8_t *data)
+{
+    huart_t *huart = (huart_t*)serialbus->handle;
+
+    uint32_t available = UART_Available(serialbus);
+
+    if(available){
+        #if UART_RX_MODE == UART_MODE_DMA
+        *data = huart->rx_buf[huart->rx_rd];
+        #else
+        *data = fifo_peek(&huart->rxfifo);
+        #endif
+    }
+
+    return available;
+}
+
+/**
  * @brief Checks how many bytes are available to be read
  * @param serialbus
  * @return
