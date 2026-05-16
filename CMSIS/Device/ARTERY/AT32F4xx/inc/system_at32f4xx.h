@@ -68,6 +68,9 @@ extern uint32_t SystemCoreClock;          /*!< System Clock Frequency (Core Cloc
 
 extern void SystemInit(void);
 extern void SystemCoreClockUpdate(void);
+extern uint32_t SystemConfigPll(uint8_t pll_src, uint32_t fosc, uint32_t pllclk);
+extern uint32_t SystemConfigClockSrc(uint8_t src);
+
 /**
   * @}
   */

@@ -313,3 +313,167 @@ void SystemInit(void)
     SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH. */
 #endif
 }
+
+/**
+ * @brief       PLLCLK = fosc / pll_ms * pll_ns / pll_fr
+ * @param fin
+ * @param fout
+ * @return
+ */
+static uint32_t SystemComputePll(uint32_t fin, uint32_t fout)
+{
+    uint32_t pll_cfg;
+
+    fin /= 1000;
+
+    uint32_t div = fout / fin;
+
+    fout /= 1000;
+
+    if((div % 1000) == 0){
+        pll_cfg = 0;
+        if(div > 64){
+            RCC->CFG |= RCC_CFG_PLLHSEPSC;
+        }
+
+        // é tarde e não me aptece fazer melhor
+        pll_cfg |= (3 << 24);
+        // Isto esta errad0
+        RCC->CFG = (RCC->CFG & ~RCC_CFG_PLLMULT) | (div << 18);
+
+        return fin * div;
+    }
+
+    // use flexible configuration
+
+    pll_cfg = RCC_PLL_PLLCFGEN;
+
+    for (uint32_t ms = 1; ms <= 64; ms++)
+    {
+        uint32_t fref = fin / ms;
+
+        // 2 MHz <= FIN/MS <= 16 MHz
+        if (fref < 2000U || fref > 16000U)
+            continue;
+
+        for (uint32_t fr = 1; fr <= 64; fr++)
+        {
+            uint32_t numerator   = (uint32_t)fout * ms * fr;
+
+            // Require exact integer multiplier
+            if ((numerator % fin) != 0)
+                continue;
+
+            uint32_t ns = (uint32_t)(numerator / fin);
+
+            if (ns == 0)
+                continue;
+
+            uint32_t vco = ((uint32_t)fin * ns) / ms;
+
+            // 500 MHz <= VCO <= 1000 MHz
+            if (vco < 500000ULL || vco > 1000000ULL)
+                continue;
+
+            pll_cfg |= (ns << 8) | (ms << 4) | (fr << 0);
+
+            RCC->PLL = pll_cfg;
+
+            return vco * 1000 / fr;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief
+ * @param fosc      Input frequency
+ * @param pll_src   Source of input frequency, 0:HIC, 1:HEXT
+ * @param pllclk    Desired output clock
+ * @return          Real pllclk, 0 if fail
+ */
+uint32_t SystemConfigPll(uint8_t pll_src, uint32_t fosc, uint32_t pllclk)
+{
+    __IO uint32_t StartUpCounter = 0, HSIStatus = 0;
+    uint32_t fout;
+
+    // Check if system is currenly using pll
+    if(((RCC->CTRL & RCC_CFG_SYSCLKSTS) >> 2) == 2){
+        return 0;
+    }
+
+    pll_src &= 1;
+
+    if(pll_src){
+        // HEXT
+        RCC->CTRL |= ((uint32_t)RCC_CTRL_HSEEN);
+
+        do{
+            HSIStatus = RCC->CTRL & RCC_CTRL_HSESTBL;
+            StartUpCounter++;
+        } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
+
+        if ((RCC->CTRL & RCC_CTRL_HSESTBL) == RESET) {
+            // Fail to get stable
+            return 0;
+        }
+    }else{
+        // HICK
+        RCC->CTRL |= ((uint32_t)RCC_CTRL_HSISTBL);
+
+        do{
+            HSIStatus = RCC->CTRL & RCC_CTRL_HSESTBL;
+            StartUpCounter++;
+        } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
+
+        if ((RCC->CTRL & RCC_CTRL_HSISTBL) == RESET) {
+            // Fail to get stable
+            return 0;
+        }
+    }
+
+    // Disable pll
+    RCC->CTRL &= ~RCC_CTRL_PLLEN;
+    // Set clock src
+    RCC->CFG = (RCC->CFG & ~RCC_CFG_PLLRC) | (pll_src << 16);
+
+    fout = SystemComputePll(fosc, pllclk);
+
+    if(fout){
+        // Enable pll
+        StartUpCounter = 0;
+        RCC->CTRL |= RCC_CTRL_PLLEN;
+
+        do{
+            HSIStatus = RCC->CTRL & RCC_CTRL_PLLSTBL;
+            StartUpCounter++;
+        } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
+    }
+
+    return fout;
+}
+
+/**
+ * @brief
+ * @param src   Switch system clock
+ * @return      0 on timeout, src otherwise
+ */
+uint32_t SystemConfigClockSrc(uint8_t src)
+{
+    __IO uint32_t StartUpCounter = 0, HSIStatus = 0;
+
+    src &= 3;
+
+    /* Select PLL as system clock source */
+    RCC->CFG = (RCC->CFG & ~(RCC_CFG_SYSCLKSEL)) | src;
+
+    do{
+        HSIStatus = (RCC->CTRL & RCC_CFG_SYSCLKSTS) >> 2;
+        if(HSIStatus == src){
+            return src;
+        }
+    } while ((++StartUpCounter) != 0xFFFF);
+
+    return 0;
+}
