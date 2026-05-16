@@ -225,8 +225,11 @@ static uint32_t adcclk(uint32_t hclk)
  *
  * @param src   clock to be output
  */
-void CLOCK_MCOConfig(uint8_t src)
+void CLOCK_Output(uint8_t src, uint8_t div, uint8_t en)
 {
+    (void)div;
+    (void)en;
+
     if(!src){
         RCU_CFG0 = (RCU_CFG0 & ~RCU_CFG0_CKOUTSEL);
         gpio_mode_set(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO_PIN_8);
