@@ -420,10 +420,10 @@ uint32_t SystemConfigPll(uint8_t pll_src, uint32_t fosc, uint32_t pllclk)
         }
     }else{
         // HICK
-        RCC->CTRL |= ((uint32_t)RCC_CTRL_HSISTBL);
+        RCC->CTRL |= ((uint32_t)RCC_CTRL_HSIEN);
 
         do{
-            HSIStatus = RCC->CTRL & RCC_CTRL_HSESTBL;
+            HSIStatus = RCC->CTRL & RCC_CTRL_HSISTBL;
             StartUpCounter++;
         } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
 
