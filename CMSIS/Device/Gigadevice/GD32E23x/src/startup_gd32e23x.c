@@ -28,6 +28,7 @@
 
 
 /* Cortex-M23 Fault Register Addresses */
+#define CFSR    (*((volatile uint32_t *)0xE000ED28))
 #define HFSR    (*((volatile uint32_t *)0xE000ED2C))
 #define DFSR    (*((volatile uint32_t *)0xE000ED30))
 
@@ -204,6 +205,7 @@ __NO_RETURN void Reset_Handler(void)
 /*----------------------------------------------------------------------------
   Hard Fault Handler
  *----------------------------------------------------------------------------*/
+/* ARM-v8, section B3.19 */
 typedef struct {
     uint32_t r0;
     uint32_t r1;
@@ -241,8 +243,7 @@ void fault_print_char(char c)
 
 void fault_print(const char *reason)
 {
-    while (*reason)
-    {
+    while (*reason){
         fault_print_char(*reason++);
     }
 }
@@ -264,6 +265,7 @@ void CoreDump(ExceptionFrame_t *frame)
 {
     uint32_t hfsr = HFSR;
     uint32_t dfsr = DFSR;
+    uint32_t cfsr = CFSR;
 
     RCU_APB2EN |= RCU_APB2EN_USART0EN;
     RCU_APB2RST |= RCU_APB2RST_USART0RST;
@@ -275,7 +277,7 @@ void CoreDump(ExceptionFrame_t *frame)
     USART_BAUD(USART0) = 0x271;
     USART_CTL0(USART0) = 0x09;
 
-    fault_print("\n========== HARDFAULT ==========\n");
+    fault_print("\n\n========== HARDFAULT ==========\n\n");
 
     /* --- Stacked register dump --- */
     fault_print("-- Stacked Registers --\n");
@@ -288,9 +290,11 @@ void CoreDump(ExceptionFrame_t *frame)
     fault_print_hex("  LR : 0x", frame->lr);
     fault_print_hex("  PC : 0x", frame->pc);   /* <-- faulting address */
     fault_print_hex("  xPSR: 0x", frame->xpsr);
+    fault_print_char('\n');
+    fault_print_hex(" SP : 0x", (uint32_t)frame + sizeof(*frame));
 
     /* --- HFSR analysis --- */
-    fault_print("\n-- HardFault Status --\n");
+    fault_print("\n\n-- HardFault Status --\n");
     fault_print_hex(" HFSR ", hfsr);
 
     if (hfsr & HFSR_VECTTBL) {
@@ -305,7 +309,7 @@ void CoreDump(ExceptionFrame_t *frame)
     }
 
     /* --- DFSR analysis --- */
-    fault_print("\n-- Debug Fault Status --\n");
+    fault_print("\n\n-- Debug Fault Status --\n");
     fault_print_hex(" DFSR ", dfsr);
 
     if (dfsr & DFSR_HALTED)   fault_print("  [!] HALTED: C_HALT or C_STEP debug halt\n");
@@ -314,11 +318,16 @@ void CoreDump(ExceptionFrame_t *frame)
     if (dfsr & DFSR_VCATCH)   fault_print("  [!] VCATCH: Vector catch triggered\n");
     if (dfsr & DFSR_EXTERNAL) fault_print("  [!] EXTERNAL: External debug request\n");
 
-    fault_print("\n================================\n");
+    /* --- CFSR analysis --- */
+    fault_print("\n\n-- Configurable Fault Status --\n");
+    fault_print_hex(" CFSR ", cfsr);
+
+    fault_print("\n\n================================\n");
 
     /* Clear fault status registers by writing 1s */
     HFSR = hfsr;
     DFSR = dfsr;
+    CFSR = cfsr;
 }
 
 NORETURN void HardFault_Handler(void)

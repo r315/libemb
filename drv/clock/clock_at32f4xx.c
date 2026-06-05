@@ -5,7 +5,7 @@ static const uint8_t APBAHBPscTable[8] = {1, 2, 3, 4, 6, 7, 8, 9};
 static const uint8_t ADCPscTable[8] = {2, 4, 6, 8, 2, 12, 8, 16};
 
 /**
- * @brief Get cpu clock frequency bases on configuration registers
+ * @brief Get cpu clock frequency based on configuration registers
  * @param clk
  */
 static uint32_t sclk(void)
@@ -166,5 +166,31 @@ void CLOCK_Enable(uint32_t per, uint8_t state)
         *(uint32_t*)per |= mask;
     }else{
         *(uint32_t*)per &= ~mask;
+    }
+}
+
+/**
+ * @brief Enable/disable Main Clock Output.
+ *      Configures PA8 to output the desired clock
+ *
+ * @param src Source of output clock
+ * @param en  Enable/Disable
+ */
+void CLOCK_Output(uint8_t src, uint8_t div, uint8_t en)
+{
+    if(!en){
+        // PA8 Input float
+        GPIOA->CTRLH = (GPIOA->CTRLH & ~(15 << 0)) | (4 << 0);
+        // Disable clock out source
+        RCC->CFG = (RCC->CFG & ~(7 << 24));
+        RCC->MISC = (RCC->MISC & 0xFFFEFFFF);
+    }else{
+        // Set division and CLKOUT_SEL[3]
+        div &= 15;
+        RCC->MISC = (RCC->MISC & 0x0FFEFFFF) | (div << 28) | ((src & 8) << 13);
+        // Set CLKOUT_SEL[2:0]
+        RCC->CFG = (RCC->CFG & ~(7 << 24)) | ((src & 7) << 24);
+        // PA8 multiplexed push-pull
+        GPIOA->CTRLH |= (15 << 0);
     }
 }
