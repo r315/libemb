@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>SVD Editor</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.3/jstree.min.js"></script>
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.3/themes/default/style.min.css" />
+</head>
+
+<body>
+    <div id="toolbar">
+        <h3>SVD File Editor</h3>
+        <div id="toolbar-right">
+            <div id="device-container"></div>
+            <input type="file" id="svd-file-input" />
+            <button id="export-svd" onclick="exportSvd()" hidden>Export SVD</button>
+        </div>
+    </div>
+
+    <div id="main-layout">
+        <div id="tree-container" hidden></div>
+        <div id="props-panel" hidden>
+            <div id="props-header">
+                <span id="props-title">Properties</span>
+                <span id="props-node-type"></span>
+            </div>
+            <div id="props-body"></div>
+        </div>
+    </div>
+</body>
+
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+        margin: 0;
+        background: #f5f5f5;
+        color: #222;
+    }
+
+    #toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 14px;
+        background: #2c2c2c;
+        color: #fff;
+        gap: 12px;
+    }
+
+    #toolbar h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        color: #fff;
+    }
+
+    #toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    #device-container {
+        font-size: 12px;
+        color: #aaa;
+        white-space: nowrap;
+    }
+
+    #svd-file-input {
+        font-size: 12px;
+        color: #ccc;
+    }
+
+    #export-svd {
+        padding: 5px 12px;
+        background: #0078d4;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    #export-svd:hover { background: #005fa3; }
+
+    #main-layout {
+        display: flex;
+        height: calc(100vh - 46px);
+        overflow: hidden;
+    }
+
+    #tree-container {
+        width: 320px;
+        min-width: 180px;
+        overflow-y: auto;
+        background: #fff;
+        border-right: 1px solid #ddd;
+        padding: 8px 4px;
+        flex-shrink: 0;
+    }
+
+    #props-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    #props-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 10px 16px 8px;
+        border-bottom: 1px solid #e0e0e0;
+        background: #fafafa;
+        flex-shrink: 0;
+    }
+
+    #props-title {
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    #props-node-type {
+        font-size: 11px;
+        color: #888;
+        background: #ebebeb;
+        padding: 1px 6px;
+        border-radius: 10px;
+    }
+
+    #props-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px 16px;
+    }
+
+    .prop-group {
+        margin-bottom: 14px;
+    }
+
+    .prop-group label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+    }
+
+    .prop-group input[type="text"],
+    .prop-group textarea,
+    .prop-group select {
+        width: 100%;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 13px;
+        font-family: inherit;
+        background: #fff;
+        color: #222;
+        resize: vertical;
+    }
+
+    .prop-group input[type="text"]:focus,
+    .prop-group textarea:focus,
+    .prop-group select:focus {
+        outline: none;
+        border-color: #0078d4;
+        box-shadow: 0 0 0 2px rgba(0,120,212,0.15);
+    }
+
+    .prop-group textarea { min-height: 58px; }
+
+    .prop-hint {
+        font-size: 11px;
+        color: #888;
+        margin-top: 3px;
+    }
+
+    .props-section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #0078d4;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin: 18px 0 10px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    .props-empty {
+        color: #aaa;
+        font-size: 13px;
+        margin-top: 40px;
+        text-align: center;
+    }
+
+    .fields-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+
+    .fields-table th {
+        text-align: left;
+        padding: 5px 8px;
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        font-weight: 600;
+        color: #444;
+    }
+
+    .fields-table td {
+        padding: 4px 6px;
+        border: 1px solid #e0e0e0;
+        vertical-align: middle;
+    }
+
+    .fields-table tr:hover td { background: #f7f7f7; }
+
+    .fields-table input[type="text"] {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font-size: 12px;
+        padding: 2px 4px;
+        font-family: monospace;
+    }
+
+    .fields-table select {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font-size: 12px;
+        padding: 2px 4px;
+        font-family: inherit;
+        color: #222;
+        cursor: pointer;
+    }
+
+    .fields-table select:focus {
+        outline: none;
+        background: #fff;
+        border: 1px solid #0078d4;
+        border-radius: 2px;
+    }
+
+    .fields-table input[type="text"]:focus {
+        outline: none;
+        background: #fff;
+        border: 1px solid #0078d4;
+        border-radius: 2px;
+    }
+
+    .fields-table .btn-del-field {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #bbb;
+        font-size: 14px;
+        padding: 0 4px;
+        line-height: 1;
+    }
+
+    .fields-table .btn-del-field:hover { color: #c0392b; }
+
+    .btn-add-field {
+        margin-top: 8px;
+        padding: 4px 12px;
+        background: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        color: #333;
+    }
+
+    .btn-add-field:hover { background: #e0e0e0; }
+</style>
+
+</html>
+
+<script>
+    'use strict';
+
+    let g_svdFile = null;
+    let g_peripheralInfo = {};
+
+    // ── UI visibility ──────────────────────────────────────────────────────────
+
+    function showEditorUI() {
+        $("#tree-container").show();
+        $("#props-panel").show();
+        $("#export-svd").show();
+        $("#device-container").show();
+    }
+
+    function hideEditorUI() {
+        $("#tree-container").hide();
+        $("#props-panel").hide();
+        $("#export-svd").hide();
+        clearPropsPanel();
+    }
+
+    // ── Properties panel ───────────────────────────────────────────────────────
+
+    function clearPropsPanel() {
+        $("#props-title").text("Properties");
+        $("#props-node-type").text("");
+        $("#props-body").html('<p class="props-empty">Select a peripheral, register or field to view its properties.</p>');
+    }
+
+    function makeSectionTitle(text) {
+        const d = document.createElement("div");
+        d.className = "props-section-title";
+        d.textContent = text;
+        return d;
+    }
+
+    function makePropRow(label, value, onchange, opts = {}) {
+        const group = document.createElement("div");
+        group.className = "prop-group";
+
+        const lbl = document.createElement("label");
+        lbl.textContent = label;
+        group.appendChild(lbl);
+
+        let input;
+        if (opts.type === "select") {
+            input = document.createElement("select");
+            for (const o of (opts.options || [])) {
+                const opt = document.createElement("option");
+                opt.value = o;
+                opt.textContent = o || "(none)";
+                if (o === value) opt.selected = true;
+                input.appendChild(opt);
+            }
+            input.addEventListener("change", () => onchange(input.value));
+        } else if (opts.type === "textarea") {
+            input = document.createElement("textarea");
+            input.value = value || "";
+            input.rows = 3;
+            input.addEventListener("input", () => onchange(input.value));
+        } else {
+            input = document.createElement("input");
+            input.type = "text";
+            input.value = value || "";
+            if (opts.mono) input.style.fontFamily = "monospace";
+            input.addEventListener("input", () => onchange(input.value));
+        }
+        group.appendChild(input);
+
+        if (opts.hint) {
+            const hint = document.createElement("div");
+            hint.className = "prop-hint";
+            hint.textContent = opts.hint;
+            group.appendChild(hint);
+        }
+
+        return group;
+    }
+
+    function showRegisterProps(peripheralName, registerName) {
+        const peripheral = g_peripheralInfo[peripheralName];
+        if (!peripheral?.registers) return;
+        const register = peripheral.registers[registerName];
+        if (!register) return;
+
+        $("#props-title").text(registerName);
+        $("#props-node-type").text("register");
+
+        const body = $("#props-body").empty();
+        body.append(makeSectionTitle("Register Properties"));
+        body.append(makePropRow("Description",    register.description, v => { register.description = v; }, { type: "textarea" }));
+        body.append(makePropRow("Address Offset", register.offset,      v => { register.offset = v; },      { hint: "e.g. 0x00", mono: true }));
+        body.append(makePropRow("Size (bits)",    register.size,        v => { register.size = v; },        { hint: "e.g. 32",   mono: true }));
+        body.append(makePropRow("Reset Value",    register.reset,       v => { register.reset = v; },       { hint: "e.g. 0x00000000", mono: true }));
+        body.append(makePropRow("Access",         register.access,      v => { register.access = v; }, {
+            type: "select",
+            options: ["", "read-only", "write-only", "read-write", "writeOnce", "read-writeOnce"]
+        }));
+
+        // ── Fields sub-table (always shown) ──────────────────────────────
+        body.append(makeSectionTitle("Fields"));
+
+        if (!register.fields) register.fields = {};
+
+        const table = document.createElement("table");
+        table.className = "fields-table";
+        table.innerHTML = "<thead><tr><th>Name</th><th>Bit Range</th><th>Access</th><th>Description</th><th>Remove</th></tr></thead>";
+        const tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+        body.append(table);
+
+        // Helper: append one editable row for a field
+        function appendFieldRow(fieldName) {
+            const field = register.fields[fieldName];
+            const tr = document.createElement("tr");
+
+            // Name (editable — renaming updates the fields map key)
+            const tdName = document.createElement("td");
+            const nameInput = document.createElement("input");
+            nameInput.type = "text";
+            nameInput.value = fieldName;
+            nameInput.addEventListener("change", () => {
+                const newName = nameInput.value.trim();
+                if (!newName || newName === fieldName || register.fields[newName]) return;
+                register.fields[newName] = register.fields[fieldName];
+                delete register.fields[fieldName];
+                fieldName = newName;          // update closure variable
+            });
+            tdName.appendChild(nameInput);
+            tr.appendChild(tdName);
+
+            // Bit range
+            const tdRange = document.createElement("td");
+            const rangeInput = document.createElement("input");
+            rangeInput.type = "text";
+            rangeInput.value = field.bitRange || "";
+            rangeInput.placeholder = "[hi:lo]";
+            rangeInput.addEventListener("input", () => { field.bitRange = rangeInput.value; });
+            tdRange.appendChild(rangeInput);
+            tr.appendChild(tdRange);
+
+            // Access
+            const tdAccess = document.createElement("td");
+            const accessSelect = document.createElement("select");
+            for (const opt of ["", "read-only", "write-only", "read-write", "writeOnce", "read-writeOnce"]) {
+                const o = document.createElement("option");
+                o.value = opt; o.textContent = opt || "(inherit)";
+                if (opt === (field.access || "")) o.selected = true;
+                accessSelect.appendChild(o);
+            }
+            accessSelect.addEventListener("change", () => { field.access = accessSelect.value; });
+            tdAccess.appendChild(accessSelect);
+            tr.appendChild(tdAccess);
+
+            // Description
+            const tdDesc = document.createElement("td");
+            const descInput = document.createElement("input");
+            descInput.type = "text";
+            descInput.value = field.description || "";
+            descInput.addEventListener("input", () => { field.description = descInput.value; });
+            tdDesc.appendChild(descInput);
+            tr.appendChild(tdDesc);
+
+            // Delete button
+            const tdDel = document.createElement("td");
+            const delBtn = document.createElement("button");
+            delBtn.className = "btn-del-field";
+            delBtn.textContent = "×";
+            delBtn.title = "Delete field";
+            delBtn.addEventListener("click", () => {
+                delete register.fields[fieldName];
+                tr.remove();
+            });
+            tdDel.appendChild(delBtn);
+            tr.appendChild(tdDel);
+
+            tbody.appendChild(tr);
+        }
+
+        for (const fieldName of Object.keys(register.fields)) {
+            appendFieldRow(fieldName);
+        }
+
+        // Add field button
+        const addBtn = document.createElement("button");
+        addBtn.className = "btn-add-field";
+        addBtn.textContent = "+ Add field";
+        addBtn.addEventListener("click", () => {
+            // Generate a unique default name
+            let n = Object.keys(register.fields).length + 1;
+            let newName = `FIELD${n}`;
+            while (register.fields[newName]) newName = `FIELD${++n}`;
+            register.fields[newName] = { description: "", bitRange: "[0:0]", access: "" };
+            appendFieldRow(newName);
+        });
+        body.append(addBtn);
+    }
+
+    function showFieldProps(peripheralName, registerName, fieldName) {
+        const peripheral = g_peripheralInfo[peripheralName];
+        if (!peripheral?.registers) return;
+        const register = peripheral.registers[registerName];
+        if (!register?.fields) return;
+        const field = register.fields[fieldName];
+        if (!field) return;
+
+        $("#props-title").text(fieldName);
+        $("#props-node-type").text("field");
+
+        const body = $("#props-body").empty();
+        body.append(makeSectionTitle("Field Properties"));
+        body.append(makePropRow("Description", field.description, v => { field.description = v; }, { type: "textarea" }));
+        body.append(makePropRow("Bit Range",   field.bitRange,    v => { field.bitRange = v; },    { hint: "e.g. [7:0]", mono: true }));
+    }
+
+
+    function showPeripheralProps(peripheralName) {
+        const peripheral = g_peripheralInfo[peripheralName];
+        if (!peripheral) return;
+
+        $("#props-title").text(peripheralName);
+        $("#props-node-type").text("peripheral");
+
+        const body = $("#props-body").empty();
+        body.append(makeSectionTitle("Peripheral Properties"));
+        body.append(makePropRow("Description",    peripheral.description, v => { peripheral.description = v; }, { type: "textarea" }));
+        body.append(makePropRow("Base Address",   peripheral.address,     v => { peripheral.address = v; },     { hint: "e.g. 0x40000000", mono: true }));
+        body.append(makePropRow("Group Name",     peripheral.group,       v => { peripheral.group = v; },       { hint: "e.g. TIMER" }));
+
+        body.append(makeSectionTitle("Address Block"));
+        body.append(makePropRow("Offset", peripheral.abOffset, v => { peripheral.abOffset = v; }, { hint: "e.g. 0x0",        mono: true }));
+        body.append(makePropRow("Size",   peripheral.abSize,   v => { peripheral.abSize = v; },   { hint: "e.g. 0x400",      mono: true }));
+        body.append(makePropRow("Usage",  peripheral.abUsage,  v => { peripheral.abUsage = v; }, {
+            type: "select",
+            options: ["registers", "buffer", "reserved"]
+        }));
+
+        body.append(makeSectionTitle("Interrupts"));
+        // Table
+        const table = document.createElement("table");
+        table.className = "fields-table";
+        table.innerHTML = "<thead><tr><th>Name</th><th>Description</th><th>Value</th></tr></thead>";
+        const tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+        body.append(table);
+
+        // Helper: append one editable row for a interrupt
+        function appendInterruptRow(interrupt){
+            const tr = document.createElement("tr");
+
+            // Name (editable — renaming updates the fields map key)
+            const tdName = document.createElement("td");
+            const nameInput = document.createElement("input");
+            nameInput.type = "text";
+            nameInput.value = interrupt.name;
+            nameInput.addEventListener("change", () => {interrupt.name = nameInput.value; });
+            tdName.appendChild(nameInput);
+            tr.appendChild(tdName);
+
+            // Description
+            const tdDesc = document.createElement("td");
+            const descInput = document.createElement("input");
+            descInput.type = "text";
+            descInput.value = interrupt.description || "";
+            descInput.addEventListener("input", () => { interrupt.description = descInput.value; });
+            tdDesc.appendChild(descInput);
+            tr.appendChild(tdDesc);
+
+            // Value
+            const tdValue = document.createElement("td");
+            const valueInput = document.createElement("input");
+            valueInput.type = "text";
+            valueInput.value = interrupt.value || "";
+            valueInput.addEventListener("input", () => { interrupt.value = valueInput.value; });
+            tdValue.appendChild(valueInput);
+            tr.appendChild(tdValue);
+
+            tbody.appendChild(tr);
+        };
+
+        if (peripheral.interrupts) {
+            peripheral.interrupts.forEach(interrupt => appendInterruptRow(interrupt));
+        }
+
+        // Add field button
+        const addBtn = document.createElement("button");
+        addBtn.className = "btn-add-field";
+        addBtn.textContent = "+ Add interrupt";
+        addBtn.addEventListener("click", () => {
+            if(!peripheral.interrupts){
+                peripheral.interrupts = [];
+            }
+            // Generate a unique default name
+            let n = peripheral.interrupts.length + 1;
+
+            let newInterrupt = {
+                    "name" : `INTERRUPT${n}`,
+                    "description" : "",
+                    "value" : "0"
+            };
+
+            appendInterruptRow(newInterrupt);
+            peripheral.interrupts.push(newInterrupt);
+        });
+        body.append(addBtn);
+    }
+
+    // ── XML formatting & export ────────────────────────────────────────────────
+
+    function formatXml(input) {
+        // source: https://codereview.stackexchange.com/questions/142712
+        let xmlString = input.trim()
+            .replace(/>\s*</g, '>\n<')
+            .replace(/(<[^\/>].*>)\n(<\/)/g, '$1$2')
+            .replace(/(<\/[^>]+>|<[^>]+\/>)(<[^>]+>)/g, '$1\n$2');
+
+        const xmlArr = xmlString.split('\n');
+        let tabs = '';
+        const start = /^<[?]xml/.test(xmlArr[0]) ? 1 : 0;
+
+        for (let i = start; i < xmlArr.length; i++) {
+            const line = xmlArr[i].trim();
+            if (/^<[!]/.test(line)) {
+                xmlArr[i] = tabs + line;
+            } else if (/^<\//.test(line)) {
+                tabs = tabs.slice(0, -1);
+                xmlArr[i] = tabs + line;
+            } else if (/<.*>.*<\/.*>|<.*[^>]\/>/.test(line)) {
+                xmlArr[i] = tabs + line;
+            } else {
+                xmlArr[i] = tabs + line;
+                tabs += '';
+            }
+        }
+
+        return xmlArr.join('\n');
+    }
+
+    function xmlToString(xmlobj) {
+        return formatXml(new XMLSerializer().serializeToString(xmlobj));
+    }
+
+    function fileDownload(content, filename) {
+        const dl = document.createElement('a');
+        dl.href = 'data:application/xml;charset=utf-8,' + encodeURIComponent(content);
+        dl.download = filename;
+        dl.style.display = 'none';
+        document.body.appendChild(dl);
+        dl.click();
+        document.body.removeChild(dl);
+    }
+
+    function createSvdElement(xmlDoc, tag, content) {
+        const node = xmlDoc.createElement(tag);
+        node.textContent = content;
+        return node;
+    }
+
+    function peripheralInfoToSvd(name, peripheral) {
+        const xmlDoc = document.implementation.createDocument("", "", null);
+        const svdPeripheral = xmlDoc.createElement("peripheral");
+
+        svdPeripheral.appendChild(createSvdElement(xmlDoc, "name", name));
+
+        if(!peripheral.attributeDerivedFrom) {
+            svdPeripheral.appendChild(createSvdElement(xmlDoc, "description", peripheral.description));
+
+            if (peripheral.group){
+                svdPeripheral.appendChild(createSvdElement(xmlDoc, "groupName", peripheral.group));
+            }
+        }else{
+            svdPeripheral.setAttribute("derivedFrom", peripheral.attributeDerivedFrom)
+        }
+
+        svdPeripheral.appendChild(createSvdElement(xmlDoc, "baseAddress", peripheral.address));
+
+        if(!peripheral.attributeDerivedFrom){
+            const addressBlock = xmlDoc.createElement("addressBlock");
+            addressBlock.appendChild(createSvdElement(xmlDoc, "offset", peripheral.abOffset));
+            addressBlock.appendChild(createSvdElement(xmlDoc, "size",   peripheral.abSize));
+            addressBlock.appendChild(createSvdElement(xmlDoc, "usage",  peripheral.abUsage));
+            svdPeripheral.appendChild(addressBlock);
+        }
+
+        if(peripheral.interrupts){
+            peripheral.interrupts.forEach( interrupt => {
+                const interruptElem = xmlDoc.createElement("interrupt");
+                interruptElem.appendChild(createSvdElement(xmlDoc, "name", interrupt.name));
+                interruptElem.appendChild(createSvdElement(xmlDoc, "description", interrupt.description));
+                interruptElem.appendChild(createSvdElement(xmlDoc, "value", interrupt.value));
+                svdPeripheral.appendChild(interruptElem);
+            })
+        }
+
+        if(!peripheral.attributeDerivedFrom){
+            const svdRegisters = xmlDoc.createElement("registers");
+            svdPeripheral.appendChild(svdRegisters);
+
+            for (const [regName, register] of Object.entries(peripheral.registers || {})) {
+                const svdRegister = xmlDoc.createElement("register");
+                svdRegister.appendChild(createSvdElement(xmlDoc, "name",          regName));
+                svdRegister.appendChild(createSvdElement(xmlDoc, "description",   register.description));
+                svdRegister.appendChild(createSvdElement(xmlDoc, "addressOffset", register.offset));
+                if(register.access == '')register.access = "read-write";
+                svdRegister.appendChild(createSvdElement(xmlDoc, "access",        register.access));
+                svdRegister.appendChild(createSvdElement(xmlDoc, "resetValue",    register.reset));
+                svdRegister.appendChild(createSvdElement(xmlDoc, "size",          register.size));
+
+                if(register.altReg){
+                    svdRegister.appendChild(createSvdElement(xmlDoc, "alternateRegister", register.altReg));
+                }
+
+                if (register.fields && Object.keys(register.fields).length > 0) {
+                    const svdFields = xmlDoc.createElement("fields");
+                    for (const [fieldName, field] of Object.entries(register.fields)) {
+                        const svdField = xmlDoc.createElement("field");
+                        svdField.appendChild(createSvdElement(xmlDoc, "name",        fieldName));
+                        svdField.appendChild(createSvdElement(xmlDoc, "description", field.description));
+                        svdField.appendChild(createSvdElement(xmlDoc, "bitRange",    field.bitRange));
+                        if (field.access) {
+                            svdField.appendChild(createSvdElement(xmlDoc, "access", field.access));
+                        }
+                        svdFields.appendChild(svdField);
+                    }
+                    svdRegister.appendChild(svdFields);
+                }
+
+                svdRegisters.appendChild(svdRegister);
+            }
+        }
+
+        return svdPeripheral;
+    }
+
+    function exportSvd() {
+        const device = $("device", g_svdFile);
+        const peripherals = $("peripherals", device);
+        peripherals.empty();
+
+        for (const [name, info] of Object.entries(g_peripheralInfo)) {
+            peripherals.append(peripheralInfoToSvd(name, info));
+        }
+
+        fileDownload(xmlToString(g_svdFile), g_svdFile.name);
+    }
+
+    // ── Data model defaults ────────────────────────────────────────────────────
+
+    function newPeripheralInfo() {
+        return {
+            description: "",
+            address:     "0x00000000",
+            abOffset:    "0x0",
+            abSize:      "0x400",
+            abUsage:     "registers",
+            registers:   {}
+        };
+    }
+
+    function newRegisterInfo() {
+        return {
+            description: "",
+            offset:      "0x00",
+            size:        "32",
+            reset:       "0x00000000",
+            access:      "read-write",
+            fields:      {}
+        };
+    }
+
+    // ── Tree helpers ───────────────────────────────────────────────────────────
+
+    /**
+     * Resolve the peripheral/register/field path for any node in the tree.
+     * Returns { peripheralName, registerName, fieldName } with nulls for levels
+     * that don't apply to the given node type.
+     */
+    function resolveNodePath(tree, node) {
+        const result = { peripheralName: null, registerName: null, fieldName: null };
+
+        if (node.type === "node-peripheral") {
+            result.peripheralName = node.text;
+
+        } else if (node.type === "node-register") {
+            result.peripheralName = tree.get_node(node.parent).text;
+            result.registerName   = node.text;
+
+        } else if (node.type === "node-field") {
+            const registerNode    = tree.get_node(node.parent);
+            result.peripheralName = tree.get_node(registerNode.parent).text;
+            result.registerName   = registerNode.text;
+            result.fieldName      = node.text;
+        }
+
+        return result;
+    }
+
+    // ── Context menu actions ───────────────────────────────────────────────────
+
+    function treeContextMenu(data) {
+        const tree = $.jstree.reference(data.reference);
+        const node = tree.get_node(data.reference);
+
+        switch (data.item.execute) {
+
+            case 'new-peripheral':
+                tree.create_node(node, { type: "node-peripheral" }, "last", newNode => {
+                    newNode.text = 'NewPeripheral';
+                    tree.edit(newNode, null, editedNode => {
+                        g_peripheralInfo[editedNode.text] = newPeripheralInfo();
+                    });
+                });
+                break;
+
+            case 'new-register': {
+                const { peripheralName } = resolveNodePath(tree, node);
+                tree.create_node(node, { type: "node-register" }, "last", newNode => {
+                    newNode.text = 'NewRegister';
+                    tree.edit(newNode, null, editedNode => {
+                        const peripheral = g_peripheralInfo[peripheralName];
+                        if (peripheral) {
+                            peripheral.registers[editedNode.text] = newRegisterInfo();
+                        }
+                    });
+                });
+                break;
+            }
+
+
+            case 'ren-peripheral': {
+                const oldName = node.text;
+                tree.edit(node, null, editedNode => {
+                    const newName = editedNode.text;
+                    if (newName !== oldName && g_peripheralInfo[oldName]) {
+                        g_peripheralInfo[newName] = g_peripheralInfo[oldName];
+                        delete g_peripheralInfo[oldName];
+                    }
+                });
+                break;
+            }
+
+            case 'ren-register': {
+                const { peripheralName } = resolveNodePath(tree, node);
+                const oldName = node.text;
+                tree.edit(node, null, editedNode => {
+                    const newName  = editedNode.text;
+                    const registers = g_peripheralInfo[peripheralName]?.registers;
+                    if (registers && newName !== oldName && registers[oldName]) {
+                        registers[newName] = registers[oldName];
+                        delete registers[oldName];
+                    }
+                });
+                break;
+            }
+
+
+            case 'del-peripheral': {
+                const { peripheralName } = resolveNodePath(tree, node);
+                delete g_peripheralInfo[peripheralName];
+                tree.delete_node(node);
+                clearPropsPanel();
+                break;
+            }
+
+            case 'del-register': {
+                const { peripheralName, registerName } = resolveNodePath(tree, node);
+                const registers = g_peripheralInfo[peripheralName]?.registers;
+                if (registers) delete registers[registerName];
+                tree.delete_node(node);
+                clearPropsPanel();
+                break;
+            }
+
+
+            default: break;
+        }
+    }
+
+    // ── Tree node builders ─────────────────────────────────────────────────────
+
+    function treeRegisterNode(name) {
+        const li = document.createElement("li");
+        li.setAttribute("data-jstree", '{"type":"node-register","opened":false}');
+        li.textContent = name;
+        return li;
+    }
+
+    function treePeripheralNode(name, peripheralInfo) {
+        const li = document.createElement("li");
+        li.setAttribute("id", `peripheral-${name}`);
+        li.setAttribute("data-jstree", '{"type":"node-peripheral","opened":false}');
+        li.textContent = name;
+
+        const ul = document.createElement("ul");
+        for (const [regName, regInfo] of Object.entries(peripheralInfo.registers || {})) {
+            ul.appendChild(treeRegisterNode(regName));
+        }
+        li.appendChild(ul);
+
+        return li;
+    }
+
+    /**
+     * (Re)build the jsTree from g_peripheralInfo.
+     *
+     * Jstree structure:
+     *   <div#tree-container>
+     *     <ul>
+     *       <li> Peripherals (root)
+     *         <ul>
+     *           <li> peripheral
+     *             <ul>
+     *               <li> register
+     *                 <ul>
+     *                   <li> field
+     */
+    function treePeripherals(treeContainer, peripherals) {
+        // Destroy any existing jstree instance cleanly
+        if ($(treeContainer).jstree(true)) {
+            $(treeContainer).jstree('destroy');
+        }
+        $(treeContainer).empty();
+
+        // Build root node
+        const rootLi = document.createElement("li");
+        rootLi.setAttribute("id", "peripherals");
+        rootLi.setAttribute("data-jstree", '{"type":"node-root","opened":true}');
+        rootLi.textContent = "Peripherals";
+
+        const rootUl = document.createElement("ul");
+        for (const [name, info] of Object.entries(peripherals)) {
+            rootUl.appendChild(treePeripheralNode(name, info));
+        }
+        rootLi.appendChild(rootUl);
+
+        const containerUl = document.createElement("ul");
+        containerUl.appendChild(rootLi);
+        treeContainer.appendChild(containerUl);
+
+        $(treeContainer).jstree({
+            core: { check_callback: true },
+            plugins: ['contextmenu', 'types'],
+            types: {
+                'default':         { icon: 'jstree-folder' },
+                'node-root':       { icon: 'chip.png'       },
+                'node-peripheral': { icon: 'peripheral.png' },
+                'node-register':   { icon: 'register.png'   },
+                'file':            { icon: 'jstree-file'    },
+                'excluded':        { icon: 'error.png'      }
+            },
+            contextmenu: {
+                items: node => {
+                    const menu = {};
+                    if (node.type === 'node-root') {
+                        menu.addPeripheral = { label: 'New peripheral', execute: 'new-peripheral', action: treeContextMenu };
+
+                    } else if (node.type === 'node-peripheral') {
+                        menu.addRegister   = { label: 'New register', execute: 'new-register',   action: treeContextMenu };
+                        menu.renPeripheral = { label: 'Rename',       execute: 'ren-peripheral', action: treeContextMenu };
+                        menu.delPeripheral = { label: 'Delete',       execute: 'del-peripheral', action: treeContextMenu };
+
+                    } else if (node.type === 'node-register') {
+                        menu.renRegister = { label: 'Rename',          execute: 'ren-register', action: treeContextMenu };
+                        menu.delRegister = { label: 'Delete register', execute: 'del-register', action: treeContextMenu };
+
+                    }
+                    return menu;
+                }
+            }
+        });
+
+        // Selection → properties panel
+        $(treeContainer).on("select_node.jstree", (e, data) => {
+            const { node, instance: treeInst } = data;
+            const path = resolveNodePath(treeInst, node);
+
+            if (node.type === "node-peripheral") {
+                showPeripheralProps(path.peripheralName);
+            } else if (node.type === "node-register") {
+                showRegisterProps(path.peripheralName, path.registerName);
+            } else {
+                clearPropsPanel();
+            }
+        });
+    }
+
+    // ── SVD parsing ────────────────────────────────────────────────────────────
+
+    function svdFieldInfo(field) {
+        const name = $(field).children("name").text();
+        const info = {};
+
+        info.description = $(field).children("description").text()
+            .replace(/\s+/g, " ").trim();
+
+        info.access = $(field).children("access").text();
+
+        const bitRange  = $(field).children("bitRange").text();
+        const bitOffset = $(field).children("bitOffset").text();
+
+        if (bitRange) {
+            info.bitRange = bitRange;
+        } else if (bitOffset) {
+            const offset = parseInt(bitOffset, 10);
+            const width  = parseInt($(field).children("bitWidth").text(), 10) || 1;
+            info.bitRange = `[${offset + width - 1}:${offset}]`;
+        }
+
+        return { name, info };
+    }
+
+    function svdRegisterInfo(register) {
+        const name = $(register).children("name").text();
+        const info = {
+            offset:      $(register).children("addressOffset").text(),
+            access:      $(register).children("access").text(),
+            reset:       $(register).children("resetValue").text(),
+            size:        $(register).children("size").text(),
+            description: $(register).children("description").text().replace(/\s+/g, " ").trim(),
+            fields:      {}
+        };
+
+        const altReg = $(register).children("alternateRegister");
+
+        if(altReg.length)
+            info.altReg = altReg.text();
+
+        $("field", register).each((_, field) => {
+            const f = svdFieldInfo(field);
+            info.fields[f.name] = f.info;
+        });
+
+        return { name, info };
+    }
+
+    function svdPeripheralInfo(peripheral) {
+        const name = $(peripheral).children("name").text();
+        const info = {
+            address: $(peripheral).children("baseAddress").text(),
+            group:   $(peripheral).children("groupName").text(),
+            attributeDerivedFrom: peripheral.getAttribute("derivedFrom")
+        };
+
+        $("interrupt", peripheral).each((_, irq) =>{
+            if(!info.interrupts){
+                info.interrupts = [];
+            }
+            info.interrupts.push({
+                "name" : $(irq).children("name").text(),
+                "value" : $(irq).children("value").text(),
+                "description" : $(irq).children("description").text()
+            })
+        })
+
+        if (!info.attributeDerivedFrom) {
+            info.description = $(peripheral).children("description").text().replace(/\s+/g, " ").trim();
+            info.abOffset    = $(peripheral).children("addressBlock").children("offset").text();
+            info.abSize      = $(peripheral).children("addressBlock").children("size").text();
+            info.abUsage     = $(peripheral).children("addressBlock").children("usage").text();
+            info.registers   = {};
+
+            $("register", peripheral).each((_, register) => {
+                const r = svdRegisterInfo(register);
+                info.registers[r.name] = r.info;
+            });
+        }
+
+        return { name, info };
+    }
+
+    function svdPeripherals(svdfilexml) {
+        const peripheralsInfo = {};
+
+        $("peripheral", svdfilexml).each((_, peripheral) => {
+            const { name, info } = svdPeripheralInfo(peripheral);
+
+            if (info.attributeDerivedFrom) {
+                const source = peripheralsInfo[info.attributeDerivedFrom];
+                if (source) {
+                    // Copy registers from the source peripheral (shallow copy of the map)
+                    info.registers = Object.assign({}, source.registers);
+                }
+            }
+
+            peripheralsInfo[name] = info;
+        });
+
+        console.log(`Loaded ${Object.keys(peripheralsInfo).length} peripherals`);
+        return peripheralsInfo;
+    }
+
+    // ── File I/O ───────────────────────────────────────────────────────────────
+
+    function listDeviceInfo(svdfilexml) {
+        const deviceName = $("device", svdfilexml).children("name").text();
+        $("#device-container").text(`Device: ${deviceName}`);
+    }
+
+    function readSingleFile(e) {
+        const svdFile = e.target.files[0];
+        if (!svdFile) return;
+
+        const reader = new FileReader();
+        reader.onload = event => {
+            const parser = new DOMParser();
+            g_svdFile = parser.parseFromString(event.target.result, "text/xml");
+            g_svdFile.name = svdFile.name;
+
+            hideEditorUI();
+            listDeviceInfo(g_svdFile);
+            g_peripheralInfo = svdPeripherals(g_svdFile);
+            treePeripherals(document.getElementById('tree-container'), g_peripheralInfo);
+            showEditorUI();
+            clearPropsPanel();
+        };
+        reader.readAsText(svdFile);
+    }
+
+    document.getElementById('svd-file-input').addEventListener('change', readSingleFile);
+
+</script>
