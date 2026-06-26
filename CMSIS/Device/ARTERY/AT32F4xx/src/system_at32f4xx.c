@@ -469,7 +469,7 @@ uint32_t SystemConfigClockSrc(uint8_t src)
     RCC->CFG = (RCC->CFG & ~(RCC_CFG_SYSCLKSEL)) | src;
 
     do{
-        HSIStatus = (RCC->CTRL & RCC_CFG_SYSCLKSTS) >> 2;
+        HSIStatus = (RCC->CFG & RCC_CFG_SYSCLKSTS) >> 2;
         if(HSIStatus == src){
             return src;
         }
