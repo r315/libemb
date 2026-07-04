@@ -40,7 +40,7 @@ static hi2c_t hi2ca = {
  */
 static uint32_t i2c_set_speed(I2C_TypeDef *i2c, uint32_t speed, uint32_t dutycycle)
 {
-    uint32_t pclk = CLOCK_Get(CLOCK_PCLK1);
+    uint32_t pclk = CLOCK_Get(CLOCK_CLK1);
     uint32_t freq_range;
     uint32_t rise_time;
     uint32_t ccr;
@@ -285,7 +285,7 @@ uint32_t I2C_Init(i2cbus_t *i2cbus)
         hi2c->state = I2C_STATE_IDLE;
     }
 
-    return I2C_SUCCESS;
+    return i2c_wait_busy(hi2c->i2c);
 }
 
 /**
@@ -421,6 +421,55 @@ i2cerr_t I2C_Busy(i2cbus_t *i2cbus)
 {
     return ((hi2c_t*)i2cbus->handle)->i2c->SR2 & I2C_SR2_BUSY ?
             I2C_ERR_BUSY : I2C_SUCCESS;
+}
+
+/**
+ * @brief Checks if a device is present on bus
+ * @param i2cbus
+ * @param device
+ * @return  i2cerr_t
+ */
+i2cerr_t I2C_DeviceScan(i2cbus_t *i2cbus, uint8_t device)
+{
+    hi2c_t *hi2c;
+    I2C_TypeDef *i2c;
+    uint32_t res;
+
+    if(!i2cbus){
+        return I2C_ERR_PARM;
+    }
+
+    hi2c = (hi2c_t*)i2cbus->handle;
+    i2c = hi2c->i2c;
+
+    if(i2c_wait_busy(i2c) == I2C_ERR_BUSY){
+        return I2C_ERR_BUSY;
+    }
+
+    i2c_send_start(i2c);
+
+    if(i2c_wait_start(i2c) != I2C_SUCCESS){
+        return I2C_ERR_START;
+    }
+
+    /* Clear SB flag and send 8-bit slave address + R */
+    i2c->DR = (device << 1) | 1;
+
+    i2c_flag_wait(&i2c->SR1, I2C_SR1_ADDR | I2C_SR1_AF);
+
+    if(i2c->SR1 & I2C_SR1_AF){
+        // rc_w0
+        i2c->SR1 &= ~I2C_SR1_AF;
+        res = I2C_ERR_ACK;
+    }else{
+        // Read SR2 after SR1
+        res = i2c->SR2;
+        res = I2C_SUCCESS;
+    }
+
+    i2c_send_stop(i2c);
+
+    return res;
 }
 
 void I2C1_EV_IRQHandler(void)
