@@ -161,7 +161,7 @@ uint32_t SPI_Init(spibus_t *spibus)
  * \param spibus : Pointer to spi device to be used
  * \param data  : Data to be transmitted
  *
- * \return Received data
+ * \return Number of bytes exchanged
  * */
 uint32_t SPI_Xchg(spibus_t *spibus, uint8_t *buffer, uint32_t count)
 {
@@ -170,21 +170,23 @@ uint32_t SPI_Xchg(spibus_t *spibus, uint8_t *buffer, uint32_t count)
 
     if(spibus->cfg & SPI_CFG_TRF_16BIT){
         spi->CR1 |= SPI_CR1_DFF;
-        while(count--){
+        while(count){
             while((spi->SR & SPI_SR_TXE) == 0);
             *((__IO uint16_t *)&spi->DR) = *(uint16_t*)buffer;
-            while((spi->SR & SPI_SR_BSY) != 0);
+            while((spi->SR & SPI_SR_RXNE) == 0);
             *buffer = *((__IO uint16_t *)&spi->DR);
             buffer++;
+            count--;
         }
     }else{
         spi->CR1 &= ~SPI_CR1_DFF;
-        while(count--){
+        while(count){
             while((spi->SR & SPI_SR_TXE) == 0);
             *((__IO uint8_t *)&spi->DR) = *buffer;
-            while((spi->SR & SPI_SR_BSY) != 0);
+            while((spi->SR & SPI_SR_RXNE) == 0);
             *buffer = *((__IO uint8_t *)&spi->DR);
             buffer++;
+            count--;
         }
     }
 
