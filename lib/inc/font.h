@@ -10,8 +10,8 @@ extern "C" {
 typedef struct font_s{
     uint8_t w;          // Character width in pixel including spacing
     uint8_t h;          // Character height in pixel including spacing
-    const uint8_t *data;// Character data
     uint16_t data_size; // Total bytes of all characters on font
+    const uint8_t *data;// Character data
     uint8_t bpl;        // Bytes per line
     uint8_t offset;     // offset from ascii table
     uint8_t vspace;     // Vertical spacing
