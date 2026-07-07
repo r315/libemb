@@ -94,8 +94,12 @@ void STIMER_SetInterval(stimer_t *timer, uint32_t interval)
 }
 
 /**
- * @brief Starts a timer, if timer in parameter is not
- * on internal list, it will not start
+ * @brief Starts a timer.
+ * If timer parameter is not on
+ * internal list, it will not start
+ *
+ * Also calling this in a running timer
+ * it will reset it.
  *
  * @param timer     pointer to stimer_t
  *
@@ -129,6 +133,19 @@ void STIMER_Stop(stimer_t *timer)
 uint32_t STIMER_IsActive(stimer_t *timer)
 {
     return timer ? timer->count != 0 : 0;
+}
+
+/**
+ * @brief Expires a timer, this forces
+ * callback call on next tick
+ *
+ * @param timer
+ */
+void STIMER_Expire(stimer_t *timer)
+{
+    if(timer){
+        timer->count = 1;
+    }
 }
 
 /**

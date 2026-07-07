@@ -24,6 +24,7 @@ void STIMER_SetInterval(stimer_t *timer, uint32_t interval);  // Configures a ne
 uint32_t STIMER_IsActive(stimer_t *timer);
 void STIMER_Handler(void);              // handler for interrupt, called periodically and increments counts by 1
 void STIMER_Tick(uint32_t tick);        // function call for application loop for counts increment.
+void STIMER_Expire(stimer_t *timer);    // Expires a timer, this will cause a call to callback function
 
 #ifdef __cplusplus
 }
