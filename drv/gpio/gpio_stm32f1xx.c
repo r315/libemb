@@ -127,7 +127,7 @@ void GPIO_AttachInt(pinName_e name, uint8_t edge, void(*cb)(void))
 
     gpio_int_handler[pin] = cb;
 
-    EXTI->EMR  |= (1 << pin);
+    EXTI->IMR  |= (1 << pin);
 
     IRQn_Type irqn;
 
