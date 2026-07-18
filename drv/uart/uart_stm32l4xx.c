@@ -203,11 +203,7 @@ uint32_t UART_Peek(serialbus_t *serialbus, uint8_t *data)
     uint32_t available = UART_Available(serialbus);
 
     if(available){
-        #if UART_RX_MODE == UART_MODE_DMA
-        *data = huart->rx_buf[huart->rx_rd];
-        #else
         *data = fifo_peek(&huart->rxfifo);
-        #endif
     }
 
     return available;
