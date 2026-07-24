@@ -1,14 +1,42 @@
 #include <stdint.h>
 #include "at32f4xx.h"
-#include "core_cm4.h"
+//#include "core_cm4.h"
 
+/* HFSR bit definitions */
+#define HFSR_VECTTBL    (1UL << 1)   /* Bus fault on vector table read     */
+#define HFSR_FORCED     (1UL << 30)  /* Forced HardFault (escalated fault) */
+#define HFSR_DEBUGEVT   (1UL << 31)  /* Debug event                        */
+/* DFSR bit definitions */
+#define DFSR_HALTED     (1UL << 0)
+#define DFSR_BKPT       (1UL << 1)
+#define DFSR_DWTTRAP    (1UL << 2)
+#define DFSR_VCATCH     (1UL << 3)
+#define DFSR_EXTERNAL   (1UL << 4)
+/* CFSR */
+#define CFSR_DIVBYZERO  (1UL << 25)
+#define CFSR_UNALIGNED  (1UL << 24)
+#define CFSR_NOCP       (1UL << 19)
+#define CFSR_INVPC      (1UL << 18)
+#define CFSR_INVSTATE   (1UL << 17)
+#define CFSR_UNDEFINSTR (1UL << 16)
+/* BFSR */
+#define BFSR_BFARVALID  (1UL << 15)
+#define BFSR_LSPERR     (1UL << 13)
+#define BFSR_STKERR     (1UL << 12)
+#define BFSR_UNSTKERR   (1UL << 11)
+#define BFSR_IMPRECISERR (1UL << 10)
+#define BFSR_UNDEFINSTR (1UL << 9)
+#define BFSR_IBUSERR    (1UL << 8)
 
 #define WEAK    __attribute__((weak))
 #define ISR     __attribute__((section(".isr_vector")))
 #define NORETURN   __attribute__((naked, __noreturn__, aligned(4)))
 
+typedef struct {
+    uint32_t r0, r1, r2, r3, r12, lr, pc, xpsr;
+}stackframe_t;
 
-ISR void *vector_table[];
+//ISR void *vector_table[];
 extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _stack, _estack;
 
 WEAK int main(void){}
@@ -18,35 +46,88 @@ WEAK int _lseek(int file, int ptr, int dir) { (void)file; (void)ptr; (void)dir; 
 WEAK int _read(int file, char *ptr, int len) { (void)file; (void)ptr; (void)len; return -1; }
 WEAK int _write(int file, char *ptr, int len) { (void)file; (void)ptr; (void)len; return -1; }
 
-NORETURN void Reset_Handler(void)
+static void fault_init(void)
 {
-    volatile uint32_t *src, *dest;
+    RCC->APB2EN |= RCC_APB2EN_USART1EN | RCC_APB2EN_GPIOAEN;
+    RCC->APB2RST |= RCC_APB2RST_USART1RST;
+    RCC->APB2RST &= ~RCC_APB2RST_USART1RST;
 
-    /* Copy initialize variables with .data section values*/
-    for (src = &_sidata, dest = &_sdata; dest < &_edata; src++, dest++){
-        *dest = *src;
-    }
+    USART1->BAUDR = 0x28b;      // 115200
+    USART1->CTRL1 = 0x2008;
 
-    /* Clear ram remaining ram to stack top */
-    dest = &_sbss;
-
-    while (dest < &_estack)
-        *dest++ = 0;
-
-    __libc_init_array();
-
-    main();
-
-    while(1){}
+    GPIOA->CTRLH = 0x88844494;   // Cfg PA9 as AF
 }
 
+static void fault_print_char(char c)
+{
+    USART1->DT = c;
+    while(!(USART1->STS & USART_STS_TDE));
+}
 
-typedef struct {
-    uint32_t r0, r1, r2, r3, r12, lr, pc, psr;
-}stackframe_t;
+static void fault_print(const char *reason)
+{
+    while (*reason){
+        fault_print_char(*reason++);
+    }
+}
 
-NORETURN void Stack_Dump(stackframe_t *stack){
-    (void)stack;
+static void fault_print_hex(const char *label, uint32_t value)
+{
+    fault_print(label);
+    char *pval = (char*)&value + 3;
+    for(int8_t i = 0; i < 4; i++, pval--){
+        uint8_t byte = *pval >> 4;
+        // print hex byte
+        fault_print_char(byte + ((byte > 9) ? '7' : '0'));
+        byte = *pval & 15;
+        fault_print_char(byte + ((byte > 9) ? '7' : '0'));
+    }
+}
+
+NORETURN void Stack_Dump(stackframe_t *frame)
+{
+    uint32_t hfsr = SCB->HFSR;
+    uint32_t cfsr = SCB->CFSR;
+
+    fault_init();
+    fault_print("\n\n========== HARDFAULT ==========\n\n");
+
+    /* --- Stacked register dump --- */
+    fault_print("-- Stacked Registers --\n");
+    fault_print_hex(" R0 : 0x", frame->r0);
+    fault_print_hex("  R1 : 0x", frame->r1);
+    fault_print_hex("  R2 : 0x", frame->r2);
+    fault_print_hex("  R3 : 0x", frame->r3);
+    fault_print_char('\n');
+    fault_print_hex(" R12: 0x", frame->r12);
+    fault_print_hex("  LR : 0x", frame->lr);
+    fault_print_hex("  PC : 0x", frame->pc);   /* <-- faulting address */
+    fault_print_hex("  xPSR: 0x", frame->xpsr);
+    fault_print_char('\n');
+    fault_print_hex(" SP : 0x", (uint32_t)frame + sizeof(*frame));
+
+    /* --- HFSR analysis --- */
+    fault_print("\n\n-- HardFault Status --\n");
+    fault_print_hex(" HFSR ", hfsr);
+    fault_print_char('\n');
+
+    if (hfsr & HFSR_VECTTBL)  fault_print("  [!] VECTTBL: Bus fault on vector table read\n");
+    if (hfsr & HFSR_FORCED)   fault_print("  [!] FORCED: Escalated fault (usage/bus/mem fault)\n");
+    if (hfsr & HFSR_DEBUGEVT) fault_print("  [!] DEBUGEVT: Debug event caused HardFault\n");
+
+    /* --- CFSR analysis --- */
+    fault_print("\n-- Configurable Fault Status --\n");
+    fault_print_hex(" CFSR (UFSR) ", cfsr);
+    fault_print_char('\n');
+
+    if (cfsr & CFSR_DIVBYZERO) fault_print("  [!] DIVBYZERO: Division by zero\n");
+    if (cfsr & CFSR_UNALIGNED) fault_print("  [!] UNALIGNED: Unaligned access\n");
+    if (cfsr & CFSR_NOCP)      fault_print("  [!] NOCP: No coprocessor\n");
+    if (cfsr & CFSR_INVPC)     fault_print("  [!] INVPC: Invalid PC\n");
+    if (cfsr & CFSR_INVSTATE)  fault_print("  [!] INVSTATE: Invalid state\n");
+    if (cfsr & CFSR_UNDEFINSTR)fault_print("  [!] UNDEFINSTR: Undefined instruction\n");
+
+    fault_print("\n================================\n");
 
     asm volatile
     (
@@ -80,6 +161,28 @@ void Default_Handler(void){
         "bkpt #01 \n"
         "b .      \n"
     );
+}
+
+NORETURN void Reset_Handler(void)
+{
+    volatile uint32_t *src, *dest;
+
+    /* Copy initialize variables with .data section values*/
+    for (src = &_sidata, dest = &_sdata; dest < &_edata; src++, dest++){
+        *dest = *src;
+    }
+
+    /* Clear ram remaining ram to stack top */
+    dest = &_sbss;
+
+    while (dest < &_estack)
+        *dest++ = 0;
+
+    __libc_init_array();
+
+    main();
+
+    while(1){}
 }
 
 void NMI_Handler(void)          __attribute__ ((weak, alias("Default_Handler")));
