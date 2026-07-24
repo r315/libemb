@@ -9,7 +9,7 @@
 typedef void(*gpio_int_handler_t)(void);
 
 static const uint32_t ports[] = {GPIOA_BASE, GPIOB_BASE, GPIOC_BASE, GPIOD_BASE, GPIOE_BASE, GPIOF_BASE};
-static gpio_int_handler_t gpio_int_handler[15];
+static gpio_int_handler_t gpio_int_handler[16];
 
 static uint32_t exti_get_irqn(uint8_t pin)
 {
