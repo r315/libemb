@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
-#include "at32f4xx_rcc.h"
+#include "at32f4xx.h"
 #include "gpio_at32f4xx.h"
 #include "uart.h"
 #include "gpio.h"

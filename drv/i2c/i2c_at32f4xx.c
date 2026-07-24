@@ -10,10 +10,10 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "at32f4xx.h"
-#include "at32f4xx_rcc.h"
 #include "dma_at32f4xx.h"
 #include "i2c.h"
 #include "dma.h"
+#include "clock.h"
 
 #define I2C_TIMEOUT     0x10000;
 
@@ -302,11 +302,15 @@ static uint32_t i2c_speed_cfg(I2C_Type *i2c, uint32_t pclk, uint32_t speed, uint
  */
 uint32_t I2C_Init (i2cbus_t *i2cbus){
     hi2c_t *hi2c;
-    RCC_ClockType clocks;
     uint32_t pclk;
 
+#ifdef USE_STDPERIPH_DRIVER
+    RCC_ClockType clocks;
     RCC_GetClocksFreq(&clocks);
     pclk = clocks.APB1CLK_Freq;
+#else
+    pclk = CLOCK_Get(CLOCK_CLK1);
+#endif
 
 	switch(i2cbus->bus_num){
 		case I2C_BUS0:
