@@ -147,12 +147,19 @@ typedef enum {
 #define GPO_HS_AF_OD        (GPIO_IOF_AF_OD | GPIO_IOM_MAX)
 #define GPO_PP              GPO_LS
 
-#define GPIO_NAME_TO_PORT(name)     ((name >> 4) & 15)
-#define GPIO_NAME_TO_PIN(name)      (name & 15)
-#define GPIO_CFG_MASK(cfg)          (cfg & 15)
-#define GPIO_CFG_MODE_MASK(cfg)     (cfg & 3)
-#define GPIO_CFG_FUNC_MASK(cfg)     ((cfg >> 4) & 3)
-#define GPIO_ANIN_TO_PIN_NAME(ANIN) ((ANIN < 8) ? ANIN & 7 : PB_0 + (ANIN & 1))
+/**
+ * IOMUX | GMUX | REGMAP | IOF | IOM
+ *   11  | 10:7 |   6:4  | 3:2 | 1:0
+ *  */
+#define GPIO_NAME_TO_PORT(name)         ((name >> 4) & 15)
+#define GPIO_NAME_TO_PIN(name)          (name & 15)
+#define GPIO_CTRL_MASK(cfg)             (cfg & 15)
+#define GPIO_CTRL_MODE_MASK(cfg)        (cfg & 3)
+#define GPIO_CTRL_FUNC_MASK(cfg)        ((cfg >> 2) & 3)
+#define GPIO_ANIN_TO_PIN_NAME(ANIN)     ((ANIN < 8) ? ANIN & 7 : PB_0 + (ANIN & 1))
+#define GPIO_IOMUX_CFG                  (1 << 11)
+#define GPIO_IOMUX_REGMAP_OFFSET(cfg)   ((cfg >> 4) & 7)
+#define GPIO_IOMUX_GMUX(cfg)            ((cfg >> 7) & 15)
 
 #define GPIO_SPI1_CS        (GPO_MS_AF)
 #define GPIO_SPI1_SCK       (GPO_HS_AF)
@@ -174,24 +181,11 @@ typedef enum {
 #define GPIO_I2C1_SCL       (GPO_MS_AF_OD)
 #define GPIO_I2C1_SDA       (GPO_MS_AF_OD)
 
-// Alternative functions remapping (wip)
-#define GPIO_AF_REMAP       (1 << 7)
-#define GPIO_AF_USART1      (0)
-#define GPIO_AF_USART2      (1)
-#define GPIO_AF_USART3      (2)
-#define GPIO_AF_I2C1        (3)
-#define GPIO_AF_I2C2        (4)
-#define GPIO_AF_SPI1        (5)
-#define GPIO_AF_SPI2        (6)
-#define GPIO_AF_I2S1        (7)
-#define GPIO_AF_I2S2        (8)
-#define GPIO_AF_TMR2        (9)
 
-#define GPIO_PB3_SPI1_SCK   (GPIO_AF_REMAP | GPIO_AF_SPI1)
-#define GPIO_PB3_SPI2_SCK   (GPIO_AF_REMAP | GPIO_AF_SPI2)
-#define GPIO_PB3_I2S1_CK    (GPIO_AF_REMAP | GPIO_AF_I2S1)
-#define GPIO_PB3_I2S2_CK    (GPIO_AF_REMAP | GPIO_AF_I2S2)
-#define GPIO_PB3_TMR2_CH2   (GPIO_AF_REMAP | GPIO_AF_TMR2)
+// Alternative functions remapping (wip)
+#define TMR9_GMUX_PB14_PB15 (GPIO_IOMUX_CFG | (0 << 7) | (2 << 4))
+
+#define GPIO_AF_TMR9_CH2    (TMR9_GMUX_PB14_PB15 | GPO_HS_AF)
 
 #ifdef __cplusplus
 }

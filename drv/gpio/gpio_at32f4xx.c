@@ -41,24 +41,25 @@ static GPIO_Type *getPort(pinName_e name)
 void GPIO_Config(pinName_e name, uint32_t cfg) {
     GPIO_Type *port;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
+    uint8_t ctrl;
 
     if ((port = getPort(name)) == NULL) {
         return;
     }
 
-    cfg = GPIO_CFG_MASK(cfg);
+    ctrl = GPIO_CTRL_MASK(cfg);
 
-    if(cfg == GPI_PD){
+    if(ctrl == GPI_PD){
         port->BRE = (1 << pin);  // Activate pull-down
-    }else if(cfg == GPI_PU){
+    }else if(ctrl == GPI_PU){
         port->BSRE = (1 << pin); // Activate pull-up
-        cfg &= ~GPIO_IOF_FLT;    // clear reserved bit
+        ctrl &= ~GPIO_IOF_FLT;    // clear reserved bit
     }
 
     if(pin <  8){
-        port->CTRLL = (port->CTRLL & ~(15 << (pin << 2))) | (cfg << (pin << 2));
+        port->CTRLL = (port->CTRLL & ~(15 << (pin << 2))) | (ctrl << (pin << 2));
     }else{
-        port->CTRLH = (port->CTRLH & ~(15 << ((pin - 8) << 2))) | (cfg << ((pin - 8) << 2));
+        port->CTRLH = (port->CTRLH & ~(15 << ((pin - 8) << 2))) | (ctrl << ((pin - 8) << 2));
     }
 }
 
