@@ -293,6 +293,10 @@ uint32_t I2C_Init(i2cbus_t *i2cbus)
     return I2C_OK;
 }
 
+void I2C_Reset(i2cbus_t *i2cbus)
+{
+}
+
 uint16_t I2C_Write(i2cbus_t *i2cbus, uint8_t addr, const uint8_t *data, uint16_t size)
 {
     return i2c_master_transmit(*(uint32_t*)i2cbus->handle, addr, data, size, 1000) != I2C_OK ? 0 : size;
