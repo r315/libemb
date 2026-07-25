@@ -19,10 +19,10 @@ typedef struct dmactrl{
 }dmatype_t;
 
 enum {
-   DMA_DIR_P2P,
-   DMA_DIR_P2M,
-   DMA_DIR_M2P,
-   DMA_DIR_M2M
+   DMA_DIR_P2P,             // Does not increment src or dst
+   DMA_DIR_P2M,             // Increments dst
+   DMA_DIR_M2P,             // increments src
+   DMA_DIR_M2M              // increment both
 };
 
 enum {
