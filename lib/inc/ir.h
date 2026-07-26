@@ -10,10 +10,16 @@
 extern "C" {
 #endif
 
-void IR_Init(void);
+enum ir_mode {
+    IR_MODE_TX,
+    IR_MODE_RX
+};
+
+uint32_t IR_Init(enum ir_mode mode);
 void IR_Pulse(uint16_t duration);
-void IR_Transmit(const uint16_t *sequence, uint16_t length);
-void IR_SetEotHandler(void (*cb)(void));
+void IR_Transmit(const uint16_t *buf, uint16_t length);
+void IR_SetCallback(void (*cb)(uint16_t));
+void IR_Receive(uint16_t *buf, uint16_t len);
 
 #ifdef __cplusplus
 }

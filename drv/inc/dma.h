@@ -31,17 +31,10 @@ enum {
     DMA_DATA_SIZE_32,
 };
 
-/**
- * @brief Request dma controller/channel
- * \param ctrl    : pointer to hold controller and channel
- * \param req     : Request peripheral
- * */
 uint32_t DMA_Config(dmatype_t *dma, uint32_t req);
-
 void DMA_Start(dmatype_t *dma);
-
 void DMA_Cancel(dmatype_t *dma);
-
+void DMA_CancelRequest(uint32_t request);
 uint32_t DMA_GetTransfers(dmatype_t *dma);
 void DMA_SetSrc(dmatype_t *dma, void *src);
 void DMA_SetDst(dmatype_t *dma, void *src);

@@ -151,6 +151,8 @@ void DMA_SetSrc(dmatype_t *dma, void *src)
             stream->CPBA = (uint32_t)src;
             break;
     }
+
+    dma->src = src;
 }
 
 void DMA_SetDst(dmatype_t *dma, void *dst)
@@ -174,6 +176,14 @@ void DMA_SetDst(dmatype_t *dma, void *dst)
             stream->CMBA = (uint32_t)dst;
             break;
     }
+
+    dma->dst = dst;
+}
+
+void DMA_CancelRequest(uint32_t request)
+{
+    uint8_t ch_num = (request & DMA_CHANNEL_MASK) >> DMA_CHANNEL_POS;
+    hdma[ch_num] = NULL;
 }
 
 static void dma_irq_handler(dmatype_t *dma)
