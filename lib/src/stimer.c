@@ -15,7 +15,7 @@ static uint32_t last_tick = 0;
  */
 void STIMER_Config(stimer_t *timer)
 {
-    if(timer == NULL || timer->interval == 0  || timer->callback == NULL){
+    if(timer == NULL){
         return;
     }
 
@@ -52,11 +52,13 @@ void STIMER_Config(stimer_t *timer)
  */
 void STIMER_Cancel(stimer_t *timer)
 {
-    stimer_t *head = tlist;
+    stimer_t *head;
 
     if(!timer){
         return;
     }
+
+    head = tlist;
 
     // Remove from head
     if(head == timer){
@@ -90,6 +92,21 @@ void STIMER_SetInterval(stimer_t *timer, uint32_t interval)
 {
     if(timer){
         timer->interval = interval;
+    }
+}
+
+
+/**
+ * @brief Sets callback
+ * This has immediate affect.
+ *
+ * @param timer     pointer to stimer_t
+ * @param interval  New expiration interval in handler call quantum, [ms] typical
+ */
+void STIMER_SetCallback(stimer_t *timer, uint32_t (*callback)(struct stimer *))
+{
+    if(timer){
+        timer->callback = callback;
     }
 }
 

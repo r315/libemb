@@ -21,6 +21,7 @@ void STIMER_Cancel(stimer_t *timer);    // Remove timer from timer list
 void STIMER_Start(stimer_t *timer);     // Starts timer
 void STIMER_Stop(stimer_t *timer);      // Stops timer
 void STIMER_SetInterval(stimer_t *timer, uint32_t interval);  // Configures a new interval for timer
+void STIMER_SetCallback(stimer_t *timer, uint32_t (*callback)(struct stimer *));
 uint32_t STIMER_IsActive(stimer_t *timer);
 void STIMER_Handler(void);              // handler for interrupt, called periodically and increments counts by 1
 void STIMER_Tick(uint32_t tick);        // function call for application loop for counts increment.
