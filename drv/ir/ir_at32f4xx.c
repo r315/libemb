@@ -286,9 +286,21 @@ void IR_Receive(uint16_t *buf, uint16_t len)
     }
 
     hir.rx.dma.len = len;
+    hir.rx.tmr->STS = 0;
     DMA_SetDst(&hir.rx.dma, (void*)buf);
     DMA_Start(&hir.rx.dma);
     hir.rx.tmr->DIE = TMR_DIE_UEVIE | TMR_DIE_C2DE;
+}
+
+/**
+ * @brief
+ * @param
+ */
+void IR_CancelReceive(void)
+{
+    DMA_Cancel(&hir.rx.dma);
+    hir.rx.tmr->DIE = 0;
+    hir.rx.tmr->STS = 0;
 }
 
 void TMR1_OV_TMR10_IRQHandler(void)
