@@ -11,7 +11,7 @@
 #define IR_CARRIER_FREQ     36000UL
 #define IR_CARRIER_T        (1000000UL / IR_CARRIER_FREQ)
 #define IR_CARRIER_DUTY     7   /* duty must be between 25% and 50% */
-#define TMR_CCM1_C1OCTRL_PWM_B  (7 << 4);           // PWM_B low when CCx > CNT
+#define TMR_CCM1_C1OCTRL_PWM_B  (7 << 4)           // PWM_B low when CCx > CNT
 
 #ifdef ENABLE_IR_DUPLEX
 #define IR_TX_TMR           TMR3
@@ -91,8 +91,7 @@ static void ir_eot_handler(void)
     uint16_t duration = *(++hir.tx.sequence);
     hir.tx.duty = (duration & 0x8000) ? IR_CARRIER_T - IR_CARRIER_DUTY : IR_CARRIER_T + 1;
     hir.tx.dma.len = (duration & 0x7FFF) / IR_CARRIER_T;
-
-    ir_tx_start();
+    DMA_Start(&hir.tx.dma);
 }
 
 /**
@@ -111,7 +110,7 @@ static void ir_init_tx(void)
 {
     hir.tx.tmr->AR = IR_CARRIER_T;
     hir.tx.tmr->CC1 = IR_CARRIER_T - IR_CARRIER_DUTY;
-    hir.tx.tmr->CCM1 = TMR_CCM1_C1OCTRL_PWM_B;
+    hir.tx.tmr->CCM1 = TMR_CCM1_C1OCTRL_PWM_B | TMR_CCM1_OC1PEN;
     hir.tx.tmr->CCE = TMR_CCE_C1EN;
     hir.tx.tmr->DIE = TMR_DIE_C1DE;       // request DMA on match
     hir.tx.tmr->BRKDT = TMR_BRKDT_AOEN;
