@@ -41,10 +41,6 @@ extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _stack, _estack;
 
 WEAK int main(void){}
 WEAK void  __libc_init_array(void);
-WEAK int _close(int file) { (void)file; return -1; }
-WEAK int _lseek(int file, int ptr, int dir) { (void)file; (void)ptr; (void)dir; return -1; }
-WEAK int _read(int file, char *ptr, int len) { (void)file; (void)ptr; (void)len; return -1; }
-WEAK int _write(int file, char *ptr, int len) { (void)file; (void)ptr; (void)len; return -1; }
 
 static void fault_init(void)
 {
