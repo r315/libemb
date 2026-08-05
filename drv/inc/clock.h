@@ -25,6 +25,7 @@ typedef struct sysclock {
 void CLOCK_GetAll(sysclock_t *clk);
 uint32_t CLOCK_Get(enum clocknr clock);
 void CLOCK_Output(uint8_t src, uint8_t div, uint8_t en);
+void CLOCK_Enable(void *per, uint8_t state);
 
 #ifdef __cplusplus
 }

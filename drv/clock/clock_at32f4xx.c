@@ -149,8 +149,9 @@ uint32_t CLOCK_Get(enum clocknr clock)
     }
 }
 
-void CLOCK_Enable(uint32_t per, uint8_t state)
+void CLOCK_Enable(void *peripheral, uint8_t state)
 {
+    uint32_t per = (uint32_t)peripheral;
     uint32_t shift = (per >> 10) & 0x3F;
     uint32_t mask = (1 << shift);
 
