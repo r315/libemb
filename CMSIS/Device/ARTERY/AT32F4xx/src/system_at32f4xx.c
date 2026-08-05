@@ -20,68 +20,23 @@
 #define PLL_MS_MASK                     ((uint32_t)0x000000F0)
 #define PLL_NS_MASK                     ((uint32_t)0x0001FF00)
 #define PLL_FR_MASK                     ((uint32_t)0x00000007)
-#define PLL_FR_1                        ((uint32_t)0x00000000)
-#define PLL_FR_2                        ((uint32_t)0x00000001)
-#define PLL_FR_4                        ((uint32_t)0x00000002)
-#define PLL_FR_8                        ((uint32_t)0x00000003)
-#define PLL_FR_16                       ((uint32_t)0x00000004)
-#define PLL_FR_32                       ((uint32_t)0x00000005)
-
-#define RCC_FR_VALUE(VALUE, RET)        do { \
-                                            switch (VALUE) { \
-                                            default: RET = 1; break; \
-                                            case PLL_FR_1: RET = 1; break; \
-                                            case PLL_FR_2: RET = 2; break; \
-                                            case PLL_FR_4: RET = 4; break; \
-                                            case PLL_FR_8: RET = 8; break; \
-                                            case PLL_FR_16: RET = 16; break; \
-                                            case PLL_FR_32: RET = 32; break; }\
-                                        }while(0)
-
-
-void RCC_PLLconfig2(uint32_t PLL_ns, uint32_t PLL_ms, uint32_t PLL_fr)
-{
-    uint32_t pll_reg = 0, pllrefclk = 0, pllrcfreq = 0;
-
-    pllrefclk = RCC->CFG & RCC_CFG_PLLRC;
-
-    if (pllrefclk == 0x00){
-        /* HSI oscillator clock divided by 2 selected as PLL clock entry */
-        pllrcfreq = (HSI_VALUE >> 1);
-    }else{
-        pllrcfreq = HSE_VALUE;
-        /* HSE selected as PLL clock entry */
-        if ((RCC->CFG & RCC_CFG_PLLHSEPSC) != (uint32_t)RESET)    {
-            /* HSE oscillator clock divided by 2 */
-            pllrcfreq = (pllrcfreq >> 1);
-        }
-    }
-
-    pll_reg = RCC->PLL;
-
-    /* Clear PLL */
-    pll_reg &= ~(PLL_FR_MASK | PLL_MS_MASK | PLL_NS_MASK | PLL_FREF_MASK | PLL_CFGEN_MASK);
-
-    /* Config pll */
-    pll_reg |= ((PLL_ns << PLL_NS_POS) | (PLL_ms << PLL_MS_POS) | PLL_fr);
-
-    /* Enable PLLGEN */
-    pll_reg |= PLL_CFGEN_ENABLE;
-
-    RCC->PLL = pll_reg;
-}
 #endif
 
 uint32_t SystemCoreClock;
+static uint32_t fpll;
 static const uint8_t AHBPscTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 
-void SystemCoreClockUpdate(void)
+/**
+ * @brief
+ * @param
+ * @return
+ */
+uint32_t SystemCoreClockUpdate(void)
 {
     uint32_t tmp = 0, pllmult = 0, pllrefclk = 0, tempcfg = 0;
 
 #if defined(AT32F415xx) || defined(AT32F421xx)
-    uint32_t pllcfgen = 0, pllns = 0, pllms = 0, pllfr = 0;
-    uint32_t pllsrcfreq = 0, retfr = 0;
+    uint32_t pllsrcfreq = 0, pllns = 0, pllms = 0, pllfr = 0;
 #endif
 #if defined(AT32F403Axx) || defined(AT32F407xx)
     uint32_t prediv = 0;
@@ -101,21 +56,17 @@ void SystemCoreClockUpdate(void)
 
     case RCC_CFG_SYSCLKSTS_PLL: /* PLL used as system clock */
         /* Get PLL clock source and multiplication factor ----------------------*/
-        pllrefclk = RCC->CFG & RCC_CFG_PLLRC;
         tempcfg = RCC->CFG;
+        pllrefclk = tempcfg & RCC_CFG_PLLRC;
         pllmult = RCC_GET_PLLMULT(tempcfg);
 
 #if defined(AT32F415xx) || defined(AT32F421xx)
-        /* Get_ClocksFreq for PLLconfig2 */
-        pllcfgen = BIT_READ(RCC->PLL, PLL_CFGEN_MASK);
-
-        if (pllcfgen == PLL_CFGEN_ENABLE)
+        if (BIT_READ(RCC->PLL, PLL_CFGEN_MASK) == PLL_CFGEN_ENABLE)
         {
-            pllns = BIT_READ(RCC->PLL, PLL_NS_MASK);
-            pllms = BIT_READ(RCC->PLL, PLL_MS_MASK);
-            pllfr = BIT_READ(RCC->PLL, PLL_FR_MASK);
-
-            RCC_FR_VALUE(pllfr, retfr);
+            /* PLL is using flexible configuration */
+            pllns = BIT_READ(RCC->PLL, PLL_NS_MASK) >> PLL_NS_POS; // multiplier
+            pllms = BIT_READ(RCC->PLL, PLL_MS_MASK) >> PLL_MS_POS; // pre-division
+            pllfr = (1 << BIT_READ(RCC->PLL, PLL_FR_MASK));        // post-division
 
             if (pllrefclk == 0x00)
             {
@@ -135,8 +86,7 @@ void SystemCoreClockUpdate(void)
                 }
             }
 
-            SystemCoreClock = (pllsrcfreq * (pllns >> PLL_NS_POS)) /
-                              ((pllms >> PLL_MS_POS) * retfr);
+            SystemCoreClock = (pllsrcfreq * pllns) / (pllms * pllfr);
         }
         else
 #endif
@@ -184,87 +134,15 @@ void SystemCoreClockUpdate(void)
     tmp = AHBPscTable[((RCC->CFG & RCC_CFG_AHBPSC) >> 4)];
     /* HCLK clock frequency */
     SystemCoreClock >>= tmp;
+
+    return SystemCoreClock;
 }
 
-static void SystemCoreClockSet(void)
-{
-    __IO uint32_t StartUpCounter = 0, HSIStatus = 0;
-
-    /* SYSCLK, HCLK, PCLK2 and PCLK1 configuration ---------------------------*/
-    /* Enable HSI */
-    RCC->CTRL |= ((uint32_t)RCC_CTRL_HSIEN);
-
-    /* Wait till HSI is ready and if Time out is reached exit */
-    do
-    {
-        HSIStatus = RCC->CTRL & RCC_CTRL_HSISTBL;
-        StartUpCounter++;
-    } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
-
-    if ((RCC->CTRL & RCC_CTRL_HSISTBL) != RESET)
-    {
-        HSIStatus = (uint32_t)0x01;
-    }
-    else
-    {
-        HSIStatus = (uint32_t)0x00;
-    }
-
-    if (HSIStatus == (uint32_t)0x01)
-    {
-#if defined(AT32F415xx)
-        /* Enable Prefetch Buffer */
-        FLASH->ACR |= FLASH_ACR_PRFTBE;
-
-        /* Flash 1 wait state */
-        FLASH->ACR &= (uint32_t)((uint32_t)~FLASH_ACR_LATENCY);
-        FLASH->ACR |= (uint32_t)FLASH_ACR_LATENCY_4;
-#endif
-        /* HCLK = SYSCLK */
-        RCC->CFG |= (uint32_t)RCC_CFG_AHBPSC_DIV1;
-
-        /* PCLK2 = HCLK/2 */
-        RCC->CFG &= 0xFFFFC7FF;
-        RCC->CFG |= (uint32_t)RCC_CFG_APB2PSC_DIV2;
-
-        /* PCLK1 = HCLK/2 */
-        RCC->CFG &= 0xFFFFF8FF;
-        RCC->CFG |= (uint32_t)RCC_CFG_APB1PSC_DIV2;
-
-        /*  PLL configuration: PLLCLK = ((HSI/2) * 150) / (1 * 4) = 150 MHz */
-        RCC->CFG &= RCC_CFG_PLLCFG_MASK;
-        RCC->CFG |= (uint32_t)(RCC_CFG_PLLRC_HSI_DIV2);
-        RCC_PLLconfig2(150, 1, PLL_FR_4);
-
-        /* Enable PLL */
-        RCC->CTRL |= RCC_CTRL_PLLEN;
-
-        /* Wait till PLL is ready */
-        while ((RCC->CTRL & RCC_CTRL_PLLSTBL) == 0)
-        {
-        }
-#if defined(AT32F413xx) || defined(AT32F403Axx) || \
-    defined(AT32F407xx) || defined(AT32F415xx)
-        RCC->MISC2 |= RCC_AUTO_STEP_EN;
-#endif
-        /* Select PLL as system clock source */
-        RCC->CFG &= (uint32_t)((uint32_t) ~(RCC_CFG_SYSCLKSEL));
-        RCC->CFG |= (uint32_t)RCC_CFG_SYSCLKSEL_PLL;
-
-        /* Wait till PLL is used as system clock source */
-        while ((RCC->CFG & (uint32_t)RCC_CFG_SYSCLKSTS) != RCC_CFG_SYSCLKSTS_PLL)
-        {
-        }
-#ifdef AT32F403xx
-        WaitHseStbl(PLL_STABLE_DELAY);
-#endif
-#if defined(AT32F413xx) || defined(AT32F403Axx) || \
-    defined(AT32F407xx) || defined(AT32F415xx)
-        RCC->MISC2 &= ~RCC_AUTO_STEP_EN;
-#endif
-    }
-}
-
+/**
+ * @brief Default system clock configuration, 150MHz
+ *        from HICK
+ * @param
+ */
 void SystemInit(void)
 {
 #if defined(__FPU_USED) && (__FPU_USED == 1U)
@@ -276,24 +154,25 @@ void SystemInit(void)
     RCC->APB1EN &= ~RCC_APB1PERIPH_PWR;
 
     /* Reset the RCC clock configuration to the default reset state(for debug purpose) */
-    /* Set HSIEN bit */
+
+    /* Set HSIEN to enable internal 8MHz oscillator */
     BIT_SET(RCC->CTRL, RCC_CTRL_HSIEN);
 
     /* Reset SW, AHBPSC, APB1PSC, APB2PSC, ADCPSC and CLKOUT bits */
     BIT_CLEAR(RCC->CFG, RCC_CFG_SYSCLKSEL | RCC_CFG_AHBPSC |
-                            RCC_CFG_APB1PSC | RCC_CFG_APB2PSC |
-                            RCC_CFG_ADCPSC | RCC_CFG_CLKOUT);
+                        RCC_CFG_APB1PSC | RCC_CFG_APB2PSC |
+                        RCC_CFG_ADCPSC | RCC_CFG_CLKOUT);
 
     /* Reset HSEEN, HSECFDEN and PLLEN bits */
     BIT_CLEAR(RCC->CTRL, RCC_CTRL_HSEEN | RCC_CTRL_HSECFDEN |
-                             RCC_CTRL_PLLEN);
+                         RCC_CTRL_PLLEN);
 
     /* Reset HSEBYPS bit */
     BIT_CLEAR(RCC->CTRL, RCC_CTRL_HSEBYPS);
 
     /* Reset PLLRC, PLLHSEPSC, PLLMUL, USBPSC and PLLRANGE bits */
     BIT_CLEAR(RCC->CFG, RCC_CFG_PLLRC | RCC_CFG_PLLHSEPSC |
-                            RCC_CFG_PLLMULT | RCC_CFG_USBPSC | RCC_CFG_PLLRANGE);
+                        RCC_CFG_PLLMULT | RCC_CFG_USBPSC | RCC_CFG_PLLRANGE);
 
     /* Reset USB768B, CLKOUT[3], HSICAL_KEY[7:0] */
     BIT_CLEAR(RCC->MISC, 0x010100FF);
@@ -303,10 +182,55 @@ void SystemInit(void)
                   RCC_CLKINT_HSISTBLFC | RCC_CLKINT_HSESTBLFC |
                   RCC_CLKINT_PLLSTBLFC | RCC_CLKINT_HSECFDFC;
 
-    /* Configure the System clock frequency, HCLK, PCLK2 and PCLK1 prescalers */
-    /* Configure the Flash Latency cycles and enable prefetch buffer */
-    SystemCoreClockSet();
+/* -------- Configure the System clock frequency, HCLK, PCLK2 and PCLK1 prescalers --------*/
+    // Hang if HSI is not stable
+    while ((RCC->CTRL & RCC_CTRL_HSISTBL) == 0);
+
+    #if defined(AT32F415xx)
+    /* Enable Prefetch Buffer */
+    FLASH->ACR |= FLASH_ACR_PRFTBE;
+
+    /* Flash 4 wait cycles */
+    FLASH->ACR &= (uint32_t)((uint32_t)~FLASH_ACR_LATENCY);
+    FLASH->ACR |= (uint32_t)FLASH_ACR_LATENCY_4;
+    #endif
+
+    /* HCLK = SYSCLK */
+    RCC->CFG |= (uint32_t)RCC_CFG_AHBPSC_DIV1;
+    /* PCLK2 = HCLK/2 */
+    RCC->CFG &= 0xFFFFC7FF;
+    RCC->CFG |= (uint32_t)RCC_CFG_APB2PSC_DIV2;
+    /* PCLK1 = HCLK/2 */
+    RCC->CFG &= 0xFFFFF8FF;
+    RCC->CFG |= (uint32_t)RCC_CFG_APB1PSC_DIV2;
+    /* PLL source = HSI/2 */
+    RCC->CFG &= RCC_CFG_PLLCFG_MASK;
+    RCC->CFG |= (uint32_t)(RCC_CFG_PLLRC_HSI_DIV2);
+    /* PLL configuration: PLLCLK = ((HSI/2) * 150) / (1 * 4) = 150 MHz */
+    uint32_t pll_ns = 150;
+    uint32_t pll_ms = 1;
+    uint32_t pll_fr = 2;
+    uint32_t pll_reg = RCC->PLL;
+    /* Clear any configuration */
+    pll_reg &= ~(PLL_FR_MASK | PLL_MS_MASK | PLL_NS_MASK | PLL_FREF_MASK | PLL_CFGEN_MASK);
+    /* set new configuration */
+    pll_reg |= ((pll_ns << PLL_NS_POS) | (pll_ms << PLL_MS_POS) | pll_fr);
+    /* Use flexible pll configuration */
+    pll_reg |= PLL_CFGEN_ENABLE;
+    /* Apply configuration */
+    RCC->PLL = pll_reg;
+    /* Enable PLL */
+    RCC->CTRL |= RCC_CTRL_PLLEN;
+    /* Wait till PLL is ready */
+    while ((RCC->CTRL & RCC_CTRL_PLLSTBL) == 0)
+    {
+    }
+
+    /* Select PLL as system clock source */
+    SystemConfigClockSrc(RCC_CFG_SYSCLKSEL_PLL);
+
     SystemCoreClockUpdate();
+
 #ifdef VECT_TAB_SRAM
     SCB->VTOR = SRAM_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM. */
 #else
@@ -315,12 +239,12 @@ void SystemInit(void)
 }
 
 /**
- * @brief       PLLCLK = fosc / pll_ms * pll_ns / pll_fr
- * @param fin
- * @param fout
+ * @brief           PLLCLK = fosc / ms * ns / fr
+ * @param fin       pll source frequency in khz
+ * @param fout      desired pll output frequency in khz
  * @return
  */
-static uint32_t SystemComputePll(uint32_t fin, uint32_t fout)
+static uint32_t configurePll(uint32_t fin, uint32_t fout)
 {
     uint32_t pll_cfg;
 
@@ -346,8 +270,6 @@ static uint32_t SystemComputePll(uint32_t fin, uint32_t fout)
 
     // use flexible configuration
 
-    pll_cfg = RCC_PLL_PLLCFGEN;
-
     for (uint32_t ms = 1; ms <= 64; ms++)
     {
         uint32_t fref = fin / ms;
@@ -356,9 +278,9 @@ static uint32_t SystemComputePll(uint32_t fin, uint32_t fout)
         if (fref < 2000U || fref > 16000U)
             continue;
 
-        for (uint32_t fr = 1; fr <= 64; fr++)
+        for (uint8_t pdiv = 1; pdiv <= 64; pdiv++)
         {
-            uint32_t numerator   = (uint32_t)fout * ms * fr;
+            uint32_t numerator   = (uint32_t)fout * ms * pdiv;
 
             // Require exact integer multiplier
             if ((numerator % fin) != 0)
@@ -375,11 +297,19 @@ static uint32_t SystemComputePll(uint32_t fin, uint32_t fout)
             if (vco < 500000ULL || vco > 1000000ULL)
                 continue;
 
-            pll_cfg |= (ns << 8) | (ms << 4) | (fr << 0);
+            vco = vco * 1000 / pdiv;
+
+            uint8_t fr = 0;
+
+            while(pdiv != (1 << fr)){
+                fr++;
+            }
+
+            pll_cfg = RCC_PLL_PLLCFGEN | (ns << PLL_NS_POS) | (ms << PLL_MS_POS) | (fr << PLL_FR_POS);
 
             RCC->PLL = pll_cfg;
 
-            return vco * 1000 / fr;
+            return vco;
         }
     }
 
@@ -387,23 +317,32 @@ static uint32_t SystemComputePll(uint32_t fin, uint32_t fout)
 }
 
 /**
- * @brief
+ * @brief   Configure PLL to generate an given output frequency
+ *          Note: System clock source cannot be PLL when calling this
+ *          function
+ *
+ * @param pll_src   PLL source clock
+ *                  RCC_CFG_PLLRC_HSE
+ *                  RCC_CFG_PLLRC_HSI_DIV2
+ *
  * @param fosc      Input frequency
- * @param pll_src   Source of input frequency, 0:HIC, 1:HEXT
  * @param pllclk    Desired output clock
+ *
  * @return          Real pllclk, 0 if fail
  */
-uint32_t SystemConfigPll(uint8_t pll_src, uint32_t fosc, uint32_t pllclk)
+uint32_t SystemConfigPll(uint32_t pll_src, uint32_t fosc, uint32_t pllclk)
 {
     __IO uint32_t StartUpCounter = 0, HSIStatus = 0;
-    uint32_t fout;
 
     // Check if system is currenly using pll
     if(((RCC->CTRL & RCC_CFG_SYSCLKSTS) >> 2) == 2){
         return 0;
     }
 
-    pll_src &= 1;
+    // Disable pll
+    RCC->CTRL &= ~RCC_CTRL_PLLEN;
+
+    pll_src &= RCC_CFG_PLLRC_HSE;
 
     if(pll_src){
         // HEXT
@@ -433,14 +372,12 @@ uint32_t SystemConfigPll(uint8_t pll_src, uint32_t fosc, uint32_t pllclk)
         }
     }
 
-    // Disable pll
-    RCC->CTRL &= ~RCC_CTRL_PLLEN;
-    // Set clock src
-    RCC->CFG = (RCC->CFG & ~RCC_CFG_PLLRC) | (pll_src << 16);
+    // Set pll clock src
+    RCC->CFG = (RCC->CFG & ~RCC_CFG_PLLRC) | pll_src;
 
-    fout = SystemComputePll(fosc, pllclk);
+    fpll = configurePll(fosc, pllclk);
 
-    if(fout){
+    if(fpll){
         // Enable pll
         StartUpCounter = 0;
         RCC->CTRL |= RCC_CTRL_PLLEN;
@@ -451,13 +388,17 @@ uint32_t SystemConfigPll(uint8_t pll_src, uint32_t fosc, uint32_t pllclk)
         } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
     }
 
-    return fout;
+    return fpll;
 }
 
 /**
  * @brief
  * @param src   Switch system clock
- * @return      0 on timeout, src otherwise
+ *              RCC_CFG_SYSCLKSEL_PLL
+ *              RCC_CFG_SYSCLKSEL_HSE
+ *              RCC_CFG_SYSCLKSEL_HSI
+ *
+ * @return      3 on timeout, src otherwise
  */
 uint32_t SystemConfigClockSrc(uint8_t src)
 {
@@ -465,15 +406,48 @@ uint32_t SystemConfigClockSrc(uint8_t src)
 
     src &= 3;
 
+    #if defined(AT32F413xx) || defined(AT32F403Axx) || \
+        defined(AT32F407xx) || defined(AT32F415xx)
+    RCC->MISC2 |= RCC_AUTO_STEP_EN;
+    #endif
+
+    #if defined(AT32F415xx)
+    if(src == RCC_CFG_SYSCLKSEL_PLL){
+        uint32_t fls_acr = FLASH->ACR & ~(FLASH_ACR_LATENCY);
+
+        if(fpll <= 32000000UL){
+            fls_acr |= FLASH_ACR_LATENCY_0;
+        }else if(fpll <= 64000000UL){
+            fls_acr |= FLASH_ACR_LATENCY_1;
+        }else if(fpll <= 96000000UL){
+            fls_acr |= FLASH_ACR_LATENCY_2;
+        }else if(fpll <= 128000000UL){
+            fls_acr |= FLASH_ACR_LATENCY_3;
+        }else {
+            fls_acr |= FLASH_ACR_LATENCY_4;
+        }
+
+        FLASH->ACR = fls_acr | FLASH_ACR_PRFTBE;
+    }
+    #endif
+
     /* Select PLL as system clock source */
     RCC->CFG = (RCC->CFG & ~(RCC_CFG_SYSCLKSEL)) | src;
 
     do{
         HSIStatus = (RCC->CFG & RCC_CFG_SYSCLKSTS) >> 2;
         if(HSIStatus == src){
-            return src;
+            break;
         }
     } while ((++StartUpCounter) != 0xFFFF);
 
-    return 0;
+    #ifdef AT32F403xx
+    WaitHseStbl(PLL_STABLE_DELAY);
+    #endif
+    #if defined(AT32F413xx) || defined(AT32F403Axx) || \
+        defined(AT32F407xx) || defined(AT32F415xx)
+    RCC->MISC2 &= ~RCC_AUTO_STEP_EN;
+    #endif
+
+    return (HSIStatus == src) ? src : 3;
 }
