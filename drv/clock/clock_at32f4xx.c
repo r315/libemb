@@ -174,12 +174,32 @@ void CLOCK_Enable(void *peripheral, uint8_t state)
  * @brief Enable/disable Main Clock Output.
  *      Configures PA8 to output the desired clock
  *
- * @param src Source of output clock
- * @param en  Enable/Disable
+ * @param src Source of output clock and division
+ *
+ *   src[3:0]:
+ *          MCO_NONE  - disabled
+ *          MCO_HEXT
+ *          MCO_HICK
+ *          MCO_PLL_4
+ *          MCO_PLL_2
+ *          MCO_LEXT
+ *          MCO_LICK
+ *          MCO_ADC
+ *          MCO_USB
+ *          MCO_SCLK
+ *
+ *   src[7:4]:
+ *          MCO_DIV_1
+ *          .....
+ *          MCO_DEV_512
+ *
  */
-void CLOCK_Output(uint8_t src, uint8_t div, uint8_t en)
+void CLOCK_Output(uint32_t src)
 {
-    if(!en){
+    uint8_t div = (src >> 4) & 15;
+    src = src & 15;
+
+    if(!src){
         // PA8 Input float
         GPIOA->CTRLH = (GPIOA->CTRLH & ~(15 << 0)) | (4 << 0);
         // Disable clock out source
@@ -187,7 +207,6 @@ void CLOCK_Output(uint8_t src, uint8_t div, uint8_t en)
         RCC->MISC = (RCC->MISC & 0xFFFEFFFF);
     }else{
         // Set division and CLKOUT_SEL[3]
-        div &= 15;
         RCC->MISC = (RCC->MISC & 0x0FFEFFFF) | (div << 28) | ((src & 8) << 13);
         // Set CLKOUT_SEL[2:0]
         RCC->CFG = (RCC->CFG & ~(7 << 24)) | ((src & 7) << 24);
