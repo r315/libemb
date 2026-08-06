@@ -185,15 +185,25 @@ typedef enum {
 #define GPIO_IOMUX_BIT_Pos              8
 #define GPIO_IOMUX_GMUX_Pos             4
 #define GPIO_IOMUX_CFG                  (1 << GPIO_IOMUX_CFG_Pos)
-#define GPIO_IOMUX_REGMAP(cfg)          ((cfg >> GPIO_IOMUX_REMAP_Pos) & 7) /* Offset starting from &AFIO->MAP */
+#define GPIO_IOMUX_REMAP_OFFSET(cfg)    ((cfg >> GPIO_IOMUX_REMAP_Pos) & 7) /* Offset starting from &AFIO->MAP */
 #define GPIO_IOMUX_GMUX(cfg)            ((cfg >> GPIO_IOMUX_GMUX_Pos) & 15)
 #define GPIO_IOMUX_BIT(cfg)             ((cfg >> GPIO_IOMUX_BIT_Pos) & 31)
+#define GPIO_IOMUX_REMAP                (0 << GPIO_IOMUX_REMAP_Pos)
+#define GPIO_IOMUX_REMAP2               (6 << GPIO_IOMUX_REMAP_Pos)
+#define GPIO_IOMUX_REMAP3               (7 << GPIO_IOMUX_REMAP_Pos)
+#define GPIO_IOMUX_REMAP4               (8 << GPIO_IOMUX_REMAP_Pos)
+#define GPIO_IOMUX_REMAP5               (9 << GPIO_IOMUX_REMAP_Pos)
+#define GPIO_IOMUX_REMAP6               (10 << GPIO_IOMUX_REMAP_Pos)
+#define GPIO_IOMUX_REMAP7               (11 << GPIO_IOMUX_REMAP_Pos)
+#define GPIO_IOMUX_REMAP8               (12 << GPIO_IOMUX_REMAP_Pos)
 
-#define TMR9_GMUX_PB14_PB15             (GPIO_IOMUX_CFG | (7 << GPIO_IOMUX_REMAP_Pos) | (0 << GPIO_IOMUX_BIT_Pos) | (2 << GPIO_IOMUX_GMUX_Pos))
-#define TMR11_GMUX_PA7                  (GPIO_IOMUX_CFG | (7 << GPIO_IOMUX_REMAP_Pos) | (8 << GPIO_IOMUX_BIT_Pos) | (2 << GPIO_IOMUX_GMUX_Pos))
+#define TMR9_GMUX_PB14_PB15             (GPIO_IOMUX_CFG | GPIO_IOMUX_REMAP3 | (0 << GPIO_IOMUX_BIT_Pos) | (2 << GPIO_IOMUX_GMUX_Pos))
+#define TMR11_GMUX_PA7                  (GPIO_IOMUX_CFG | GPIO_IOMUX_REMAP3 | (8 << GPIO_IOMUX_BIT_Pos) | (2 << GPIO_IOMUX_GMUX_Pos))
+#define TMR2_GMUX_01                    (GPIO_IOMUX_CFG | GPIO_IOMUX_REMAP  | (8 << GPIO_IOMUX_BIT_Pos) | (1 << GPIO_IOMUX_GMUX_Pos))
 
 #define GPIO_AF_TMR9_CH2                (TMR9_GMUX_PB14_PB15 | GPO_HS_AF)
 #define GPIO_AF_TMR11_CH1               (TMR11_GMUX_PA7 | GPO_HS_AF)
+#define GPIO_AF_TMR2_EXT                (TMR2_GMUX_01 | GPI_PD)
 
 #ifdef __cplusplus
 }
