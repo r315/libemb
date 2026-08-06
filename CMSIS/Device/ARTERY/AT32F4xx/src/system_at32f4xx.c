@@ -398,13 +398,19 @@ uint32_t SystemConfigPll(uint32_t pll_src, uint32_t fosc, uint32_t pllclk)
  *              RCC_CFG_SYSCLKSEL_HSE
  *              RCC_CFG_SYSCLKSEL_HSI
  *
- * @return      3 on timeout, src otherwise
+ * @return      0 on timeout, 1 otherwise
  */
 uint32_t SystemConfigClockSrc(uint8_t src)
 {
-    __IO uint32_t StartUpCounter = 0, HSIStatus = 0;
+    __IO uint32_t StartUpCounter = 0;
 
     src &= 3;
+
+    uint32_t sclksel = (RCC->CFG & RCC_CFG_SYSCLKSTS) >> 2;
+    /* Check if we are already running on source */
+    if (sclksel == src){
+        return src;
+    }
 
     #if defined(AT32F413xx) || defined(AT32F403Axx) || \
         defined(AT32F407xx) || defined(AT32F415xx)
@@ -413,6 +419,7 @@ uint32_t SystemConfigClockSrc(uint8_t src)
 
     #if defined(AT32F415xx)
     if(src == RCC_CFG_SYSCLKSEL_PLL){
+        /* Configure flash wait cycles */
         uint32_t fls_acr = FLASH->ACR & ~(FLASH_ACR_LATENCY);
 
         if(fpll <= 32000000UL){
@@ -428,15 +435,20 @@ uint32_t SystemConfigClockSrc(uint8_t src)
         }
 
         FLASH->ACR = fls_acr | FLASH_ACR_PRFTBE;
+        /* Configure system clock dividers */
+        if(fpll == 150000000UL){
+            RCC->CFG &= ~(RCC_CFG_AHBPSC | RCC_CFG_APB2PSC | RCC_CFG_APB1PSC | RCC_CFG_ADCPSC);
+            RCC->CFG |= (RCC_CFG_AHBPSC_DIV1 | RCC_CFG_APB2PSC_DIV2 | RCC_CFG_APB1PSC_DIV2 | RCC_CFG_ADCPSC_DIV6);
+        }
     }
     #endif
 
-    /* Select PLL as system clock source */
+    /* Set system clock source */
     RCC->CFG = (RCC->CFG & ~(RCC_CFG_SYSCLKSEL)) | src;
 
     do{
-        HSIStatus = (RCC->CFG & RCC_CFG_SYSCLKSTS) >> 2;
-        if(HSIStatus == src){
+        sclksel = (RCC->CFG & RCC_CFG_SYSCLKSTS) >> 2;
+        if(sclksel == src){
             break;
         }
     } while ((++StartUpCounter) != 0xFFFF);
@@ -449,5 +461,5 @@ uint32_t SystemConfigClockSrc(uint8_t src)
     RCC->MISC2 &= ~RCC_AUTO_STEP_EN;
     #endif
 
-    return (HSIStatus == src) ? src : 3;
+    return !!(sclksel == src);
 }
