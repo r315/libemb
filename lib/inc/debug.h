@@ -39,9 +39,9 @@ extern "C" {
 #define DBG_PRINTLN(...) do { DBG_PRINTF(__VA_ARGS__); dbg_putchar('\n'); } while(0)
 #endif
 
-#define DBG_INF(...) DBG_PRINTLN(VT100_GREEN "[INFO] " VT100_NORMAL __VA_ARGS__)
-#define DBG_WRN(...) DBG_PRINTLN(VT100_YELLOW "[WARN] " VT100_NORMAL __VA_ARGS__)
-#define DBG_ERR(...) DBG_PRINTLN(VT100_RED "[ERROR] " VT100_NORMAL __VA_ARGS__)
+#define DBG_INF(...) DBG_PRINTLN(VT100_GREEN "[INFO]\t" VT100_NORMAL __VA_ARGS__)
+#define DBG_WRN(...) DBG_PRINTLN(VT100_YELLOW "[WARN]\t" VT100_NORMAL __VA_ARGS__)
+#define DBG_ERR(...) DBG_PRINTLN(VT100_RED "[ERROR]\t" VT100_NORMAL __VA_ARGS__)
 #define DBG_CHAR(_X) dbg_putchar(_X)
 #define DBG_HEXDUMP dbg_hexdump
 #define DBG_HEXPRINT dbg_hexprint
