@@ -201,9 +201,10 @@ typedef enum {
 #define TMR11_GMUX_PA7                  (GPIO_IOMUX_CFG | GPIO_IOMUX_REMAP3 | (8 << GPIO_IOMUX_BIT_Pos) | (2 << GPIO_IOMUX_GMUX_Pos))
 #define TMR2_GMUX_01                    (GPIO_IOMUX_CFG | GPIO_IOMUX_REMAP  | (8 << GPIO_IOMUX_BIT_Pos) | (1 << GPIO_IOMUX_GMUX_Pos))
 
-#define GPIO_AF_TMR9_CH2                (TMR9_GMUX_PB14_PB15 | GPO_HS_AF)
-#define GPIO_AF_TMR11_CH1               (TMR11_GMUX_PA7 | GPO_HS_AF)
-#define GPIO_AF_TMR2_EXT                (TMR2_GMUX_01 | GPI_PD)
+/* This only makes remap, is a given function is output, OR it with appropriated GPO_XX_XX */
+#define GPIO_REMAP_PB14_TMR9_CH1        (TMR9_GMUX_PB14_PB15)
+#define GPIO_REMAP_PA7_TMR11_CH1        (TMR11_GMUX_PA7)
+#define GPIO_REMAP_PA15_TMR2_EXT        (TMR2_GMUX_01 | GPI_PD)
 
 #ifdef __cplusplus
 }
