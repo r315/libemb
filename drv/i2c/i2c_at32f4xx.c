@@ -232,9 +232,11 @@ static void i2c_gpio_cfg(uint8_t bus_num)
             break;
 
         case I2C_BUS3:
+            // SCL:PF6 SDA:PF7
             RCC->APB2EN |= RCC_APB2EN_AFIOEN | RCC_APB2EN_GPIOFEN;
             AFIO->MAP5 = (AFIO->MAP & ~(7 << 8)) | AFIO_MAP5_I2C2_GRMP_11;
-            GPIOF->CTRLL = (GPIOF->CTRLL & ~(0xFF << 24)) | (0xAA << 24); // PF6/PF7
+            // AF OD configuration
+            GPIOF->CTRLL = (GPIOF->CTRLL & ~(0xFF << 24)) | (0xFF << 24);
             break;
 
         default:
