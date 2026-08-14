@@ -12,21 +12,30 @@
 #define DFSR_DWTTRAP    (1UL << 2)
 #define DFSR_VCATCH     (1UL << 3)
 #define DFSR_EXTERNAL   (1UL << 4)
-/* CFSR */
-#define CFSR_DIVBYZERO  (1UL << 25)
-#define CFSR_UNALIGNED  (1UL << 24)
-#define CFSR_NOCP       (1UL << 19)
-#define CFSR_INVPC      (1UL << 18)
-#define CFSR_INVSTATE   (1UL << 17)
-#define CFSR_UNDEFINSTR (1UL << 16)
+/* CFSR = UFRS | BFSR | MMFSR */
+/* MMFSR */
+#define MMFSR_IACCVIOL  (1UL << 0)  /* Instruction access violation flag    */
+#define MMFSR_DACCVIOL  (1UL << 1)  /* Data access violation flag           */
+#define MMFSR_MUNSTKERR (1UL << 3)  /* Fault on unstacking during exception return    */
+#define MMFSR_MSTKERR   (1UL << 4)  /* Fault on stacking during exception entry    */
+#define MMFSR_MLSPERR   (1UL << 5)  /* Fault during floating-point lazy stack preservation  */
+#define MMFSR_MMARVALID (1UL << 7)  /* MemManage Address Register valid flag; if set, the address in MMFAR    */
 /* BFSR */
-#define BFSR_BFARVALID  (1UL << 15)
-#define BFSR_LSPERR     (1UL << 13)
-#define BFSR_STKERR     (1UL << 12)
-#define BFSR_UNSTKERR   (1UL << 11)
-#define BFSR_IMPRECISERR (1UL << 10)
-#define BFSR_UNDEFINSTR (1UL << 9)
-#define BFSR_IBUSERR    (1UL << 8)
+#define BFSR_IBUSERR    (1UL << 8)  /* Instruction bus error (fault on instruction prefetch */
+#define BFSR_UNDEFINSTR (1UL << 9)  /* Precise data bus error; valid address is logged in BFAR */
+#define BFSR_IMPRECISERR (1UL << 10) /* Imprecise data bus error (write buffer delay; address not exact */
+#define BFSR_UNSTKERR   (1UL << 11) /* Fault on unstacking for exception return */
+#define BFSR_STKERR     (1UL << 12) /* Fault on stacking for exception entry */
+#define BFSR_LSPERR     (1UL << 13) /* Bus fault during floating-point lazy state preservation */
+#define BFSR_BFARVALID  (1UL << 15) /* Bus Fault Address Register valid flag; if set, BFAR holds the exact fault address */
+/* UFSR */
+#define UFSR_UNDEFINSTR (1UL << 16) /* The processor tried to execute an undefined/illegal instruction */
+#define UFSR_INVSTATE   (1UL << 17) /* The processor tried to switch to an invalid execution state (e.g., non-Thumb mode) */
+#define UFSR_INVPC      (1UL << 18) /* Invalid Program Counter value load (EXC_RETURN misuse) */
+#define UFSR_NOCP       (1UL << 19) /* Coprocessor usage fault (e.g., FFP instruction called when FPU is disabled) */
+#define UFSR_UNALIGNED  (1UL << 24) /* Unaligned memory access fault (when enabled in CCR) */
+#define UFSR_DIVBYZERO  (1UL << 25) /* Division by zero occurred (when enabled in CCR)*/
+
 
 #define WEAK    __attribute__((weak))
 #define ISR     __attribute__((section(".isr_vector")))
@@ -116,12 +125,12 @@ NORETURN void Stack_Dump(stackframe_t *frame)
     fault_print_hex(" CFSR (UFSR) ", cfsr);
     fault_print_char('\n');
 
-    if (cfsr & CFSR_DIVBYZERO) fault_print("  [!] DIVBYZERO: Division by zero\n");
-    if (cfsr & CFSR_UNALIGNED) fault_print("  [!] UNALIGNED: Unaligned access\n");
-    if (cfsr & CFSR_NOCP)      fault_print("  [!] NOCP: No coprocessor\n");
-    if (cfsr & CFSR_INVPC)     fault_print("  [!] INVPC: Invalid PC\n");
-    if (cfsr & CFSR_INVSTATE)  fault_print("  [!] INVSTATE: Invalid state\n");
-    if (cfsr & CFSR_UNDEFINSTR)fault_print("  [!] UNDEFINSTR: Undefined instruction\n");
+    if (cfsr & UFSR_DIVBYZERO) fault_print("  [!] DIVBYZERO: Division by zero\n");
+    if (cfsr & UFSR_UNALIGNED) fault_print("  [!] UNALIGNED: Unaligned access\n");
+    if (cfsr & UFSR_NOCP)      fault_print("  [!] NOCP: No coprocessor\n");
+    if (cfsr & UFSR_INVPC)     fault_print("  [!] INVPC: Invalid PC\n");
+    if (cfsr & UFSR_INVSTATE)  fault_print("  [!] INVSTATE: Invalid state\n");
+    if (cfsr & UFSR_UNDEFINSTR)fault_print("  [!] UNDEFINSTR: Undefined instruction\n");
 
     fault_print("\n================================\n");
 
