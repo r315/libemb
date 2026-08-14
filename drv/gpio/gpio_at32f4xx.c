@@ -68,6 +68,8 @@ void GPIO_Config(pinName_e name, uint32_t cfg) {
         uint8_t gmux = GPIO_IOMUX_GMUX(cfg);
         uint32_t mask = ~(0xf << gmux_bit);
         uint32_t reg_val;
+        /* Offset starting from &AFIO->MAP */
+        remap_offset = (remap_offset) ? remap_offset + 5 : 0;
         __IO uint32_t *reg = &AFIO->MAP + remap_offset;
         reg_val = *reg & mask;
         *reg = reg_val | (gmux << gmux_bit);
