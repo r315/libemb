@@ -240,39 +240,71 @@ void SystemInit(void)
 
 /**
  * @brief           PLLCLK = fosc / ms * ns / fr
- * @param fin       pll source frequency in khz
- * @param fout      desired pll output frequency in khz
- * @return
+ * @param fin       pll source frequency in Hz
+ * @param fout      desired pll output frequency in Hz
+ * @return          Configured frequency in Hz
  */
 static uint32_t configurePll(uint32_t fin, uint32_t fout)
 {
-    uint32_t pll_cfg;
+    uint32_t pll_cfg, div, fref;
 
     fin /= 1000;
-
-    uint32_t div = fout / fin;
-
+    div = fout / fin;
     fout /= 1000;
 
     if((div % 1000) == 0){
-        pll_cfg = 0;
-        if(div > 64){
-            RCC->CFG |= RCC_CFG_PLLHSEPSC;
+        pll_cfg = RCC->CFG & ~(RCC_CFG_PLLHSEPSC | RCC_CFG_PLLMULT);
+        div /= 1000;
+
+        if(div > 128){
+            // Not possible
+            return 0;
         }
 
-        // é tarde e não me aptece fazer melhor
-        pll_cfg |= (3 << 24);
-        // Isto esta errad0
-        RCC->CFG = (RCC->CFG & ~RCC_CFG_PLLMULT) | (div << 18);
+        if(div > 64){
+            // divide it by 2
+            pll_cfg |= RCC_CFG_PLLHSEPSC;
+            div >>= 1;
+            fin <<= 1;
+        }
 
-        return fin * div;
+        if(fin < 5000){
+            fref = 0;
+        }else if(fin < 6250){
+            fref = 1;
+        }else if(fin < 8330){
+            fref = 2;
+        }else if(fin < 12500){
+            fref = 3;
+        }else if(fin < 20830){
+            fref = 4;
+        }else {
+            fref = 5;
+        }
+
+        fout = fin * div;
+
+        if(div < 2){
+            return 0;
+        }
+
+        div -= 2;
+
+        pll_cfg |= (div & 0x0F) << 18; // set bits 21:18
+        pll_cfg |= (div & 0x30) << 25; // set bits 30:29
+
+        RCC->CFG = pll_cfg;
+
+        RCC->PLL = (RCC->PLL & ~RCC_PLL_PLLFREF) | (fref << 24);
+
+        return fout * 1000;
     }
 
     // use flexible configuration
 
     for (uint32_t ms = 1; ms <= 64; ms++)
     {
-        uint32_t fref = fin / ms;
+        fref = fin / ms;
 
         // 2 MHz <= FIN/MS <= 16 MHz
         if (fref < 2000U || fref > 16000U)

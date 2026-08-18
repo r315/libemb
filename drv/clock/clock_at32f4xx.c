@@ -48,8 +48,8 @@ static uint32_t sclk(void)
             }else{
                 /* Get PLL clock source and multiplication factor ----------------------*/
                 tmp = (RCC->CFG & RCC_CFG_PLLMULT) >> 18;
-                pllmult = tmp & 0b1111;
-                pllmult |= (tmp >> 8);
+                pllmult = (tmp >> 8) | (tmp & 0b1111);
+                pllmult += 2;
 
                 if(pllrefclk == 0x00) {
                     /* HSI oscillator clock divided by 2 selected as PLL clock entry */
