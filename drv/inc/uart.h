@@ -25,9 +25,10 @@ typedef struct serialbus {
     uint32_t speed;
     union{
         struct {
-            uint8_t datalength  :4;
-            uint8_t parity      :2;
-            uint8_t stopbit     :2;
+            uint32_t datalength  :4;
+            uint32_t parity      :2;
+            uint32_t stopbit     :2;
+            uint32_t cfg_gpio    :1;
         };
         uint32_t cfg;
     };
