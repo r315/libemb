@@ -42,6 +42,15 @@ extern "C" {
 #define HISTORY_MAX_SIZE 	            5
 #endif
 
+#define CMD_IS_PARM(_i, _P)             !strcmp((const char*)argv[_i], (const char*)_P)
+#define CMD_IS_PARM_1(_P)               CMD_IS_PARM(1, _P)
+#define CMD_IS_PARM_2(_P)               CMD_IS_PARM(2, _P)
+#define CMD_IS_PARM_3(_P)               CMD_IS_PARM(3, _P)
+#define CMD_IS_PARM_4(_P)               CMD_IS_PARM(4, _P)
+
+#define CMD_GET_INT_PARM(_i, _P)        CMD_IS_PARM(argv[_i], (int32_t*)&_P)
+#define CMD_GET_HINT_PARM(_i, _P)       CMD_IS_PARM(argv[_i], (uint32_t*)&_P)
+
 typedef enum con_res{
     CON_IDLE = 0,
     CON_LINE
