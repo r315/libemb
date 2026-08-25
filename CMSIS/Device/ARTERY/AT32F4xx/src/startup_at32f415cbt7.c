@@ -57,7 +57,12 @@ static void fault_init(void)
     RCC->APB2RST |= RCC_APB2RST_USART1RST;
     RCC->APB2RST &= ~RCC_APB2RST_USART1RST;
 
-    USART1->BAUDR = 0x28b;      // 115200
+    // Configure HSI
+    RCC->CTRL |= RCC_CTRL_HSIEN;
+    while ((RCC->CTRL & RCC_CTRL_HSISTBL) == 0);
+    RCC->CFG = 0;
+
+    USART1->BAUDR = 8000000 / 115200;
     USART1->CTRL1 = 0x2008;
 
     GPIOA->CTRLH = 0x88844494;   // Cfg PA9 as AF
