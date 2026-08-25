@@ -226,6 +226,8 @@ void SystemInit(void)
     {
     }
 
+    fpll = 150000000UL;
+
     /* Select PLL as system clock source */
     SystemConfigClockSrc(RCC_CFG_SYSCLKSEL_PLL);
 
@@ -253,6 +255,8 @@ static uint32_t configurePll(uint32_t fin, uint32_t fout)
     fout /= 1000;
 
     if((div % 1000) == 0){
+        // Integer multiplication.
+        // This seams to fail above 204MHz with 12MHz HSE
         pll_cfg = RCC->CFG & ~(RCC_CFG_PLLHSEPSC | RCC_CFG_PLLMULT);
         div /= 1000;
 
@@ -266,6 +270,11 @@ static uint32_t configurePll(uint32_t fin, uint32_t fout)
             pll_cfg |= RCC_CFG_PLLHSEPSC;
             div >>= 1;
             fin <<= 1;
+        }
+
+        if(div < 2){
+            // Invalid div
+            return 0;
         }
 
         if(fin < 5000){
@@ -284,11 +293,8 @@ static uint32_t configurePll(uint32_t fin, uint32_t fout)
 
         fout = fin * div;
 
-        if(div < 2){
-            return 0;
-        }
-
-        div -= 2;
+        // Adjust PLLMULT, if div > 14 -1 : -2
+        div -= (div > 14) ? 1 : 2;
 
         pll_cfg |= (div & 0x0F) << 18; // set bits 21:18
         pll_cfg |= (div & 0x30) << 25; // set bits 30:29
@@ -300,7 +306,8 @@ static uint32_t configurePll(uint32_t fin, uint32_t fout)
         return fout * 1000;
     }
 
-    // use flexible configuration
+    // Use flexible configuration
+    // Seams able to work at 250MHz with 12MHz HSE
 
     for (uint32_t ms = 1; ms <= 64; ms++)
     {
@@ -309,8 +316,8 @@ static uint32_t configurePll(uint32_t fin, uint32_t fout)
         // 2 MHz <= FIN/MS <= 16 MHz
         if (fref < 2000U || fref > 16000U)
             continue;
-
-        for (uint8_t pdiv = 1; pdiv <= 64; pdiv++)
+        // pdiv = [1,2,4,8,16,32]
+        for (uint8_t pdiv = 1; pdiv < 64; pdiv <<= 1)
         {
             uint32_t numerator   = (uint32_t)fout * ms * pdiv;
 
@@ -468,7 +475,7 @@ uint32_t SystemConfigClockSrc(uint8_t src)
 
         FLASH->ACR = fls_acr | FLASH_ACR_PRFTBE;
         /* Configure system clock dividers */
-        if(fpll == 150000000UL){
+        if(fpll > 75000000UL){
             RCC->CFG &= ~(RCC_CFG_AHBPSC | RCC_CFG_APB2PSC | RCC_CFG_APB1PSC | RCC_CFG_ADCPSC);
             RCC->CFG |= (RCC_CFG_AHBPSC_DIV1 | RCC_CFG_APB2PSC_DIV2 | RCC_CFG_APB1PSC_DIV2 | RCC_CFG_ADCPSC_DIV6);
         }
