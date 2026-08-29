@@ -293,8 +293,8 @@ static uint32_t configurePll(uint32_t fin, uint32_t fout)
 
         fout = fin * div;
 
-        // Adjust PLLMULT, if div > 14 -1 : -2
-        div -= (div > 14) ? 1 : 2;
+        // Adjust PLLMULT, if div > 16 -1 : -2
+        div -= (div > 16) ? 1 : 2;
 
         pll_cfg |= (div & 0x0F) << 18; // set bits 21:18
         pll_cfg |= (div & 0x30) << 25; // set bits 30:29
