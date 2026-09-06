@@ -1,36 +1,26 @@
 
 #include <stddef.h>
 #include "stm32l4xx.h"
+#include "dma_stm32l4xx.h"
 #include "tone.h"
+#include "dma.h"
 
 #define BUZ_DEFAULT_VOLUME     	1
 #define FREQ_TO_US(_F)          (1000000/_F)
 
-#if defined(__NUCLEO_L412KB__)
-#define BUZ_TIM                 TIM16
-#define BZ_DMA_CH 				DMA1_Channel3
-#define BZ_DMA_ISR 				DMA_ISR_TCIF3
-#define BZ_DMA_IFCR 			DMA_IFCR_CGIF3
-#define BZ_DMA_IRQ				DMA1_Channel3_IRQn
-#define DMA_HANDLER_PROTOTYPE 	void DMA1_Channel3_IRQHandler(void)
-#else
-#define BUZ_TIM                 TIM1
-#define BZ_DMA_CH 				DMA1_Channel5
-#define BZ_DMA_ISR 				DMA_ISR_TCIF5
-#define BZ_DMA_IFCR 			DMA_IFCR_CGIF5
-#define DMA_HANDLER_PROTOTYPE 	void DMA1_Channel5_IRQHandler(void)
-#endif
-
 typedef struct {
+    TIM_TypeDef *tim;
+    dmatype_t dma;
     const tone_t *ptone;
     uint8_t volume;
     uint8_t status;
+    uint16_t period;    // Period of PWM frequency in us
+    uint16_t duration;  // Tone duration in us
+    volatile uint32_t *duty;
     void (*cb)(const tone_t**);
-}pwm_tone_t;
+}tone_pwm_t;
 
-static pwm_tone_t pwm_tone = {0};
-static uint16_t tone_period;    // Period of PWM frequency in us
-static uint16_t tone_duration;  // Tone duration in us
+static tone_pwm_t tone_pwm = {0};
 
 /**
  * @brief Basic tone generation on pin PA8 using TIM1_CH1 and DMA
@@ -50,56 +40,40 @@ static uint16_t tone_duration;  // Tone duration in us
  * @brief TIM1 update event DMA request handler
  *
  * */
-DMA_HANDLER_PROTOTYPE{
-
-    if(DMA1->ISR & BZ_DMA_ISR){
-
-    	BZ_DMA_CH->CCR &= ~DMA_CCR_EN;      // Disable DMA channel
-    	DMA1->IFCR |= BZ_DMA_IFCR;          // Clear EOT flag
-
-        // Get next tone
-        if(pwm_tone.cb){
-            pwm_tone.cb(&pwm_tone.ptone);
-        }else{
-            // double test
-            if(pwm_tone.ptone)
-            pwm_tone.ptone++;
-        }
-
-		if(pwm_tone.ptone != NULL){
-			if(pwm_tone.ptone->d != 0){
-				// Load tone
-				if(pwm_tone.ptone->f != 0){
-					tone_period = FREQ_TO_US(pwm_tone.ptone->f) - 1; // Set PWM freq
-					#if defined(__NUCLEO_L412KB__)
-    				BUZ_TIM->CCER |= TIM_CCER_CC1NE;
-					#else
-					BUZ_TIM->CCER |= TIM_CCER_CC1E;              // Enable channel
-					#endif
-				}else{
-					// TODO: FIX when frequency = 0
-					// for now uses the previous played frequency
-					// to calculate the muted duration
-					#if defined(__NUCLEO_L412KB__)
-    				BUZ_TIM->CCER &= ~TIM_CCER_CC1NE;
-					#else
-					BUZ_TIM->CCER &= ~TIM_CCER_CC1E;             // Disable channel (mute)
-					#endif
-				}
-
-				tone_duration = (pwm_tone.ptone->d * 1000UL) / tone_period;
-
-				BUZ_TIM->CCR1 = (tone_period * pwm_tone.volume) / 100; // Set duty
-
-				BZ_DMA_CH->CNDTR = tone_duration;                 // Update tone duration
-				BZ_DMA_CH->CCR |= DMA_CCR_EN;    				  // Enable DMA channel
-				return;
-        	}
-        }
-
-		// Tone ended
-        TONE_Stop();
+static void tone_eot_handler(void)
+{
+    // Get next tone
+    if(tone_pwm.cb){
+        tone_pwm.cb(&tone_pwm.ptone);
+    }else{
+        // double test
+        if(tone_pwm.ptone)
+        tone_pwm.ptone++;
     }
+
+    if(tone_pwm.ptone != NULL){
+        if(tone_pwm.ptone->d != 0){
+            // Load tone
+            if(tone_pwm.ptone->f != 0){
+                tone_pwm.period = FREQ_TO_US(tone_pwm.ptone->f) - 1; // Set PWM freq
+            }
+
+            // TODO: FIX when frequency = 0
+            // for now uses the previous played frequency
+            // to calculate the muted duration
+
+            tone_pwm.duration = (tone_pwm.ptone->d * 1000UL) / tone_pwm.period;
+
+            TONE_Volume(tone_pwm.volume);
+
+            tone_pwm.dma.len = tone_pwm.duration;   // Update tone duration
+            DMA_Start(&tone_pwm.dma);
+            return;
+        }
+    }
+
+    // Tone ended
+    TONE_Stop();
 }
 
 /**
@@ -107,7 +81,8 @@ DMA_HANDLER_PROTOTYPE{
  * PA8 for TIM1_CH1
  * PB6 for TIM16_CH1N
  */
-static inline void initPwmPin(void){
+static void tone_init_pin(void)
+{
 #if defined(__NUCLEO_L412KB__)
 #define GPIOB_PIN6_AF           (2 << GPIO_MODER_MODE6_Pos)
 #define GPIOB_PIN6_TIM16_CH1N   (14 << GPIO_AFRH_AFSEL14_Pos)
@@ -123,6 +98,8 @@ static inline void initPwmPin(void){
 	};
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 */
+    tone_pwm.tim->CCER |= TIM_CCER_CC1NE;
+
     uint32_t tmp = GPIOB->MODER & ~(GPIO_MODER_MODE6);
     GPIOB->MODER = tmp | GPIOB_PIN6_AF;
     tmp = GPIOB->AFR[0] & ~(GPIO_AFRL_AFSEL6);
@@ -134,78 +111,91 @@ static inline void initPwmPin(void){
 #endif
 }
 
-/**
- * @brief Configure DMA
- */
-static inline void initDMA(void){
-#if defined(__NUCLEO_L412KB__)
-	RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;         // Enable DMA1
-	BZ_DMA_CH->CPAR = (uint32_t)&BUZ_TIM->ARR;  // Destination peripheral
-	BZ_DMA_CH->CCR =
-		DMA_CCR_MSIZE_0 |                       // 16bit Dst size
-		DMA_CCR_PSIZE_0 |                       // 16bit src size
-		DMA_CCR_DIR |                           // Read from memory
-		DMA_CCR_TCIE;                           // Enable end of transfer interrupt
+uint32_t TONE_PwmInit(tone_init_t *init)
+{
+    uint16_t ccm_value, ctrl1_value, dma_req;
+    // Enable timer and set dma request
+    switch((uint32_t)init->per){
+        case (uint32_t)TIM1:
+            RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+            dma_req = DMA1_REQ_TIM1_UP;
+            // Enable OC and OCN
+            TIM1->BDTR |= TIM_BDTR_MOE;
+            break;
+        //case (uint32_t)TIM2:
+        //case (uint32_t)TIM6:
+        //case (uint32_t)TIM15:
+        case (uint32_t)TIM16:
+            RCC->APB2ENR |= RCC_APB2ENR_TIM16EN;
+            dma_req = DMA1_REQ_TIM16_UP;
+            TIM16->BDTR |= TIM_BDTR_MOE;
+            break;
 
-	DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~(DMA_CSELR_C1S)) | (4 << DMA_CSELR_C3S_Pos);
-	NVIC_EnableIRQ(BZ_DMA_IRQ);
-#else
-	RCC->AHBENR |= RCC_AHBENR_DMA1EN;               // Enable DMA1
-	DMA1_Channel5->CPAR = (uint32_t)&BUZ_TIM->ARR;  // Destination peripheral
-	DMA1_Channel5->CCR =
-			DMA_CCR_MSIZE_0 |                       // 16bit Dst size
-			DMA_CCR_PSIZE_0 |                       // 16bit src size
-			DMA_CCR_DIR |                           // Read from memory
-			DMA_CCR_TCIE;                           // Enable end of transfer interrupt
-	NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-#endif
-}
+        default:
+            return TONE_ERR;
+    }
+    // Assign peripheral to internal structure
+    tone_pwm.tim = init->per;
+    // Stop timer
+    tone_pwm.tim->CR1 = 0;
+    // 1us clock
+    tone_pwm.tim->PSC = (SystemCoreClock/1000000) - 1;
+    // Set pin idle state
+    // TODO: this only applies to some timers, apply only on the ones that support it
+    // otherwise return error
+    if(init->pin_idle){
+        // pin idles high
+        ctrl1_value = 0;
+        // PWM mode 2
+        ccm_value = 0x70;
+    }else{
+        ctrl1_value = TIM_CR1_DIR;
+        // PWM mode 1
+        ccm_value = 0x60;
+    }
+    // Configure and enable timer channel
+    switch(init->ch){
+        case 0:
+            tone_pwm.tim->CCMR1 = (tone_pwm.tim->CCMR1 & ~0x70) | ccm_value;
+            tone_pwm.duty = &tone_pwm.tim->CCR1;
+            break;
+        case 1:
+        case 2:
+        case 3:
+        default:
+            return TONE_ERR;
+    }
 
-/**
- * @brief Configure Timer
- */
-static inline void initTimer(void){
-#if defined(__NUCLEO_L412KB__)
-	RCC->APB2ENR |= RCC_APB2ENR_TIM16EN;
-#else
-	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
-#endif
-
-#ifdef BUZ_IDLE_HIGH
-    BUZ_TIM->CR1 = 0;
-    BUZ_TIM->CCMR1 = (7 << 4);                      // PWM mode 2
-#else
-    BUZ_TIM->CR1 = TIM_CR1_DIR;
-    BUZ_TIM->CCMR1 = (6 << 4);                      // PWM mode 1
-#endif
-    BUZ_TIM->PSC = (SystemCoreClock/1000000) - 1;	// 1us clock
-#if defined(__NUCLEO_L412KB__)
-    BUZ_TIM->CCER = TIM_CCER_CC1NE;                 // Enable channel inverted
-#else
-	BUZ_TIM->CCER = TIM_CCER_CC1E;                  // Enable channel
-#endif
-    BUZ_TIM->BDTR |= TIM_BDTR_MOE;                  // Enable OC and OCN
+    // set timer configuration
+    tone_pwm.tim->CR1 = ctrl1_value;
     // Force idle state
-    BUZ_TIM->ARR = 0xFFF;
-    BUZ_TIM->CNT = BUZ_TIM->ARR;
-    TONE_Volume(BUZ_DEFAULT_VOLUME);                // Low volume level
-    BUZ_TIM->EGR |= TIM_EGR_UG;
+    tone_pwm.tim->ARR = 0xFFF;
+    tone_pwm.tim->CNT = tone_pwm.tim->ARR;
+
+    TONE_Volume(BUZ_DEFAULT_VOLUME);
+
+    // reset timer
+    tone_pwm.tim->EGR |= TIM_EGR_UG;
     // Enable DMA Request
-    BUZ_TIM->DIER |= TIM_DIER_UDE;
-}
+    tone_pwm.tim->DIER |= TIM_DIER_UDE;
 
-enum tone_e TONE_Init(void){
+    tone_init_pin();
 
-    // Configure DMA
-    initDMA();
+    // Configure dma
+    tone_pwm.dma.dir = DMA_DIR_P2P;
+    tone_pwm.dma.src = &tone_pwm.period;
+    tone_pwm.dma.ssize = DMA_CCR_MSIZE_16;
+    tone_pwm.dma.dst = (void*)&tone_pwm.tim->ARR;
+    tone_pwm.dma.dsize = DMA_CCR_PSIZE_16;
+    tone_pwm.dma.single = 1; // No circular buffer
+    tone_pwm.dma.eot = tone_eot_handler;
+    DMA_Config(&tone_pwm.dma, dma_req);
+    // Clear tone pointer
+    tone_pwm.ptone = NULL;
+    tone_pwm.cb = NULL;
+    tone_pwm.status = TONE_IDLE;
 
-    // Configure timer
-    initTimer();
-
-    // Configure pin
-    initPwmPin();
-
-    return TONE_IDLE;
+    return tone_pwm.status;
 }
 
 /**
@@ -220,34 +210,36 @@ void TONE_Start(uint16_t freq, uint16_t duration)
         return;
     }
 
-    tone_period = FREQ_TO_US(freq) - 1;              // Get period in us
-    tone_duration = (duration * 1000UL) / tone_period;   // Calculate duration in us
+    if(!tone_pwm.tim){
+        tone_pwm.status = TONE_ERR;
+        return;
+    }
 
-	BZ_DMA_CH->CMAR = (uint32_t)(&tone_period);  // Source memory
-	BZ_DMA_CH->CNDTR = tone_duration;            // Number of transfers => duration
-	BZ_DMA_CH->CCR |= DMA_CCR_EN;                // Enable DMA channel
+    tone_pwm.period = FREQ_TO_US(freq) - 1;
+    tone_pwm.duration = (duration * 1000UL) / tone_pwm.period;
 
-	BUZ_TIM->ARR = tone_period;			// Set PWM frequency
-	BUZ_TIM->CNT = BUZ_TIM->ARR;		// Force inactive state
-	#if defined(__NUCLEO_L412KB__)
-	BUZ_TIM->CCER |= TIM_CCER_CC1NE; 	// Enable channel
-	#else
-	BUZ_TIM->CCER |= TIM_CCER_CC1E;     // Enable channel
-	#endif
-	BUZ_TIM->CCR1 = (tone_period * pwm_tone.volume) / 100; // Set duty
-    BUZ_TIM->CR1 |= TIM_CR1_CEN;        // Start Timer
-    pwm_tone.status |= TONE_PLAYNG;
+    tone_pwm.dma.len = tone_pwm.duration;                   // Number of transfers => duration
+    DMA_Start(&tone_pwm.dma);
+    // Set frequency
+	tone_pwm.tim->ARR = tone_pwm.period;
+	tone_pwm.tim->CNT = tone_pwm.tim->ARR;
+    // Set duty
+	TONE_Volume(tone_pwm.volume);
+
+    tone_pwm.tim->CR1 |= TIM_CR1_CEN;
+    tone_pwm.status |= TONE_PLAYNG;
 }
 
 void TONE_Stop(void)
 {
-    BZ_DMA_CH->CCR &= ~DMA_CCR_EN; // Disable DMA channel
-	BUZ_TIM->CR1 &= ~TIM_CR1_CEN;  // Stop timer
-    BUZ_TIM->CNT = BUZ_TIM->ARR;   // Force idle
+    DMA_Cancel(&tone_pwm.dma);
 
-    pwm_tone.ptone = NULL;
-    pwm_tone.cb = NULL;
-    pwm_tone.status = TONE_IDLE;
+	tone_pwm.tim->CR1 &= ~TIM_CR1_CEN;  // Stop timer
+    tone_pwm.tim->CNT = tone_pwm.tim->ARR;   // Force idle
+
+    tone_pwm.ptone = NULL;
+    tone_pwm.cb = NULL;
+    tone_pwm.status = TONE_IDLE;
 }
 
 /**
@@ -265,10 +257,10 @@ uint8_t TONE_Play(const tone_t *tone){
 
     if(tone){
         TONE_Start(tone->f, tone->d);
-        pwm_tone.ptone = tone;
+        tone_pwm.ptone = tone;
     }
 
-    return pwm_tone.status;
+    return tone_pwm.status;
 }
 
 /**
@@ -284,15 +276,15 @@ uint8_t TONE_Play(const tone_t *tone){
 uint8_t TONE_Volume(uint8_t level){
 
 	if(level <= 100){
-		pwm_tone.volume = level;
-        BUZ_TIM->CCR1 = (BUZ_TIM->ARR * level)/100;
+		tone_pwm.volume = level;
+        *tone_pwm.duty = (tone_pwm.period * level) / 100;
 	}
 
-	return pwm_tone.volume;
+	return tone_pwm.volume;
 }
 
 void TONE_SetCallback(void (*cb)(const tone_t **))
 {
-    pwm_tone.cb = cb;
+    tone_pwm.cb = cb;
 }
 

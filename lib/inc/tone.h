@@ -7,6 +7,14 @@ extern "C" {
 
 #include <stdint.h>
 
+typedef struct tone_init {
+    void *per;          // peripheral to be configured
+    uint8_t ch;         // Compare channel nr - 1
+    uint8_t pin;        // Pin name
+    uint8_t pin_idle;   // Pin idle state
+    uint8_t volume;     // Initial volume
+}tone_init_t;
+
 typedef struct tone{
     uint16_t f;     // Frequency 50Hz to 50kHz
     uint16_t d;     // 1ms to 50000ms
@@ -20,9 +28,17 @@ enum tone_e{
 
 /**
  * @brief Initializes and configure
- * low level hardware
+ * low level hardware, implemented at board level
  */
 enum tone_e TONE_Init(void);
+
+/**
+ * @brief Called from TONE_Init with appropriated
+ *       init structure
+ * @param init
+ * @return
+ */
+uint32_t TONE_PwmInit(tone_init_t *init_struct);
 
 /**
  * @brief Starts playing a tone or a

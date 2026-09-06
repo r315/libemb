@@ -1,7 +1,7 @@
 #include <stddef.h>
+#include "stm32f1xx.h"
 #include "gpio_stm32f1xx.h"
 #include "dma_stm32f1xx.h"
-#include "tone_stm32f1xx.h"
 #include "tone.h"
 #include "dma.h"
 #include "gpio.h"
@@ -20,7 +20,7 @@
  * */
 
  typedef struct {
-    TIM_TypeDef *tmr;           // Timer peripheral
+    TIM_TypeDef *tim;           // Timer peripheral
     dmatype_t dma;              // DMA data
     const tone_t *next;         // Next tone to be played
     volatile uint32_t *duty;
@@ -82,11 +82,11 @@ static void tone_eof_handler(void)
   * @param init
   * @return     TONE_ERR, TONE_IDLE
   */
-uint32_t TONE_PwmInit(tone_pwm_init_t *init)
+uint32_t TONE_PwmInit(tone_init_t *init)
 {
     uint16_t ccm_value, ccr1_value, dma_req;
 
-    switch((uint32_t)init->tim){
+    switch((uint32_t)init->per){
         case (uint32_t)TIM1:
             RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
             dma_req = DMA1_REQ_TIM1_UP;
@@ -109,6 +109,8 @@ uint32_t TONE_PwmInit(tone_pwm_init_t *init)
             return TONE_ERR;
     }
 
+    tone_pwm.tim = init->per;
+
     if(init->pin_idle){
         // pin idles high
         ccr1_value = 0;
@@ -123,46 +125,46 @@ uint32_t TONE_PwmInit(tone_pwm_init_t *init)
     // Configure and enable channel
     switch(init->ch){
         case 0:
-            init->tim->CCMR1 = (init->tim->CCMR1 & ~0x70) | ccm_value;
-            tone_pwm.duty = &init->tim->CCR1;
+            tone_pwm.tim->CCMR1 = (tone_pwm.tim->CCMR1 & ~0x70) | ccm_value;
+            tone_pwm.duty = &tone_pwm.tim->CCR1;
             break;
         case 1:
-            init->tim->CCMR1 = (init->tim->CCMR1 & ~0x7000) | (ccm_value << 8);
-            tone_pwm.duty = &init->tim->CCR2;
+            tone_pwm.tim->CCMR1 = (tone_pwm.tim->CCMR1 & ~0x7000) | (ccm_value << 8);
+            tone_pwm.duty = &tone_pwm.tim->CCR2;
             break;
         case 2:
-            init->tim->CCMR2 = (init->tim->CCMR2 & ~0x70) | ccm_value;
-            tone_pwm.duty = &init->tim->CCR3;
+            tone_pwm.tim->CCMR2 = (tone_pwm.tim->CCMR2 & ~0x70) | ccm_value;
+            tone_pwm.duty = &tone_pwm.tim->CCR3;
             break;
         case 3:
-            init->tim->CCMR2 = (init->tim->CCMR2 & ~0x7000) | (ccm_value << 8);
-            tone_pwm.duty = &init->tim->CCR4;
+            tone_pwm.tim->CCMR2 = (tone_pwm.tim->CCMR2 & ~0x7000) | (ccm_value << 8);
+            tone_pwm.duty = &tone_pwm.tim->CCR4;
             break;
         default:
             return TONE_ERR;
     }
 
-    init->tim->CCR1 = ccr1_value;
+    tone_pwm.tim->CCR1 = ccr1_value;
 
-    init->tim->PSC = (SystemCoreClock/1000000) - 1;   // 1us clock
-    init->tim->CCER |= TIM_CCER_CC1E << (init->ch << 2);
+    tone_pwm.tim->PSC = (SystemCoreClock/1000000) - 1;   // 1us clock
+    tone_pwm.tim->CCER |= TIM_CCER_CC1E << (init->ch << 2);
 
     // Force idle state
-    init->tim->ARR = 0xFFFF;
-    init->tim->CNT = init->tim->ARR;
+    tone_pwm.tim->ARR = 0xFFFF;
+    tone_pwm.tim->CNT = tone_pwm.tim->ARR;
 
-    tone_pwm.tmr = init->tim;
+    tone_pwm.tim = tone_pwm.tim;
 
     TONE_Volume(tone_pwm.volume);
     // Reload counter
-    tone_pwm.tmr->EGR |= TIM_EGR_UG;
+    tone_pwm.tim->EGR |= TIM_EGR_UG;
     // Enable DMA Request on update event
-    tone_pwm.tmr->DIER |= TIM_DIER_UDE;
+    tone_pwm.tim->DIER |= TIM_DIER_UDE;
 
     tone_pwm.dma.dir = DMA_DIR_P2P;         // no mem/per increment
     tone_pwm.dma.src = &tone_pwm.period;
     tone_pwm.dma.ssize = DMA_CCR_MSIZE_16;
-    tone_pwm.dma.dst = (void*)&tone_pwm.tmr->ARR;
+    tone_pwm.dma.dst = (void*)&tone_pwm.tim->ARR;
     tone_pwm.dma.dsize = DMA_CCR_PSIZE_16;
     tone_pwm.dma.single = 1;                // No circular buffer
     tone_pwm.dma.eot = tone_eof_handler;
@@ -187,7 +189,7 @@ void TONE_Start(uint16_t f, uint16_t d)
         return;
     }
 
-    if(!tone_pwm.tmr){
+    if(!tone_pwm.tim){
         tone_pwm.status = TONE_ERR;
         return;
     }
@@ -198,10 +200,10 @@ void TONE_Start(uint16_t f, uint16_t d)
 	tone_pwm.dma.len = tone_pwm.duration;                   // Number of transfers => duration
     DMA_Start(&tone_pwm.dma);
 
-	tone_pwm.tmr->ARR = tone_pwm.period;			        // Set PWM frequency
-	tone_pwm.tmr->CNT = tone_pwm.tmr->ARR;	                // Force inactive state
+	tone_pwm.tim->ARR = tone_pwm.period;			        // Set PWM frequency
+	tone_pwm.tim->CNT = tone_pwm.tim->ARR;	                // Force inactive state
 	*tone_pwm.duty = (tone_pwm.period * tone_pwm.volume) / 100;
-    tone_pwm.tmr->CR1 |= TIM_CR1_CEN;
+    tone_pwm.tim->CR1 |= TIM_CR1_CEN;
     tone_pwm.status |= TONE_PLAYNG;
 }
 
@@ -211,8 +213,8 @@ void TONE_Start(uint16_t f, uint16_t d)
 void TONE_Stop(void)
 {
     DMA_Cancel(&tone_pwm.dma);
-    tone_pwm.tmr->CR1 &= ~TIM_CR1_CEN;      // Stop timer
-    tone_pwm.tmr->CNT = tone_pwm.tmr->ARR;  // Force idle state
+    tone_pwm.tim->CR1 &= ~TIM_CR1_CEN;      // Stop timer
+    tone_pwm.tim->CNT = tone_pwm.tim->ARR;  // Force idle state
     tone_pwm.next = NULL;
     tone_pwm.cb = NULL;
     tone_pwm.status = TONE_IDLE;
@@ -242,7 +244,7 @@ uint8_t TONE_Play(const tone_t *tone)
  * */
 uint8_t TONE_Volume(uint8_t level)
 {
-    if(tone_pwm.tmr && level <= 100){
+    if(tone_pwm.tim && level <= 100){
         tone_pwm.volume = level;
         *tone_pwm.duty = (tone_pwm.period * level) / 100;
 	}
