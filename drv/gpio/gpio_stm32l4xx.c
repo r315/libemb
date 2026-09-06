@@ -2,7 +2,10 @@
 #include "stm32l4xx.h"
 #include "gpio_stm32l4xx.h"
 
+typedef void(*gpio_int_handler_t)(void);
+
 static const uint32_t ports[] = {GPIOA_BASE, GPIOB_BASE, GPIOC_BASE, GPIOD_BASE};
+static gpio_int_handler_t gpio_int_handler[16];
 
 static GPIO_TypeDef *getPort(pinName_e name)
 {
@@ -14,12 +17,36 @@ static GPIO_TypeDef *getPort(pinName_e name)
     return (GPIO_TypeDef*)ports[pidx];
 }
 
+static void exti_handler(void)
+{
+    uint32_t pnd = EXTI->PR1;
+
+    for(int i = 5; i < 16; i++){
+        if(pnd & (1 << i)){
+            gpio_int_handler[i]();
+        }
+    }
+
+    EXTI->PR1 = pnd;
+}
+
+static uint32_t exti_get_irqn(uint8_t pin)
+{
+    if(pin < 5){
+        return EXTI0_IRQn + pin;
+    }else if(pin < 10){
+        return EXTI9_5_IRQn;
+    }
+
+    return EXTI15_10_IRQn;
+}
+
 /**
  * @brief Configure GPIO pin
  * @param port : pin port
  * @param pin : pin number 0 - 15
  * @param mode : See macros
- * 
+ *
  * */
 void GPIO_Config(pinName_e name, uint32_t cfg) {
     GPIO_TypeDef *port;
@@ -34,7 +61,7 @@ void GPIO_Config(pinName_e name, uint32_t cfg) {
 
     tmp = !!GPIO_CFG_TYPE_MASK(cfg);
     port->OTYPER = (port->OTYPER & ~(1 << pin)) | (tmp << pin);
-    
+
     tmp = GPIO_CFG_SPEED_MASK(cfg);
     port->OSPEEDR = (port->OSPEEDR & ~(3 << (pin << 1))) | (tmp << (pin << 1));
 
@@ -51,6 +78,11 @@ void GPIO_Config(pinName_e name, uint32_t cfg) {
     }
 }
 
+/**
+ * @brief
+ * @param name
+ * @return
+ */
 uint32_t GPIO_Read(pinName_e name){
     GPIO_TypeDef *port;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
@@ -62,6 +94,11 @@ uint32_t GPIO_Read(pinName_e name){
     return !!(port->IDR & (1 << pin));
 }
 
+/**
+ * @brief
+ * @param name
+ * @param state
+ */
 void GPIO_Write(pinName_e name, uint32_t state){
     GPIO_TypeDef *port;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
@@ -73,6 +110,10 @@ void GPIO_Write(pinName_e name, uint32_t state){
     port->BSRR = (state != 0)? (1 << pin) : (0x10000 << pin);
 }
 
+/**
+ * @brief
+ * @param name
+ */
 void GPIO_Toggle(pinName_e name){
     GPIO_TypeDef *port;
     uint8_t pin = GPIO_NAME_TO_PIN(name);
@@ -84,21 +125,93 @@ void GPIO_Toggle(pinName_e name){
     port->ODR = port->IDR ^ (1<<pin);
 }
 
+/**
+ * @brief
+ * @param name
+ * @param value
+ */
 void GPIO_PORT_Write(pinName_e name, uint32_t value){
     GPIO_TypeDef *port;
 
     if ((port = getPort(name)) == NULL) {
         return;
     }
-    
+
     port->ODR = value;
 }
+
+/**
+ * @brief
+ * @param name
+ * @return
+ */
 uint32_t GPIO_PORT_Read(pinName_e name){
     GPIO_TypeDef *port;
 
     if ((port = getPort(name)) == NULL) {
         return 0;
     }
-    
+
     return port->IDR;
 }
+
+/**
+ * @brief
+ * @param name
+ * @param edge
+ * @param cb
+ */
+void GPIO_AttachInt(pinName_e name, uint8_t edge, void(*cb)(void))
+{
+    uint8_t pin = GPIO_NAME_TO_PIN(name);
+    GPIO_TypeDef *port = getPort(name);
+
+    if(cb == NULL || port == NULL){
+        return;
+    }
+
+    uint32_t port_idx = GPIO_NAME_TO_PORT(name);
+    uint32_t exticrx = pin >> 2;
+    uint32_t shift = (pin & 3) << 2;
+
+    // Assign int to pin
+    SYSCFG->EXTICR[exticrx] |= (port_idx << shift);
+
+    if(edge & 1){
+        EXTI->RTSR1 |= (1 << pin);
+    }
+
+    if(edge & 2){
+        EXTI->FTSR1 |= (1 << pin);
+    }
+
+    gpio_int_handler[pin] = cb;
+
+    EXTI->IMR1 |= (1 << pin);
+
+    GPIO_Config(name, GPI_FLOAT);
+
+    NVIC_EnableIRQ(exti_get_irqn(pin));
+}
+
+/**
+ * @brief
+ * @param name
+ */
+void GPIO_RemoveInt(uint32_t name)
+{
+    uint8_t pin = GPIO_NAME_TO_PIN(name);
+
+    EXTI->IMR1  &= ~(1 << pin);
+
+    gpio_int_handler[pin] = NULL;
+}
+
+
+void EXTI0_IRQHandler(void){gpio_int_handler[0]();  EXTI->PR1 = 1;}
+void EXTI1_IRQHandler(void){gpio_int_handler[1]();  EXTI->PR1 = 2;}
+void EXTI2_IRQHandler(void){gpio_int_handler[2]();  EXTI->PR1 = 4;}
+void EXTI3_IRQHandler(void){gpio_int_handler[3]();  EXTI->PR1 = 8;}
+void EXTI4_IRQHandler(void){gpio_int_handler[4]();  EXTI->PR1 = 16;}
+void EXTI9_5_IRQHandler(void){ exti_handler(); }
+void EXTI15_10_IRQHandler(void){ exti_handler(); }
