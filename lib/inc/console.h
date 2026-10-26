@@ -80,6 +80,7 @@ class Console {
 		void process(void);
 		void cls(void);
 		void setOutput(const stdinout_t *);
+        void refresh(void);
 
 		void addCommand(ConsoleCommand *);
         void addCommandArray(ConsoleCommand *, int count);
@@ -123,6 +124,7 @@ class Console {
         History m_hist;
 		void replaceLine(char *);
 		con_res_t scanForLine(void);
+        void prompt(void);
 };
 
 

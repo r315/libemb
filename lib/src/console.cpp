@@ -122,12 +122,7 @@ char Console::parseCommand(char *line) {
 void Console::process(void) {
 	if(m_active == NO){
 		m_active = YES;
-		this->printf(
-            VT100_BOLD
-            "%s"
-            VT100_NORMAL
-            ,m_prompt
-        );
+		prompt();
 		return;
 	}
 #if defined(CONSOLE_BLOCKING)
@@ -139,12 +134,7 @@ void Console::process(void) {
 	{
 		m_hist.push(m_line);
 		if(parseCommand(m_line) != CMD_OK_NO_PRT){
-			this->printf(
-                VT100_BOLD
-                "%s"
-                VT100_NORMAL
-                ,m_prompt
-            );
+			prompt();
 		}
         // clear line after reading line and parsing it
 		memset(m_line, '\0', CONSOLE_WIDTH);
@@ -157,11 +147,36 @@ void Console::cls(void){
 	print("\e[2J\r");
 }
 
+void Console::prompt(void)
+{
+    this->printf("\r"
+        VT100_BOLD
+        "%s"
+        VT100_NORMAL
+        ,m_prompt
+    );
+}
+
 /**
  * */
 void Console::setOutput(const stdinout_t *sp){
     if(sp)
 	    m_out = sp;
+}
+
+/**
+ * @brief Redraws prompt and any user input
+ * THIS function needs a better name
+ * @param
+ */
+void Console::refresh(void)
+{
+    prompt();
+    for(uint8_t i = 0; i < m_line_len; i++){
+        m_buf[i] = m_line[i];
+    }
+
+    m_out->write(m_buf, m_line_len);
 }
 
 /**
