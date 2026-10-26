@@ -32,7 +32,7 @@ extern "C" {
 #if defined(DEBUG) || defined(ENABLE_DEBUG)
 #ifdef DBG_PRINTF_FUNC
 #define DBG_PRINTF(...) do { DBG_PRINT_FUNC(__VA_ARGS__); } while(0)
-#define DBG_PRINTLN(...) do { DBG_PRINTF(__VA_ARGS__); DBG_PRINTF("\n"); } while(0)
+#define DBG_PRINTLN(...) do { DBG_PRINT_FUNC(__VA_ARGS__); DBG_PRINT_FUNC("\n"); } while(0)
 #else
 #define DBG_PRINTF dbg_printf
 #define DBG_PRINT(...) do { DBG_PRINTF(__VA_ARGS__); } while(0)
