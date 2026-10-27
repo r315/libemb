@@ -26,16 +26,18 @@
 #define VT100_ED2   "\e[2J"
 
 #ifdef LOG_PRINTF_FUNC
-#define LOG_PRINT(...) \
-    do { LOG_PRINTF_FUNC(__VA_ARGS__); LOG_PRINTF_FUNC("\n"); }while(0)
+#define LOG_PRINT(...) LOG_PRINTF_FUNC(__VA_ARGS__)
+#define LOG_PRINTLN(...) do { DBG_PRINT(__VA_ARGS__); DBG_PRINT("\n"); } while(0)
+int LOG_PRINTF_FUNC(const char* fmt, ...);
 #else
-#define LOG_PRINT(...) \
-    do { printf(__VA_ARGS__); putchar('\n'); } while(0)
+#define LOG_PRINT(...) printf(__VA_ARGS__)
+#define LOG_PRINTLN(...) do { printf(__VA_ARGS__); putchar('\n'); } while(0)
 #endif
 
-#define LOG_INF(...) LOG_PRINT(VT100_GREEN "[INFO]\t" VT100_NORMAL __VA_ARGS__)
-#define LOG_WRN(...) LOG_PRINT(VT100_YELLOW "[WARN]\t" VT100_NORMAL __VA_ARGS__)
-#define LOG_ERR(...) LOG_PRINT(VT100_RED "[ERROR]\t" VT100_NORMAL __VA_ARGS__)
+
+#define LOG_INF(...) LOG_PRINTLN(VT100_GREEN "[INFO]\t" VT100_NORMAL __VA_ARGS__)
+#define LOG_WRN(...) LOG_PRINTLN(VT100_YELLOW "[WARN]\t" VT100_NORMAL __VA_ARGS__)
+#define LOG_ERR(...) LOG_PRINTLN(VT100_RED "[ERROR]\t" VT100_NORMAL __VA_ARGS__)
 
 static void LOG_HEX_DUMP(uint8_t *buf, uint16_t count)
 {
