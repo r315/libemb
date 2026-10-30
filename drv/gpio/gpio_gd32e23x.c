@@ -2,7 +2,9 @@
 #include "gd32e23x.h"
 #include "gpio_gd32e23x.h"
 
+typedef void(*gpio_int_handler_t)(void);
 static const uint32_t ports[] = {GPIOA, GPIOB, GPIOC, 0, 0, GPIOF};
+static gpio_int_handler_t gpio_int_handler[16];
 
 void GPIO_Config(pinName_e name, uint8_t cfg)
 {
@@ -43,4 +45,68 @@ void GPIO_Toggle(pinName_e name)
 
     GPIO_OCTL(port) = port_value ^ (1 << pin);
 }
+
+
+/**
+ * @brief
+ * @param name
+ * @param edge
+ * @param cb
+ */
+void GPIO_AttachInt(pinName_e name, uint8_t edge, void(*cb)(void))
+{
+    if(cb == NULL){
+        return;
+    }
+
+    uint8_t pin = GPIO_NAME_TO_PIN(name);
+    uint32_t port_idx = GPIO_NAME_TO_PORT(name);
+    uint32_t offset = pin >> 2;
+    uint32_t shift = (pin & 3) << 2;
+
+    // Select pin port to exti
+    uint32_t *exti_sel = (uint32_t*)(SYSCFG + 0x08);
+    exti_sel[offset] |= (port_idx << shift);
+
+    if(edge & 1){
+        EXTI_RTEN |= (1 << pin);
+    }
+
+    if(edge & 2){
+        EXTI_FTEN |= (1 << pin);
+    }
+
+    gpio_int_handler[pin] = cb;
+
+    EXTI_INTEN  |= (1 << pin);
+
+    if(pin < 2){
+        NVIC_EnableIRQ(EXTI0_1_IRQn);
+    }else if(pin < 4){
+        NVIC_EnableIRQ(EXTI2_3_IRQn);
+    }else{
+        NVIC_EnableIRQ(EXTI4_15_IRQn);
+    }
+}
+
+void GPIO_RemoveInt(pinName_e name)
+{
+    uint8_t pin = GPIO_NAME_TO_PIN(name);
+
+    EXTI_INTEN  &= ~(1 << pin);
+}
+
+static void extiHandler(uint8_t start, uint8_t end)
+{
+    for(uint8_t i = start; i <= end; i++){
+        if(EXTI_PD & (1 << i)){
+            gpio_int_handler[i]();
+            EXTI_PD = 1 << i;
+        }
+    }
+}
+
+void EXTI0_1_IRQHandler(void) { extiHandler(0, 1); }
+void EXTI2_3_IRQHandler(void) { extiHandler(2, 3); }
+void EXTI4_15_IRQHandler(void){ extiHandler(4, 15); }
 
