@@ -39,7 +39,7 @@ int LOG_PRINTF_FUNC(const char* fmt, ...);
 #define LOG_WRN(...) LOG_PRINTLN(VT100_YELLOW "[WARN]\t" VT100_NORMAL __VA_ARGS__)
 #define LOG_ERR(...) LOG_PRINTLN(VT100_RED "[ERROR]\t" VT100_NORMAL __VA_ARGS__)
 
-static void LOG_HEX_DUMP(uint8_t *buf, uint16_t count)
+static void __attribute__((unused)) LOG_HEX_DUMP(uint8_t *buf, uint16_t count)
 {
     for(uint16_t i = 0; i < count; i ++){
         if( (i & 15) == 0)
