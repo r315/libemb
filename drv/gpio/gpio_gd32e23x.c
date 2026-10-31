@@ -35,6 +35,15 @@ void GPIO_Write(pinName_e name, uint8_t state)
     GPIO_BOP(port) = (state != 0)? (1 << pin) : (0x10000 << pin);
 }
 
+uint32_t GPIO_Read(pinName_e name)
+{
+    uint32_t port = ports[GPIO_NAME_TO_PORT(name)];
+    uint8_t pin = GPIO_NAME_TO_PIN(name);
+    if (port == 0) { return 0; }
+
+    return !!(GPIO_ISTAT(port) & (1 << pin));
+}
+
 void GPIO_Toggle(pinName_e name)
 {
     uint32_t port = ports[GPIO_NAME_TO_PORT(name)];
