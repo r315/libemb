@@ -144,9 +144,9 @@ typedef enum {
 #define GPO_MS_OD                   (GPIO_IOM_OUTPUT | GPIO_SPEED_10M | GPIO_TYPE_OD)
 #define GPO_HS_OD                   (GPIO_IOM_OUTPUT | GPIO_SPEED_50M | GPIO_TYPE_OD)
 
-#define GPI_LS                      (GPIO_IOM_INPUT | GPIO_SPEED_2M | GPIO_TYPE_PP)
-#define GPI_MS                      (GPIO_IOM_INPUT | GPIO_SPEED_10M | GPIO_TYPE_PP)
-#define GPI_HS                      (GPIO_IOM_INPUT | GPIO_SPEED_50M | GPIO_TYPE_PP)
+#define GPI_LS                      (GPIO_IOM_INPUT | GPIO_SPEED_2M)
+#define GPI_MS                      (GPIO_IOM_INPUT | GPIO_SPEED_10M)
+#define GPI_HS                      (GPIO_IOM_INPUT | GPIO_SPEED_50M)
 #define GPI_LS_OD                   (GPIO_IOM_INPUT | GPIO_SPEED_2M | GPIO_TYPE_OD)
 #define GPI_MS_OD                   (GPIO_IOM_INPUT | GPIO_SPEED_10M | GPIO_TYPE_OD)
 #define GPI_HS_OD                   (GPIO_IOM_INPUT | GPIO_SPEED_50M | GPIO_TYPE_OD)
