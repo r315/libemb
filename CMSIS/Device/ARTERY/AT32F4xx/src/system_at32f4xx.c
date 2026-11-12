@@ -367,15 +367,18 @@ static uint32_t configurePll(uint32_t fin, uint32_t fout)
  * @param fosc      Input frequency
  * @param pllclk    Desired output clock
  *
- * @return          Real pllclk, 0 if fail
+ * @return          Real pllclk on success
+ *                  -1 if pll is in use
+ *                  -2 if HSE fails to stablilize
+ *                  -3 if HSI fails to stablilize
  */
-uint32_t SystemConfigPll(uint32_t pll_src, uint32_t fosc, uint32_t pllclk)
+int32_t SystemConfigPll(uint32_t pll_src, uint32_t fosc, uint32_t pllclk)
 {
     __IO uint32_t StartUpCounter = 0, HSIStatus = 0;
 
     // Check if system is currenly using pll
     if(((RCC->CTRL & RCC_CFG_SYSCLKSTS) >> 2) == 2){
-        return 0;
+        return -1;
     }
 
     // Disable pll
@@ -393,8 +396,8 @@ uint32_t SystemConfigPll(uint32_t pll_src, uint32_t fosc, uint32_t pllclk)
         } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
 
         if ((RCC->CTRL & RCC_CTRL_HSESTBL) == RESET) {
-            // Fail to get stable
-            return 0;
+            // HEXT fail to get stable
+            return -2;
         }
     }else{
         // HICK
@@ -406,8 +409,8 @@ uint32_t SystemConfigPll(uint32_t pll_src, uint32_t fosc, uint32_t pllclk)
         } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
 
         if ((RCC->CTRL & RCC_CTRL_HSISTBL) == RESET) {
-            // Fail to get stable
-            return 0;
+            // HSI fail to get stable
+            return -3;
         }
     }
 
