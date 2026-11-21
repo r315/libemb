@@ -22,6 +22,172 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
   <resetMask>0xFFFFFFFF</resetMask>
   <peripherals>
     <peripheral>
+      <name>SIB</name>
+      <description>System information block</description>
+      <groupName>SIB</groupName>
+      <baseAddress>0x1FFFF000</baseAddress>
+      <addressBlock>
+        <offset>0x0</offset>
+        <size>0x4000</size>
+        <usage>registers</usage>
+      </addressBlock>
+      <registers>
+        <register>
+          <name>OB1</name>
+          <displayName>OB1</displayName>
+          <description>User and Read protection</description>
+          <addressOffset>0x800</addressOffset>
+          <size>0x20</size>
+          <access>read-only</access>
+          <resetValue>0xFFFF5AA5</resetValue>
+          <fields>
+            <field>
+            <name>RDP</name>
+            <description>Read protection</description>
+              <bitOffset>0</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+            <field>
+              <name>nRDP</name>
+              <description>Read protection complement</description>
+              <bitOffset>8</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+            <field>
+              <name>WDG_SW</name>
+              <description>Hardware watchdog</description>
+              <bitOffset>16</bitOffset>
+              <bitWidth>1</bitWidth>
+            </field>
+            <field>
+              <name>nRST_STOP</name>
+              <description>Generate reset when entering Stop mode</description>
+              <bitOffset>17</bitOffset>
+              <bitWidth>1</bitWidth>
+            </field>
+            <field>
+              <name>nRST_STDBY</name>
+              <description>Generate reset when entering Standby mode</description>
+              <bitOffset>18</bitOffset>
+              <bitWidth>1</bitWidth>
+            </field>
+            <field>
+              <name>nUSER</name>
+              <description>User option byte complement</description>
+              <bitOffset>24</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>OB2</name>
+          <displayName>OB2</displayName>
+          <description>User data storage</description>
+          <addressOffset>0x804</addressOffset>
+          <size>0x20</size>
+          <access>read-only</access>
+          <resetValue>0xFFFFFFFF</resetValue>
+          <fields>
+            <field>
+            <name>DATA0</name>
+            <description>User Data 0</description>
+              <bitOffset>0</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>nDATA0</name>
+            <description>User data 0 complement</description>
+              <bitOffset>8</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>DATA1</name>
+            <description>User data 1</description>
+              <bitOffset>16</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>nDATA1</name>
+            <description>User data 1 complement</description>
+              <bitOffset>24</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>OB3</name>
+          <displayName>OB3</displayName>
+          <description> Flash memory write protection</description>
+          <addressOffset>0x808</addressOffset>
+          <size>0x20</size>
+          <access>read-only</access>
+          <resetValue>0xFFFFFFFF</resetValue>
+          <fields>
+            <field>
+            <name>WRP0</name>
+            <description>Write protection 0</description>
+              <bitOffset>0</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>nWRP0</name>
+            <description>Write protection 0 complement</description>
+              <bitOffset>8</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>WRP1</name>
+            <description>Write protection 1</description>
+              <bitOffset>16</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>nWRP1</name>
+            <description>Write protection 1 complement</description>
+              <bitOffset>24</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+          </fields>
+        </register>
+        <register>
+          <name>OB4</name>
+          <displayName>OB4</displayName>
+          <description> Flash memory write protection</description>
+          <addressOffset>0x80c</addressOffset>
+          <size>0x20</size>
+          <access>read-only</access>
+          <resetValue>0xFFFFFFFF</resetValue>
+          <fields>
+            <field>
+            <name>WRP2</name>
+            <description>Write protection 2</description>
+              <bitOffset>0</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>nWRP2</name>
+            <description>Write protection 2 complement</description>
+              <bitOffset>8</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>WRP3</name>
+            <description>Write protection 3</description>
+              <bitOffset>16</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+             <field>
+            <name>nWRP3</name>
+            <description>Write protection 3 complement</description>
+              <bitOffset>24</bitOffset>
+              <bitWidth>8</bitWidth>
+            </field>
+          </fields>
+        </register>
+
+      </registers>
+    </peripheral>
+    <peripheral>
       <name>FSMC</name>
       <description>Flexible static memory controller</description>
       <groupName>FSMC</groupName>
