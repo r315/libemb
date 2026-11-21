@@ -211,6 +211,6 @@ void CLOCK_Output(uint32_t src)
         // Set CLKOUT_SEL[2:0]
         RCC->CFG = (RCC->CFG & ~(7 << 24)) | ((src & 7) << 24);
         // PA8 multiplexed push-pull
-        GPIOA->CTRLH |= (11 << 0);
+        GPIOA->CTRLH |= (0x0a << 0);
     }
 }

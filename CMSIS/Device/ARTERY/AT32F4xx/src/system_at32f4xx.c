@@ -371,6 +371,7 @@ static uint32_t configurePll(uint32_t fin, uint32_t fout)
  *                  -1 if pll is in use
  *                  -2 if HSE fails to stablilize
  *                  -3 if HSI fails to stablilize
+ *                  -4 if Unable to configure pll for requested clock
  */
 int32_t SystemConfigPll(uint32_t pll_src, uint32_t fosc, uint32_t pllclk)
 {
@@ -428,9 +429,10 @@ int32_t SystemConfigPll(uint32_t pll_src, uint32_t fosc, uint32_t pllclk)
             HSIStatus = RCC->CTRL & RCC_CTRL_PLLSTBL;
             StartUpCounter++;
         } while ((HSIStatus == 0) && (StartUpCounter != 0xFFFF));
+        return fpll;
     }
 
-    return fpll;
+    return -4;
 }
 
 /**
