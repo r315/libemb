@@ -2365,6 +2365,12 @@ typedef struct
   __IO uint32_t DMACRBADDR;
 } ETH_Type;
 
+typedef struct {
+    __IO uint32_t F_SIZE;
+         uint32_t RESERVED9;
+    __IO uint32_t UID[3];
+}DCI_Type;
+
 /**
   * @}
   */
@@ -2385,6 +2391,7 @@ typedef struct
  #define XMC_R_BASE           ((uint32_t)0xA0000000) /*!< XMC registers base address */
 #endif
 
+#define DCI_BASE              ((uint32_t)0x1FFFF7E0) /*!< Device characteristics information */
 #define UOB_BASE              ((uint32_t)0x1FFFF800) /*!< Flash Option Bytes base address */
 #define MCUDBG_BASE           ((uint32_t)0xE0042000) /*!< Debug MCU registers base address */
 
@@ -2745,6 +2752,7 @@ typedef struct
 #define FLASH               ((FLASH_Type *) FLASH_R_BASE)
 #define UOPTB               ((UOB_Type *) UOB_BASE)
 #define MCUDBG              ((MCUDBG_Type *) MCUDBG_BASE)
+#define DCI                 ((DCI_Type *) DCI_BASE)
 
 /**
   * @}
