@@ -13,6 +13,7 @@
 #define UART_MODE_BLOCKING      0
 #define UART_MODE_FIFO          1
 #define UART_MODE_DMA           2
+#define UART_MODE_INT           3
 
 #ifndef UART_RX_MODE
 #define UART_RX_MODE            UART_MODE_DMA
@@ -35,6 +36,8 @@ typedef struct {
     uint8_t rx_buf[UART_DMA_BUF_SIZE];
 #elif UART_RX_MODE == UART_MODE_FIFO
     fifo_t rxfifo;
+#elif UART_RX_MODE == UART_MODE_INT
+    void (*rx_handler)(uint8_t);
 #endif
 #if UART_TX_MODE == UART_MODE_DMA
     dmatype_t dma_tx;
@@ -144,17 +147,17 @@ void UART_Init(serialbus_t *serialbus)
 
     huart->usart->BAUDR = pclk / serialbus->speed;
 
-    uint32_t tmp = serialbus->datalength == UART_CFG_9BIT ? USART_CTRL1_LEN : 0;
+    uint32_t ctrl = serialbus->datalength == UART_CFG_9BIT ? USART_CTRL1_LEN : 0;
 
     if(serialbus->parity != UART_CFG_PARITY_NONE){
-        tmp = tmp | USART_CTRL1_PCEN | ((serialbus->parity == UART_CFG_PARITY_ODD) ? USART_CTRL1_PSEL : 0);
+        ctrl = ctrl | USART_CTRL1_PCEN | ((serialbus->parity == UART_CFG_PARITY_ODD) ? USART_CTRL1_PSEL : 0);
     }
 
     if(serialbus->stopbit == UART_CFG_STOP_2BIT){
         huart->usart->CTRL2 |= (2 << 12);
     }
 
-    huart->usart->CTRL1 =   tmp |
+    huart->usart->CTRL1 = ctrl |
                             USART_CTRL1_REN | USART_CTRL1_TEN;
 
 
@@ -171,7 +174,7 @@ void UART_Init(serialbus_t *serialbus)
     DMA_Config(&huart->dma_rx, rx_req);
     DMA_Start(&huart->dma_rx);
     huart->usart->CTRL3 |= USART_CTRL3_DMAREN;
-#else
+#elif UART_RX_MODE == UART_MODE_FIFO
     huart->usart->CTRL1 |= USART_CTRL1_RDNEIEN;
     fifo_init(&huart->rxfifo);
 #endif
@@ -187,7 +190,7 @@ void UART_Init(serialbus_t *serialbus)
     huart->dma_tx.eot = NULL;
     huart->usart->CTRL3 |= USART_CTRL3_DMATEN;
     DMA_Config(&huart->dma_tx, tx_req);
-#else
+#elif UART_TX_MODE == UART_MODE_FIFO
     fifo_init(&huart->txfifo);
 #endif
 
@@ -199,7 +202,7 @@ void UART_Init(serialbus_t *serialbus)
 
     serialbus->handle = huart;
 
-#if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
+#if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO || UART_RX_MODE == UART_MODE_INT
     NVIC_EnableIRQ(USART1_IRQn + serialbus->bus);
 #endif
 }
@@ -257,11 +260,16 @@ uint32_t UART_Read(serialbus_t *serialbus, uint8_t *buf, uint32_t len)
             huart->rx_rd = 0;
         }
     }
-#else
+#elif UART_RX_MODE == UART_MODE_FIFO
 	while(count--){
         while(!fifo_get(&huart->rxfifo, buf));
         buf++;
     }
+#else
+    (void)count;
+    (void)huart;
+    (void)buf;
+    len = 0;
 #endif
 
     return len;
@@ -283,8 +291,11 @@ uint32_t UART_Peek(serialbus_t *serialbus, uint8_t *data)
     if(available){
     #if UART_RX_MODE == UART_MODE_DMA
         *data = huart->rx_buf[huart->rx_rd];
-    #else
+    #elif UART_RX_MODE == UART_MODE_FIFO
         *data = fifo_peek(&huart->rxfifo);
+    #else
+        (void)huart;
+        (void)data;
     #endif
     }
 
@@ -302,10 +313,26 @@ uint32_t UART_Available(serialbus_t *serialbus){
     DMA_Channel_Type *stream = (DMA_Channel_Type *)huart->dma_rx.handle;
     uint16_t idx = huart->dma_rx.len - stream->TCNT;
     return (idx > huart->rx_rd) ? idx - huart->rx_rd : huart->rx_rd - idx;
-#else
+#elif UART_RX_MODE == UART_MODE_FIFO
     return fifo_avail(&huart->rxfifo);
+#else
+    (void)huart;
+    return 0;
 #endif
 }
+
+#if UART_RX_MODE == UART_MODE_INT
+void UART_SetRxCb(serialbus_t *serialbus, void (*cb)(uint8_t))
+{
+    huart_t *huart = (huart_t*)serialbus->handle;
+    if(cb){
+        huart->rx_handler = cb;
+        huart->usart->CTRL1 |= USART_CTRL1_RDNEIEN;
+    }else{
+        huart->usart->CTRL1 &= ~USART_CTRL1_RDNEIEN;
+    }
+}
+#endif
 
 /**
  * @brief
@@ -316,7 +343,7 @@ static void UART_IRQHandler(huart_t *huart)
     volatile uint32_t isrflags = huart->usart->STS;
     uint32_t errorflags = isrflags & (uint32_t)(USART_STS_PERR | USART_STS_FERR | USART_STS_ORERR | USART_STS_NERR);
 
-#if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO
+#if UART_RX_MODE == UART_MODE_FIFO || UART_TX_MODE == UART_MODE_FIFO || UART_RX_MODE == UART_MODE_INT
     uint32_t ctrl = huart->usart->CTRL1;
 #endif
 
@@ -326,9 +353,13 @@ static void UART_IRQHandler(huart_t *huart)
         return;
     }
 
-#if (UART_RX_MODE == UART_MODE_FIFO)
+#if UART_RX_MODE == UART_MODE_FIFO || UART_RX_MODE == UART_MODE_INT
     if (((ctrl & USART_CTRL1_REN) != 0U) && ((isrflags & USART_STS_RDNE) != 0U))	{
-            fifo_put(&huart->rxfifo, (uint8_t)huart->usart->DT);
+        #if UART_RX_MODE == UART_MODE_FIFO
+        fifo_put(&huart->rxfifo, (uint8_t)huart->usart->DT);
+        #elif UART_RX_MODE == UART_MODE_INT
+        huart->rx_handler((uint8_t)huart->usart->DT);
+        #endif
     }
 #endif
 
